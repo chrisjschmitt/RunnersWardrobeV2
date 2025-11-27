@@ -156,6 +156,38 @@ export function calculateComfortAdjustment(
   return { temperatureOffset: offset, confidence };
 }
 
+// Find recent feedback that closely matches current weather
+// Returns the feedback if found within last 7 days with high similarity
+function findRecentSimilarFeedback(
+  currentWeather: WeatherData,
+  feedbackHistory: RunFeedback[]
+): RunFeedback | null {
+  const sevenDaysAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
+  
+  // Filter to recent feedback only
+  const recentFeedback = feedbackHistory.filter(f => 
+    new Date(f.timestamp).getTime() > sevenDaysAgo
+  );
+  
+  if (recentFeedback.length === 0) return null;
+  
+  // Find the most similar recent feedback
+  let bestMatch: RunFeedback | null = null;
+  let bestSimilarity = 0;
+  
+  for (const feedback of recentFeedback) {
+    const similarity = calculateFeedbackSimilarity(currentWeather, feedback);
+    
+    // Require very high similarity (> 0.85) to use direct match
+    if (similarity > 0.85 && similarity > bestSimilarity) {
+      bestMatch = feedback;
+      bestSimilarity = similarity;
+    }
+  }
+  
+  return bestMatch;
+}
+
 // Convert feedback records to run records for clothing recommendations
 function feedbackToRunRecord(feedback: RunFeedback): RunRecord {
   return {
@@ -263,6 +295,19 @@ export function getClothingRecommendation(
     temperature: currentWeather.temperature - comfortAdjustment.temperatureOffset,
     feelsLike: currentWeather.feelsLike - comfortAdjustment.temperatureOffset
   };
+
+  // Check for very recent, very similar feedback first
+  // If user just ran in nearly identical conditions, use their choice directly
+  const recentMatch = findRecentSimilarFeedback(currentWeather, feedbackHistory);
+  if (recentMatch) {
+    return {
+      clothing: recentMatch.clothing,
+      confidence: 95,
+      matchingRuns: 1,
+      totalRuns: runs.length + feedbackHistory.length,
+      similarConditions: [feedbackToRunRecord(recentMatch)]
+    };
+  }
 
   // Find similar runs using adjusted weather (includes both CSV runs and feedback)
   const similarRuns = findSimilarRuns(adjustedWeather, runs, feedbackHistory, 0.4);
