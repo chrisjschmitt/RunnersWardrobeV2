@@ -28,6 +28,7 @@ export function StartRun({ apiKey, hasApiKey, temperatureUnit, onNeedApiKey }: S
   const [runState, setRunState] = useState<RunState>('idle');
   const [runStartTime, setRunStartTime] = useState<Date | null>(null);
   const [actualClothing, setActualClothing] = useState<ClothingItems | null>(null);
+  const [hasUserEdits, setHasUserEdits] = useState(false); // Track if user has made edits
   const [feedbackCount, setFeedbackCount] = useState(0);
   const [comfortAdjustment, setComfortAdjustment] = useState<number>(0);
 
@@ -69,12 +70,18 @@ export function StartRun({ apiKey, hasApiKey, temperatureUnit, onNeedApiKey }: S
         const rec = getClothingRecommendation(weatherData, runs, feedbackHistory);
         setRecommendation(rec);
         setFallback(null);
-        setActualClothing(rec.clothing);
+        // Only update actualClothing if user hasn't made edits
+        if (!hasUserEdits) {
+          setActualClothing(rec.clothing);
+        }
       } else {
         const fallbackRec = getFallbackRecommendation(weatherData, feedbackHistory);
         setFallback(fallbackRec);
         setRecommendation(null);
-        setActualClothing(fallbackRec);
+        // Only update actualClothing if user hasn't made edits
+        if (!hasUserEdits) {
+          setActualClothing(fallbackRec);
+        }
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load weather');
@@ -92,6 +99,7 @@ export function StartRun({ apiKey, hasApiKey, temperatureUnit, onNeedApiKey }: S
 
   const handleClothingChange = (clothing: ClothingItems) => {
     setActualClothing(clothing);
+    setHasUserEdits(true); // Mark that user has made edits
   };
 
   const handleStartRun = () => {
@@ -122,6 +130,7 @@ export function StartRun({ apiKey, hasApiKey, temperatureUnit, onNeedApiKey }: S
     await addFeedback(feedback);
     setFeedbackCount(prev => prev + 1);
     setRunState('idle');
+    setHasUserEdits(false); // Reset edits flag after submitting feedback
     
     // Refresh recommendations with new feedback
     loadWeatherAndRecommendations(false);

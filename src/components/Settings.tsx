@@ -190,7 +190,7 @@ export function Settings({ onSettingsSaved, initialApiKey = '', initialUnit = 'f
       {/* Version info */}
       <div className="mt-6 text-center">
         <p className="text-xs text-[var(--color-text-muted)]">
-          Runner's Wardrobe v1.3.0
+          Runner's Wardrobe v1.3.1
         </p>
       </div>
     </div>
