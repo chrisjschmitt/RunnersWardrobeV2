@@ -32,6 +32,7 @@ const FEEDBACK_ADJUSTMENT = {
 interface SimilarityScore {
   record: RunRecord;
   score: number;
+  isFromFeedback?: boolean;
 }
 
 // Calculate how similar two weather conditions are (0-1, higher = more similar)
@@ -155,18 +156,57 @@ export function calculateComfortAdjustment(
   return { temperatureOffset: offset, confidence };
 }
 
+// Convert feedback records to run records for clothing recommendations
+function feedbackToRunRecord(feedback: RunFeedback): RunRecord {
+  return {
+    date: feedback.date,
+    time: '',
+    location: 'From feedback',
+    temperature: feedback.temperature,
+    feelsLike: feedback.feelsLike,
+    humidity: feedback.humidity,
+    pressure: 0,
+    precipitation: feedback.precipitation,
+    uvIndex: 0,
+    windSpeed: feedback.windSpeed,
+    cloudCover: feedback.cloudCover,
+    clothing: feedback.clothing
+  };
+}
+
 // Find runs with similar weather conditions
 function findSimilarRuns(
   currentWeather: WeatherData,
   runs: RunRecord[],
+  feedbackHistory: RunFeedback[],
   minSimilarity: number = 0.5
 ): SimilarityScore[] {
   const similarities: SimilarityScore[] = [];
 
+  // Add CSV runs
   for (const run of runs) {
     const score = calculateSimilarity(currentWeather, run);
     if (score >= minSimilarity) {
-      similarities.push({ record: run, score });
+      similarities.push({ record: run, score, isFromFeedback: false });
+    }
+  }
+
+  // Add feedback records as runs (with extra weight for recency)
+  for (const feedback of feedbackHistory) {
+    // Only include "just_right" feedback for direct clothing recommendations
+    // "too_hot" and "too_cold" are handled via temperature adjustment
+    if (feedback.comfort === 'just_right') {
+      const runRecord = feedbackToRunRecord(feedback);
+      const score = calculateSimilarity(currentWeather, runRecord);
+      
+      if (score >= minSimilarity) {
+        // Boost score for recent feedback (user's actual choices are more relevant)
+        const daysSince = Math.max(1, (Date.now() - new Date(feedback.timestamp).getTime()) / (1000 * 60 * 60 * 24));
+        const recencyBoost = Math.min(0.3, 30 / daysSince * 0.1); // Up to 0.3 boost for recent feedback
+        const boostedScore = Math.min(1, score + recencyBoost);
+        
+        similarities.push({ record: runRecord, score: boostedScore, isFromFeedback: true });
+      }
     }
   }
 
@@ -223,8 +263,8 @@ export function getClothingRecommendation(
     feelsLike: currentWeather.feelsLike - comfortAdjustment.temperatureOffset
   };
 
-  // Find similar runs using adjusted weather
-  const similarRuns = findSimilarRuns(adjustedWeather, runs, 0.4);
+  // Find similar runs using adjusted weather (includes both CSV runs and feedback)
+  const similarRuns = findSimilarRuns(adjustedWeather, runs, feedbackHistory, 0.4);
   
   // Extract clothing from similar runs, weighted by similarity
   const clothingCategories = {
@@ -238,9 +278,13 @@ export function getClothingRecommendation(
   };
 
   // Add items from similar runs (more similar = add more times for weighting)
-  for (const { record, score } of similarRuns) {
+  // Feedback-based records get extra weight (2x) since they're user's actual choices
+  for (const { record, score, isFromFeedback } of similarRuns) {
     // Add items proportional to similarity score (1-3 times)
-    const repeatCount = Math.ceil(score * 3);
+    // Double the weight for feedback-based records
+    const baseRepeat = Math.ceil(score * 3);
+    const repeatCount = isFromFeedback ? baseRepeat * 2 : baseRepeat;
+    
     for (let i = 0; i < repeatCount; i++) {
       clothingCategories.headCover.push(record.clothing.headCover);
       clothingCategories.tops.push(record.clothing.tops);
@@ -283,7 +327,7 @@ export function getClothingRecommendation(
     },
     confidence,
     matchingRuns: similarRuns.length,
-    totalRuns: runs.length,
+    totalRuns: runs.length + feedbackHistory.length,
     similarConditions: similarRuns.slice(0, 5).map(s => s.record)
   };
 }
@@ -293,6 +337,21 @@ export function getFallbackRecommendation(
   weather: WeatherData,
   feedbackHistory: RunFeedback[] = []
 ): ClothingItems {
+  // Check if we have any "just right" feedback to use directly
+  const relevantFeedback = feedbackHistory.filter(f => {
+    if (f.comfort !== 'just_right') return false;
+    const tempDiff = Math.abs(weather.temperature - f.temperature);
+    return tempDiff <= 10; // Within 10°F
+  });
+
+  // If we have relevant feedback, use the most recent one
+  if (relevantFeedback.length > 0) {
+    relevantFeedback.sort((a, b) => 
+      new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+    );
+    return relevantFeedback[0].clothing;
+  }
+
   // Apply comfort adjustment if we have feedback
   const comfortAdjustment = calculateComfortAdjustment(weather, feedbackHistory);
   const adjustedTemp = weather.temperature - comfortAdjustment.temperatureOffset;
