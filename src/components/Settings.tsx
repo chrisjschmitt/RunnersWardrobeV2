@@ -186,6 +186,13 @@ export function Settings({ onSettingsSaved, initialApiKey = '', initialUnit = 'f
           The free tier includes 1,000 API calls per day, which is more than enough for personal use.
         </p>
       </div>
+
+      {/* Version info */}
+      <div className="mt-6 text-center">
+        <p className="text-xs text-[var(--color-text-muted)]">
+          Runner's Wardrobe v1.1.0
+        </p>
+      </div>
     </div>
   );
 }

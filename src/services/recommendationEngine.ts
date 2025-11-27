@@ -191,22 +191,23 @@ function findSimilarRuns(
     }
   }
 
-  // Add feedback records as runs (with extra weight for recency)
+  // Add ALL feedback records as runs (with extra weight for recency)
+  // The clothing the user actually wore is valuable data regardless of comfort level
   for (const feedback of feedbackHistory) {
-    // Only include "just_right" feedback for direct clothing recommendations
-    // "too_hot" and "too_cold" are handled via temperature adjustment
-    if (feedback.comfort === 'just_right') {
-      const runRecord = feedbackToRunRecord(feedback);
-      const score = calculateSimilarity(currentWeather, runRecord);
+    const runRecord = feedbackToRunRecord(feedback);
+    const score = calculateSimilarity(currentWeather, runRecord);
+    
+    if (score >= minSimilarity) {
+      // Boost score for recent feedback (user's actual choices are more relevant)
+      const daysSince = Math.max(1, (Date.now() - new Date(feedback.timestamp).getTime()) / (1000 * 60 * 60 * 24));
+      const recencyBoost = Math.min(0.3, 30 / daysSince * 0.1); // Up to 0.3 boost for recent feedback
       
-      if (score >= minSimilarity) {
-        // Boost score for recent feedback (user's actual choices are more relevant)
-        const daysSince = Math.max(1, (Date.now() - new Date(feedback.timestamp).getTime()) / (1000 * 60 * 60 * 24));
-        const recencyBoost = Math.min(0.3, 30 / daysSince * 0.1); // Up to 0.3 boost for recent feedback
-        const boostedScore = Math.min(1, score + recencyBoost);
-        
-        similarities.push({ record: runRecord, score: boostedScore, isFromFeedback: true });
-      }
+      // Give extra boost to "just_right" feedback since it was comfortable
+      const comfortBoost = feedback.comfort === 'just_right' ? 0.1 : 0;
+      
+      const boostedScore = Math.min(1, score + recencyBoost + comfortBoost);
+      
+      similarities.push({ record: runRecord, score: boostedScore, isFromFeedback: true });
     }
   }
 
@@ -337,18 +338,20 @@ export function getFallbackRecommendation(
   weather: WeatherData,
   feedbackHistory: RunFeedback[] = []
 ): ClothingItems {
-  // Check if we have any "just right" feedback to use directly
+  // Check if we have any feedback with similar temperature to use directly
   const relevantFeedback = feedbackHistory.filter(f => {
-    if (f.comfort !== 'just_right') return false;
     const tempDiff = Math.abs(weather.temperature - f.temperature);
     return tempDiff <= 10; // Within 10°F
   });
 
-  // If we have relevant feedback, use the most recent one
+  // If we have relevant feedback, prefer "just_right" but use any feedback
   if (relevantFeedback.length > 0) {
-    relevantFeedback.sort((a, b) => 
-      new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
-    );
+    // Sort by: just_right first, then by recency
+    relevantFeedback.sort((a, b) => {
+      if (a.comfort === 'just_right' && b.comfort !== 'just_right') return -1;
+      if (b.comfort === 'just_right' && a.comfort !== 'just_right') return 1;
+      return new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime();
+    });
     return relevantFeedback[0].clothing;
   }
 
