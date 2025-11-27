@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Icon Generator</title>
+</head>
+<body>
+  <h1>PWA Icon Generator</h1>
+  <p>Right-click each canvas and "Save Image As" to create the icon files:</p>
+  
+  <h3>pwa-192x192.png</h3>
+  <canvas id="icon192" width="192" height="192"></canvas>
+  
+  <h3>pwa-512x512.png</h3>
+  <canvas id="icon512" width="512" height="512"></canvas>
+  
+  <h3>apple-touch-icon.png (180x180)</h3>
+  <canvas id="iconApple" width="180" height="180"></canvas>
+
+  <script>
+    function drawIcon(ctx, size) {
+      // Background
+      ctx.fillStyle = '#1e3a5f';
+      ctx.beginPath();
+      ctx.roundRect(0, 0, size, size, size * 0.2);
+      ctx.fill();
+      
+      // Lightning bolt gradient
+      const gradient = ctx.createLinearGradient(size*0.3, size*0.2, size*0.7, size*0.8);
+      gradient.addColorStop(0, '#f97316');
+      gradient.addColorStop(1, '#fb923c');
+      ctx.fillStyle = gradient;
+      
+      // Lightning bolt path
+      ctx.beginPath();
+      ctx.moveTo(size * 0.5, size * 0.15);   // Top
+      ctx.lineTo(size * 0.3, size * 0.5);     // Left middle
+      ctx.lineTo(size * 0.45, size * 0.5);    // Inner left
+      ctx.lineTo(size * 0.45, size * 0.85);   // Bottom left
+      ctx.lineTo(size * 0.7, size * 0.4);     // Right middle
+      ctx.lineTo(size * 0.55, size * 0.4);    // Inner right
+      ctx.lineTo(size * 0.55, size * 0.15);   // Back to top area
+      ctx.closePath();
+      ctx.fill();
+    }
+    
+    // Generate all icons
+    drawIcon(document.getElementById('icon192').getContext('2d'), 192);
+    drawIcon(document.getElementById('icon512').getContext('2d'), 512);
+    drawIcon(document.getElementById('iconApple').getContext('2d'), 180);
+  </script>
+</body>
+</html>

@@ -1,0 +1,52 @@
+date,time,location,temperature,feels_like,humidity,pressure,precipitation,uv,wind_speed,cloud_cover,head_cover,tops,bottoms,shoes,socks,gloves,rain_gear
+2024-01-05,06:30,Central Park,28,22,55,30.2,0,1,12,20,beanie,base layer + jacket,tights,Brooks Ghost 15,wool,heavy,none
+2024-01-12,07:00,Central Park,32,28,60,30.1,0,2,8,40,beanie,long sleeve + vest,tights,Brooks Ghost 15,wool,light,none
+2024-01-19,06:45,Riverside Trail,25,18,50,30.3,0,1,15,10,beanie,base layer + jacket,tights,Brooks Ghost 15,wool,heavy,none
+2024-01-26,07:15,Central Park,35,32,65,29.9,0,2,5,60,light beanie,long sleeve,tights,Nike Pegasus 40,wool,light,none
+2024-02-02,06:30,Riverside Trail,38,35,70,30.0,0,2,6,50,none,long sleeve,tights,Brooks Ghost 15,light wool,none,none
+2024-02-09,07:00,Central Park,42,40,55,30.1,0,3,8,30,none,long sleeve,capris,Nike Pegasus 40,light wool,none,none
+2024-02-16,06:45,Central Park,45,42,60,29.8,0.1,2,10,80,none,long sleeve,tights,Brooks Ghost 15,light wool,light,light rain jacket
+2024-02-23,07:30,Riverside Trail,48,46,65,30.0,0,3,5,40,none,long sleeve,capris,Nike Pegasus 40,regular,none,none
+2024-03-01,06:30,Central Park,52,50,70,29.9,0,4,7,50,none,t-shirt,shorts,Brooks Ghost 15,regular,none,none
+2024-03-08,07:00,Riverside Trail,55,54,60,30.1,0,5,4,20,none,t-shirt,shorts,Nike Pegasus 40,regular,none,none
+2024-03-15,06:45,Central Park,48,44,75,29.7,0.2,3,12,90,none,long sleeve,capris,Brooks Ghost 15,light wool,none,light rain jacket
+2024-03-22,07:15,Central Park,58,57,55,30.0,0,5,6,30,none,t-shirt,shorts,Nike Pegasus 40,regular,none,none
+2024-03-29,06:30,Riverside Trail,62,61,60,30.2,0,6,5,25,none,singlet,shorts,Brooks Ghost 15,light,none,none
+2024-04-05,07:00,Central Park,55,52,70,29.8,0.1,4,10,70,none,t-shirt,shorts,Nike Pegasus 40,regular,none,none
+2024-04-12,06:45,Riverside Trail,60,59,65,30.0,0,6,4,40,none,t-shirt,shorts,Brooks Ghost 15,regular,none,none
+2024-04-19,07:30,Central Park,65,64,55,30.1,0,7,6,20,running cap,singlet,shorts,Nike Pegasus 40,light,none,none
+2024-04-26,06:30,Central Park,68,67,60,29.9,0,7,5,30,running cap,singlet,shorts,Brooks Ghost 15,light,none,none
+2024-05-03,07:00,Riverside Trail,72,71,65,30.0,0,8,4,25,running cap,singlet,short shorts,Nike Pegasus 40,light,none,none
+2024-05-10,06:45,Central Park,70,69,70,29.8,0.05,6,8,60,none,t-shirt,shorts,Brooks Ghost 15,regular,none,none
+2024-05-17,07:15,Riverside Trail,75,76,75,29.9,0,9,3,20,running cap,singlet,short shorts,Nike Pegasus 40,light,none,none
+2024-05-24,06:30,Central Park,78,80,70,30.0,0,9,5,15,running cap,singlet,short shorts,Brooks Ghost 15,light,none,none
+2024-05-31,07:00,Central Park,82,85,80,29.7,0,10,4,10,running cap,singlet,short shorts,Nike Pegasus 40,light,none,none
+2024-06-07,05:45,Riverside Trail,75,74,85,29.9,0.3,5,6,80,none,t-shirt,shorts,Brooks Ghost 15,regular,none,light rain jacket
+2024-06-14,06:00,Central Park,80,83,75,30.0,0,9,3,20,running cap,singlet,short shorts,Nike Pegasus 40,light,none,none
+2024-06-21,05:30,Central Park,85,90,80,29.8,0,10,2,5,running cap,singlet,short shorts,Brooks Ghost 15,light,none,none
+2024-06-28,06:00,Riverside Trail,78,80,85,29.6,0.5,4,8,95,none,t-shirt,shorts,Nike Pegasus 40,regular,none,light rain jacket
+2024-07-05,05:45,Central Park,82,87,82,29.9,0,9,3,15,running cap,singlet,short shorts,Brooks Ghost 15,light,none,none
+2024-07-12,05:30,Riverside Trail,88,95,85,29.7,0,10,2,5,running cap,singlet,short shorts,Nike Pegasus 40,light,none,none
+2024-07-19,06:00,Central Park,84,88,78,30.0,0,9,4,20,running cap,singlet,short shorts,Brooks Ghost 15,light,none,none
+2024-07-26,05:45,Central Park,80,82,90,29.5,0.8,3,5,100,none,t-shirt,shorts,Nike Pegasus 40,regular,none,waterproof jacket
+2024-08-02,05:30,Riverside Trail,86,92,80,29.8,0,10,3,10,running cap,singlet,short shorts,Brooks Ghost 15,light,none,none
+2024-08-09,06:00,Central Park,78,79,75,30.1,0,8,6,30,running cap,singlet,short shorts,Nike Pegasus 40,light,none,none
+2024-08-16,05:45,Riverside Trail,82,85,82,29.9,0,9,4,25,running cap,singlet,short shorts,Brooks Ghost 15,light,none,none
+2024-08-23,06:00,Central Park,75,74,70,30.0,0,7,5,40,none,t-shirt,shorts,Nike Pegasus 40,regular,none,none
+2024-08-30,06:15,Central Park,72,71,65,30.2,0,6,6,35,none,t-shirt,shorts,Brooks Ghost 15,regular,none,none
+2024-09-06,06:30,Riverside Trail,68,67,60,30.1,0,5,7,30,none,t-shirt,shorts,Nike Pegasus 40,regular,none,none
+2024-09-13,06:45,Central Park,65,63,70,29.9,0.1,4,9,75,none,t-shirt,shorts,Brooks Ghost 15,regular,none,light rain jacket
+2024-09-20,07:00,Riverside Trail,62,60,55,30.0,0,5,6,25,none,t-shirt,shorts,Nike Pegasus 40,regular,none,none
+2024-09-27,06:30,Central Park,58,55,65,30.1,0,4,10,50,none,long sleeve,shorts,Brooks Ghost 15,regular,none,none
+2024-10-04,07:00,Central Park,52,48,70,29.8,0,3,12,60,none,long sleeve,capris,Nike Pegasus 40,light wool,none,none
+2024-10-11,06:45,Riverside Trail,48,44,60,30.0,0,3,8,40,none,long sleeve,tights,Brooks Ghost 15,light wool,none,none
+2024-10-18,07:15,Central Park,45,42,65,30.2,0,2,10,55,none,long sleeve,tights,Nike Pegasus 40,light wool,light,none
+2024-10-25,06:30,Riverside Trail,42,38,70,29.9,0.15,2,14,85,light beanie,long sleeve + vest,tights,Brooks Ghost 15,wool,light,light rain jacket
+2024-11-01,07:00,Central Park,38,34,55,30.1,0,2,9,30,light beanie,long sleeve + vest,tights,Nike Pegasus 40,wool,light,none
+2024-11-08,06:45,Central Park,35,30,60,30.0,0,1,12,45,beanie,base layer + jacket,tights,Brooks Ghost 15,wool,heavy,none
+2024-11-15,07:30,Riverside Trail,32,26,50,30.3,0,1,15,20,beanie,base layer + jacket,tights,Nike Pegasus 40,wool,heavy,none
+2024-11-22,06:30,Central Park,30,24,55,30.2,0.05,1,10,70,beanie,base layer + jacket,tights,Brooks Ghost 15,wool,heavy,none
+2024-11-29,07:00,Riverside Trail,28,20,45,30.4,0,1,18,10,beanie,base layer + heavy jacket,tights,Nike Pegasus 40,wool,heavy,none
+2024-12-06,07:15,Central Park,25,17,50,30.1,0,1,14,25,beanie,base layer + heavy jacket,tights,Brooks Ghost 15,wool,heavy,none
+2024-12-13,06:45,Central Park,30,25,60,29.9,0.2,1,8,80,beanie,base layer + jacket,tights,Nike Pegasus 40,wool,heavy,light rain jacket
+
