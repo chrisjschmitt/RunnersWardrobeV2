@@ -5,6 +5,7 @@ import { StartRun } from './components/StartRun';
 import { FileUpload } from './components/FileUpload';
 import { RunHistory } from './components/RunHistory';
 import { Settings } from './components/Settings';
+import { Help } from './components/Help';
 import type { TemperatureUnit } from './services/temperatureUtils';
 
 function App() {
@@ -125,8 +126,10 @@ function App() {
             onSettingsSaved={handleSettingsSaved}
             initialApiKey={apiKey}
             initialUnit={temperatureUnit}
+            onHelpClick={() => setView('help')}
           />
         )}
+        {view === 'help' && <Help />}
       </main>
 
       {/* Bottom navigation */}

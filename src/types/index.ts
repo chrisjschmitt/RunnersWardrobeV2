@@ -86,7 +86,7 @@ export interface AppSettings {
 }
 
 // Navigation views
-export type AppView = 'home' | 'upload' | 'history' | 'settings';
+export type AppView = 'home' | 'upload' | 'history' | 'settings' | 'help';
 
 // Geolocation position
 export interface GeoPosition {

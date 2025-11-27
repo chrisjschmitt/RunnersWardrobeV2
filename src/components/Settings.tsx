@@ -7,9 +7,10 @@ interface SettingsProps {
   onSettingsSaved: () => void;
   initialApiKey?: string;
   initialUnit?: TemperatureUnit;
+  onHelpClick?: () => void;
 }
 
-export function Settings({ onSettingsSaved, initialApiKey = '', initialUnit = 'fahrenheit' }: SettingsProps) {
+export function Settings({ onSettingsSaved, initialApiKey = '', initialUnit = 'fahrenheit', onHelpClick }: SettingsProps) {
   const [apiKey, setApiKey] = useState(initialApiKey);
   const [temperatureUnit, setTemperatureUnit] = useState<TemperatureUnit>(initialUnit);
   const [isSaving, setIsSaving] = useState(false);
@@ -187,10 +188,31 @@ export function Settings({ onSettingsSaved, initialApiKey = '', initialUnit = 'f
         </p>
       </div>
 
+      {/* Help button */}
+      {onHelpClick && (
+        <button
+          onClick={onHelpClick}
+          className="w-full mt-6 glass-card p-4 flex items-center justify-between hover:bg-[rgba(255,255,255,0.08)] transition-colors"
+        >
+          <div className="flex items-center gap-3">
+            <svg className="w-6 h-6 text-[var(--color-accent)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <div className="text-left">
+              <div className="font-medium">Help & FAQ</div>
+              <div className="text-sm text-[var(--color-text-muted)]">Learn how the app works</div>
+            </div>
+          </div>
+          <svg className="w-5 h-5 text-[var(--color-text-muted)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+          </svg>
+        </button>
+      )}
+
       {/* Version info */}
       <div className="mt-6 text-center">
         <p className="text-xs text-[var(--color-text-muted)]">
-          Runner's Wardrobe v1.4.0
+          Runner's Wardrobe v1.5.0
         </p>
       </div>
     </div>
