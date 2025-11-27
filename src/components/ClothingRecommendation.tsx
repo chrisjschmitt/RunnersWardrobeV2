@@ -5,6 +5,7 @@ import { ClothingPicker } from './ClothingPicker';
 interface ClothingRecommendationProps {
   recommendation: ClothingRec | null;
   fallback: ClothingItems | null;
+  currentClothing?: ClothingItems | null; // The actual clothing (including user edits)
   isLoading: boolean;
   editable?: boolean;
   onClothingChange?: (clothing: ClothingItems) => void;
@@ -12,13 +13,20 @@ interface ClothingRecommendationProps {
 
 export function ClothingRecommendation({ 
   recommendation, 
-  fallback, 
+  fallback,
+  currentClothing,
   isLoading,
   editable = false,
   onClothingChange
 }: ClothingRecommendationProps) {
   const [editingCategory, setEditingCategory] = useState<string | null>(null);
-  const [editedClothing, setEditedClothing] = useState<ClothingItems | null>(null);
+  
+  // Base clothing from recommendation or fallback
+  const baseClothing = recommendation?.clothing || fallback;
+  
+  // Use currentClothing if provided (preserves user edits), otherwise use base
+  const clothing = currentClothing || baseClothing;
+  const hasHistory = recommendation !== null;
 
   if (isLoading) {
     return (
@@ -30,10 +38,6 @@ export function ClothingRecommendation({
       </div>
     );
   }
-
-  const baseClothing = recommendation?.clothing || fallback;
-  const clothing = editedClothing || baseClothing;
-  const hasHistory = recommendation !== null;
 
   if (!clothing || !baseClothing) {
     return null;
@@ -47,16 +51,15 @@ export function ClothingRecommendation({
 
   const handleItemChange = (category: string, value: string) => {
     const newClothing = {
-      ...(editedClothing || baseClothing),
+      ...clothing,
       [category]: value
     };
-    setEditedClothing(newClothing);
     onClothingChange?.(newClothing);
   };
 
   const isEdited = (category: keyof ClothingItems) => {
-    if (!editedClothing) return false;
-    return editedClothing[category].toLowerCase() !== baseClothing[category].toLowerCase();
+    if (!currentClothing || !baseClothing) return false;
+    return currentClothing[category].toLowerCase() !== baseClothing[category].toLowerCase();
   };
 
   return (

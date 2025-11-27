@@ -176,7 +176,8 @@ export function StartRun({ apiKey, hasApiKey, temperatureUnit, onNeedApiKey }: S
         {actualClothing && (
           <ClothingRecommendation 
             recommendation={recommendation}
-            fallback={actualClothing}
+            fallback={fallback}
+            currentClothing={actualClothing}
             isLoading={false}
             editable={true}
             onClothingChange={handleClothingChange}
@@ -289,6 +290,7 @@ export function StartRun({ apiKey, hasApiKey, temperatureUnit, onNeedApiKey }: S
         <ClothingRecommendation 
           recommendation={recommendation}
           fallback={fallback}
+          currentClothing={actualClothing}
           isLoading={isLoadingRec}
           editable={true}
           onClothingChange={handleClothingChange}
