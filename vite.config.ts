@@ -5,6 +5,10 @@ import { VitePWA } from 'vite-plugin-pwa'
 
 // https://vite.dev/config/
 export default defineConfig({
+  server: {
+    port: 5173,
+    strictPort: true, // Fail if port is in use instead of using a different port
+  },
   plugins: [
     react(),
     tailwindcss(),
