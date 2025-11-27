@@ -1,7 +1,13 @@
 import { useState, useEffect } from 'react';
-import type { RunRecord } from '../types';
-import { getAllRuns, clearAllRuns } from '../services/database';
+import type { RunRecord, RunFeedback } from '../types';
+import { getAllRuns, clearAllRuns, getAllFeedback, clearAllFeedback } from '../services/database';
 import { formatTemperature, type TemperatureUnit } from '../services/temperatureUtils';
+
+// Extended type to track source
+interface DisplayRun extends RunRecord {
+  source: 'csv' | 'feedback';
+  comfort?: string;
+}
 
 interface RunHistoryProps {
   onDataCleared: () => void;
@@ -9,10 +15,11 @@ interface RunHistoryProps {
 }
 
 export function RunHistory({ onDataCleared, temperatureUnit }: RunHistoryProps) {
-  const [runs, setRuns] = useState<RunRecord[]>([]);
+  const [runs, setRuns] = useState<DisplayRun[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [showConfirmClear, setShowConfirmClear] = useState(false);
   const [filter, setFilter] = useState('');
+  const [sourceFilter, setSourceFilter] = useState<'all' | 'csv' | 'feedback'>('all');
 
   useEffect(() => {
     loadRuns();
@@ -21,10 +28,41 @@ export function RunHistory({ onDataCleared, temperatureUnit }: RunHistoryProps) 
   const loadRuns = async () => {
     setIsLoading(true);
     try {
-      const data = await getAllRuns();
-      // Sort by date descending
-      data.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-      setRuns(data);
+      // Load both CSV runs and feedback runs
+      const [csvData, feedbackData] = await Promise.all([
+        getAllRuns(),
+        getAllFeedback()
+      ]);
+      
+      // Convert CSV runs
+      const csvRuns: DisplayRun[] = csvData.map(run => ({
+        ...run,
+        source: 'csv' as const
+      }));
+      
+      // Convert feedback to DisplayRun format
+      const feedbackRuns: DisplayRun[] = feedbackData.map((fb: RunFeedback) => ({
+        id: fb.id,
+        date: fb.date,
+        time: new Date(fb.timestamp).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
+        location: 'Current Location',
+        temperature: fb.temperature,
+        feelsLike: fb.feelsLike,
+        humidity: fb.humidity,
+        pressure: 0,
+        precipitation: fb.precipitation,
+        uvIndex: 0,
+        windSpeed: fb.windSpeed,
+        cloudCover: fb.cloudCover,
+        clothing: fb.clothing,
+        source: 'feedback' as const,
+        comfort: fb.comfort
+      }));
+      
+      // Combine and sort by date descending
+      const allRuns = [...csvRuns, ...feedbackRuns];
+      allRuns.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+      setRuns(allRuns);
     } catch (error) {
       console.error('Failed to load runs:', error);
     } finally {
@@ -33,13 +71,17 @@ export function RunHistory({ onDataCleared, temperatureUnit }: RunHistoryProps) 
   };
 
   const handleClearAll = async () => {
-    await clearAllRuns();
+    await Promise.all([clearAllRuns(), clearAllFeedback()]);
     setRuns([]);
     setShowConfirmClear(false);
     onDataCleared();
   };
 
   const filteredRuns = runs.filter(run => {
+    // First apply source filter
+    if (sourceFilter !== 'all' && run.source !== sourceFilter) return false;
+    
+    // Then apply text filter
     if (!filter) return true;
     const searchLower = filter.toLowerCase();
     return (
@@ -49,6 +91,9 @@ export function RunHistory({ onDataCleared, temperatureUnit }: RunHistoryProps) 
       run.clothing.bottoms.toLowerCase().includes(searchLower)
     );
   });
+
+  const csvCount = runs.filter(r => r.source === 'csv').length;
+  const feedbackCount = runs.filter(r => r.source === 'feedback').length;
 
   if (isLoading) {
     return (
@@ -78,6 +123,40 @@ export function RunHistory({ onDataCleared, temperatureUnit }: RunHistoryProps) 
 
         {runs.length > 0 && (
           <>
+            {/* Source filter tabs */}
+            <div className="flex gap-2 mb-4">
+              <button
+                onClick={() => setSourceFilter('all')}
+                className={`px-3 py-1.5 rounded-lg text-sm transition-colors ${
+                  sourceFilter === 'all' 
+                    ? 'bg-[var(--color-accent)] text-white' 
+                    : 'bg-[rgba(255,255,255,0.1)] text-[var(--color-text-muted)] hover:bg-[rgba(255,255,255,0.15)]'
+                }`}
+              >
+                All ({runs.length})
+              </button>
+              <button
+                onClick={() => setSourceFilter('feedback')}
+                className={`px-3 py-1.5 rounded-lg text-sm transition-colors ${
+                  sourceFilter === 'feedback' 
+                    ? 'bg-[var(--color-accent)] text-white' 
+                    : 'bg-[rgba(255,255,255,0.1)] text-[var(--color-text-muted)] hover:bg-[rgba(255,255,255,0.15)]'
+                }`}
+              >
+                My Runs ({feedbackCount})
+              </button>
+              <button
+                onClick={() => setSourceFilter('csv')}
+                className={`px-3 py-1.5 rounded-lg text-sm transition-colors ${
+                  sourceFilter === 'csv' 
+                    ? 'bg-[var(--color-accent)] text-white' 
+                    : 'bg-[rgba(255,255,255,0.1)] text-[var(--color-text-muted)] hover:bg-[rgba(255,255,255,0.15)]'
+                }`}
+              >
+                Imported ({csvCount})
+              </button>
+            </div>
+
             <input
               type="text"
               placeholder="Search by date, location, or clothing..."
@@ -120,16 +199,16 @@ export function RunHistory({ onDataCleared, temperatureUnit }: RunHistoryProps) 
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
           </svg>
           <p className="text-[var(--color-text-muted)]">No running history yet</p>
-          <p className="text-sm text-[var(--color-text-muted)] mt-1">Upload a CSV file to get started</p>
+          <p className="text-sm text-[var(--color-text-muted)] mt-1">Upload a CSV file or complete a run to get started</p>
         </div>
       ) : (
         <div className="space-y-3">
           {filteredRuns.map((run, index) => (
-            <RunCard key={run.id || index} run={run} index={index} temperatureUnit={temperatureUnit} />
+            <RunCard key={`${run.source}-${run.id || index}`} run={run} index={index} temperatureUnit={temperatureUnit} />
           ))}
-          {filteredRuns.length === 0 && filter && (
+          {filteredRuns.length === 0 && (filter || sourceFilter !== 'all') && (
             <div className="glass-card p-6 text-center">
-              <p className="text-[var(--color-text-muted)]">No runs match your search</p>
+              <p className="text-[var(--color-text-muted)]">No runs match your filters</p>
             </div>
           )}
         </div>
@@ -139,7 +218,7 @@ export function RunHistory({ onDataCleared, temperatureUnit }: RunHistoryProps) 
 }
 
 interface RunCardProps {
-  run: RunRecord;
+  run: DisplayRun;
   index: number;
   temperatureUnit: TemperatureUnit;
 }
@@ -161,6 +240,24 @@ function RunCard({ run, index, temperatureUnit }: RunCardProps) {
     }
   };
 
+  const getComfortEmoji = (comfort?: string) => {
+    switch (comfort) {
+      case 'too_cold': return '🥶';
+      case 'just_right': return '👍';
+      case 'too_hot': return '🥵';
+      default: return null;
+    }
+  };
+
+  const getComfortLabel = (comfort?: string) => {
+    switch (comfort) {
+      case 'too_cold': return 'Too Cold';
+      case 'just_right': return 'Just Right';
+      case 'too_hot': return 'Too Hot';
+      default: return null;
+    }
+  };
+
   return (
     <div 
       className="glass-card p-4 cursor-pointer transition-all hover:bg-[rgba(255,255,255,0.08)]"
@@ -169,13 +266,27 @@ function RunCard({ run, index, temperatureUnit }: RunCardProps) {
     >
       <div className="flex items-center justify-between">
         <div className="flex-1">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
             <span className="text-2xl font-bold text-[var(--color-accent)]">
               {formatTemperature(run.temperature, temperatureUnit)}
             </span>
             <span className="text-[var(--color-text-muted)]">
               feels like {formatTemperature(run.feelsLike, temperatureUnit)}
             </span>
+            {/* Source badge */}
+            <span className={`text-xs px-2 py-0.5 rounded-full ${
+              run.source === 'feedback' 
+                ? 'bg-[var(--color-success)] text-white' 
+                : 'bg-[rgba(255,255,255,0.1)] text-[var(--color-text-muted)]'
+            }`}>
+              {run.source === 'feedback' ? 'My Run' : 'Imported'}
+            </span>
+            {/* Comfort indicator */}
+            {run.comfort && (
+              <span className="text-sm" title={getComfortLabel(run.comfort) || undefined}>
+                {getComfortEmoji(run.comfort)}
+              </span>
+            )}
           </div>
           <div className="text-sm text-[var(--color-text-muted)] mt-1">
             {formatDate(run.date)} {run.time && `at ${run.time}`}
@@ -196,6 +307,16 @@ function RunCard({ run, index, temperatureUnit }: RunCardProps) {
 
       {isExpanded && (
         <div className="mt-4 pt-4 border-t border-[rgba(255,255,255,0.1)]">
+          {/* Comfort feedback for user runs */}
+          {run.comfort && (
+            <div className="mb-4 p-3 rounded-lg bg-[rgba(255,255,255,0.05)]">
+              <span className="text-sm">
+                <span className="text-[var(--color-text-muted)]">How you felt: </span>
+                <span className="font-medium">{getComfortEmoji(run.comfort)} {getComfortLabel(run.comfort)}</span>
+              </span>
+            </div>
+          )}
+
           <div className="grid grid-cols-2 gap-3 text-sm mb-4">
             <div>
               <span className="text-[var(--color-text-muted)]">Humidity:</span> {run.humidity}%
