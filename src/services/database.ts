@@ -1,14 +1,15 @@
 import Dexie, { type EntityTable } from 'dexie';
-import type { RunRecord, AppSettings, RunFeedback } from '../types';
+import type { RunRecord, AppSettings, RunFeedback, CustomClothingOptions } from '../types';
 
 // Define the database
 const db = new Dexie('RunnersWardrobeDB') as Dexie & {
   runs: EntityTable<RunRecord, 'id'>;
   settings: EntityTable<AppSettings, 'id'>;
   feedback: EntityTable<RunFeedback, 'id'>;
+  customClothing: EntityTable<CustomClothingOptions, 'id'>;
 };
 
-// Define schema - version 2 adds feedback table
+// Define schema
 db.version(1).stores({
   runs: '++id, date, time, location, temperature',
   settings: '++id'
@@ -18,6 +19,14 @@ db.version(2).stores({
   runs: '++id, date, time, location, temperature',
   settings: '++id',
   feedback: '++id, date, temperature, comfort'
+});
+
+// Version 3 adds custom clothing options
+db.version(3).stores({
+  runs: '++id, date, time, location, temperature',
+  settings: '++id',
+  feedback: '++id, date, temperature, comfort',
+  customClothing: '++id, category'
 });
 
 // Run records operations
@@ -91,6 +100,34 @@ export async function clearAllFeedback(): Promise<void> {
 
 export async function getFeedbackCount(): Promise<number> {
   return await db.feedback.count();
+}
+
+// Custom clothing options operations
+export async function getCustomClothingOptions(category: string): Promise<string[]> {
+  const record = await db.customClothing.where('category').equals(category).first();
+  return record?.options || [];
+}
+
+export async function addCustomClothingOption(category: string, option: string): Promise<void> {
+  const existing = await db.customClothing.where('category').equals(category).first();
+  if (existing) {
+    const options = existing.options || [];
+    if (!options.includes(option)) {
+      options.push(option);
+      await db.customClothing.update(existing.id!, { options });
+    }
+  } else {
+    await db.customClothing.add({ category, options: [option] });
+  }
+}
+
+export async function getAllCustomClothingOptions(): Promise<Record<string, string[]>> {
+  const all = await db.customClothing.toArray();
+  const result: Record<string, string[]> = {};
+  for (const record of all) {
+    result[record.category] = record.options;
+  }
+  return result;
 }
 
 // Export database instance for direct access if needed

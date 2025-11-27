@@ -118,3 +118,10 @@ export interface ComfortAdjustment {
   confidence: number;
 }
 
+// Custom clothing options added by user
+export interface CustomClothingOptions {
+  id?: number;
+  category: string;
+  options: string[];
+}
+
