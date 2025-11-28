@@ -56,6 +56,10 @@ export async function getRunsByTemperatureRange(
     .toArray();
 }
 
+export async function deleteRun(id: number): Promise<void> {
+  await db.runs.delete(id);
+}
+
 // Settings operations
 export async function getSettings(): Promise<AppSettings | undefined> {
   const settings = await db.settings.toArray();
@@ -100,6 +104,10 @@ export async function clearAllFeedback(): Promise<void> {
 
 export async function getFeedbackCount(): Promise<number> {
   return await db.feedback.count();
+}
+
+export async function deleteFeedback(id: number): Promise<void> {
+  await db.feedback.delete(id);
 }
 
 // Custom clothing options operations

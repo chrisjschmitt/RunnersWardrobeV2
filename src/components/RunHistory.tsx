@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import type { RunRecord, RunFeedback } from '../types';
-import { getAllRuns, clearAllRuns, getAllFeedback, clearAllFeedback } from '../services/database';
+import { getAllRuns, clearAllRuns, getAllFeedback, clearAllFeedback, deleteRun, deleteFeedback } from '../services/database';
 import { formatTemperature, type TemperatureUnit } from '../services/temperatureUtils';
 
 // Extended type to track source
@@ -75,6 +75,19 @@ export function RunHistory({ onDataCleared, temperatureUnit }: RunHistoryProps) 
     setRuns([]);
     setShowConfirmClear(false);
     onDataCleared();
+  };
+
+  const handleDeleteRun = async (run: DisplayRun) => {
+    if (!run.id) return;
+    
+    if (run.source === 'csv') {
+      await deleteRun(run.id);
+    } else {
+      await deleteFeedback(run.id);
+    }
+    
+    // Remove from local state
+    setRuns(prev => prev.filter(r => !(r.id === run.id && r.source === run.source)));
   };
 
   const filteredRuns = runs.filter(run => {
@@ -204,7 +217,13 @@ export function RunHistory({ onDataCleared, temperatureUnit }: RunHistoryProps) 
       ) : (
         <div className="space-y-3">
           {filteredRuns.map((run, index) => (
-            <RunCard key={`${run.source}-${run.id || index}`} run={run} index={index} temperatureUnit={temperatureUnit} />
+            <RunCard 
+              key={`${run.source}-${run.id || index}`} 
+              run={run} 
+              index={index} 
+              temperatureUnit={temperatureUnit}
+              onDelete={handleDeleteRun}
+            />
           ))}
           {filteredRuns.length === 0 && (filter || sourceFilter !== 'all') && (
             <div className="glass-card p-6 text-center">
@@ -221,10 +240,12 @@ interface RunCardProps {
   run: DisplayRun;
   index: number;
   temperatureUnit: TemperatureUnit;
+  onDelete: (run: DisplayRun) => void;
 }
 
-function RunCard({ run, index, temperatureUnit }: RunCardProps) {
+function RunCard({ run, index, temperatureUnit, onDelete }: RunCardProps) {
   const [isExpanded, setIsExpanded] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   
   const formatDate = (dateStr: string) => {
     try {
@@ -341,6 +362,47 @@ function RunCard({ run, index, temperatureUnit }: RunCardProps) {
             <div><span className="text-[var(--color-text-muted)]">Socks:</span> {run.clothing.socks}</div>
             <div><span className="text-[var(--color-text-muted)]">Gloves:</span> {run.clothing.gloves}</div>
             <div className="col-span-2"><span className="text-[var(--color-text-muted)]">Rain:</span> {run.clothing.rainGear}</div>
+          </div>
+
+          {/* Delete button */}
+          <div className="mt-4 pt-4 border-t border-[rgba(255,255,255,0.1)]">
+            {!showDeleteConfirm ? (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setShowDeleteConfirm(true);
+                }}
+                className="flex items-center gap-2 text-sm text-[var(--color-error)] hover:text-red-400 transition-colors"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                </svg>
+                Delete this run
+              </button>
+            ) : (
+              <div className="flex items-center gap-3">
+                <span className="text-sm text-[var(--color-error)]">Delete this run?</span>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onDelete(run);
+                    setShowDeleteConfirm(false);
+                  }}
+                  className="px-3 py-1 text-sm bg-[var(--color-error)] text-white rounded-lg hover:bg-red-600 transition-colors"
+                >
+                  Yes
+                </button>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setShowDeleteConfirm(false);
+                  }}
+                  className="px-3 py-1 text-sm bg-[rgba(255,255,255,0.1)] rounded-lg hover:bg-[rgba(255,255,255,0.15)] transition-colors"
+                >
+                  No
+                </button>
+              </div>
+            )}
           </div>
         </div>
       )}
