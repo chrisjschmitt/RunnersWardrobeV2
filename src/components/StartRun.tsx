@@ -114,8 +114,12 @@ export function StartRun({ apiKey, hasApiKey, temperatureUnit, onNeedApiKey }: S
   const handleFeedbackSubmit = async (comfort: ComfortLevel) => {
     if (!weather || !actualClothing) return;
 
+    // Use local date instead of UTC to avoid timezone issues
+    const now = new Date();
+    const localDate = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+
     const feedback: Omit<RunFeedback, 'id'> = {
-      date: new Date().toISOString().split('T')[0],
+      date: localDate,
       temperature: weather.temperature,
       feelsLike: weather.feelsLike,
       humidity: weather.humidity,
