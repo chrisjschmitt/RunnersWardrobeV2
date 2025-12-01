@@ -474,7 +474,7 @@ export function Settings({
       {/* Version info */}
       <div className="mt-6 text-center">
         <p className="text-xs text-[var(--color-text-muted)]">
-          Runner's Wardrobe v2.0.0
+          Runner's Wardrobe v2.0.1
         </p>
       </div>
     </div>

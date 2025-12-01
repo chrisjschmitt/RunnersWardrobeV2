@@ -343,13 +343,48 @@ export function getClothingRecommendation(
   }
 
   // Get most common item for each category
-  const headCoverResult = getMostCommonItem(clothingCategories.headCover, 'None');
+  let headCoverResult = getMostCommonItem(clothingCategories.headCover, 'None');
   const topsResult = getMostCommonItem(clothingCategories.tops, 'T-shirt');
   const bottomsResult = getMostCommonItem(clothingCategories.bottoms, 'Shorts');
   const shoesResult = getMostCommonItem(clothingCategories.shoes, 'Running shoes');
   const socksResult = getMostCommonItem(clothingCategories.socks, 'Regular');
-  const glovesResult = getMostCommonItem(clothingCategories.gloves, 'None');
-  const rainGearResult = getMostCommonItem(clothingCategories.rainGear, 'None');
+  let glovesResult = getMostCommonItem(clothingCategories.gloves, 'None');
+  let rainGearResult = getMostCommonItem(clothingCategories.rainGear, 'None');
+
+  // Smart override: If it's raining but history says "None", recommend rain gear anyway
+  const isRaining = currentWeather.precipitation > 0 || 
+    currentWeather.description.toLowerCase().includes('rain') ||
+    currentWeather.description.toLowerCase().includes('drizzle') ||
+    currentWeather.description.toLowerCase().includes('shower');
+  
+  if (isRaining && rainGearResult.item.toLowerCase() === 'none') {
+    // Override with appropriate rain gear based on temperature
+    const temp = currentWeather.temperature - comfortAdjustment.temperatureOffset;
+    rainGearResult = {
+      item: temp < 50 ? 'Waterproof jacket' : 'Light rain jacket',
+      count: 1,
+      total: 1
+    };
+  }
+
+  // Smart override: If it's very cold but history says no gloves/hat, recommend them
+  const adjustedTemp = currentWeather.temperature - comfortAdjustment.temperatureOffset;
+  
+  if (adjustedTemp < 35 && glovesResult.item.toLowerCase() === 'none') {
+    glovesResult = {
+      item: adjustedTemp < 25 ? 'Heavy gloves' : 'Light gloves',
+      count: 1,
+      total: 1
+    };
+  }
+  
+  if (adjustedTemp < 40 && headCoverResult.item.toLowerCase() === 'none') {
+    headCoverResult = {
+      item: adjustedTemp < 25 ? 'Beanie' : 'Headband',
+      count: 1,
+      total: 1
+    };
+  }
 
   // Calculate overall confidence based on number of matching runs and their similarity
   const avgSimilarity = similarRuns.length > 0
