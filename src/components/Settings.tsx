@@ -2,26 +2,68 @@ import { useState, useEffect } from 'react';
 import { getSettings, saveSettings } from '../services/database';
 import { isValidApiKeyFormat, isProxyMode } from '../services/weatherApi';
 import type { TemperatureUnit } from '../services/temperatureUtils';
+import type { TestWeatherData } from '../types';
 
 interface SettingsProps {
   onSettingsSaved: () => void;
   initialApiKey?: string;
   initialUnit?: TemperatureUnit;
   onHelpClick?: () => void;
+  testMode?: boolean;
+  onTestModeChange?: (enabled: boolean) => void;
+  testWeather?: TestWeatherData | null;
+  onTestWeatherChange?: (weather: TestWeatherData | null) => void;
 }
 
-export function Settings({ onSettingsSaved, initialApiKey = '', initialUnit = 'celsius', onHelpClick }: SettingsProps) {
+const defaultTestWeather: TestWeatherData = {
+  temperature: 45,
+  feelsLike: 42,
+  humidity: 60,
+  windSpeed: 8,
+  precipitation: 0,
+  cloudCover: 30,
+  description: 'partly cloudy'
+};
+
+const weatherPresets: { name: string; data: TestWeatherData }[] = [
+  { name: '❄️ Freezing', data: { temperature: 20, feelsLike: 10, humidity: 40, windSpeed: 15, precipitation: 0, cloudCover: 80, description: 'overcast clouds' }},
+  { name: '🥶 Cold', data: { temperature: 35, feelsLike: 28, humidity: 50, windSpeed: 12, precipitation: 0, cloudCover: 60, description: 'cloudy' }},
+  { name: '🌤️ Cool', data: { temperature: 50, feelsLike: 48, humidity: 55, windSpeed: 8, precipitation: 0, cloudCover: 40, description: 'partly cloudy' }},
+  { name: '😊 Mild', data: { temperature: 65, feelsLike: 65, humidity: 50, windSpeed: 5, precipitation: 0, cloudCover: 20, description: 'clear sky' }},
+  { name: '☀️ Warm', data: { temperature: 75, feelsLike: 78, humidity: 60, windSpeed: 3, precipitation: 0, cloudCover: 10, description: 'sunny' }},
+  { name: '🥵 Hot', data: { temperature: 90, feelsLike: 95, humidity: 70, windSpeed: 5, precipitation: 0, cloudCover: 5, description: 'clear sky' }},
+  { name: '🌧️ Rainy', data: { temperature: 55, feelsLike: 52, humidity: 85, windSpeed: 10, precipitation: 0.5, cloudCover: 90, description: 'light rain' }},
+  { name: '💨 Windy', data: { temperature: 50, feelsLike: 40, humidity: 45, windSpeed: 25, precipitation: 0, cloudCover: 50, description: 'windy' }},
+];
+
+export function Settings({ 
+  onSettingsSaved, 
+  initialApiKey = '', 
+  initialUnit = 'celsius', 
+  onHelpClick,
+  testMode = false,
+  onTestModeChange,
+  testWeather,
+  onTestWeatherChange
+}: SettingsProps) {
   const [apiKey, setApiKey] = useState(initialApiKey);
   const [temperatureUnit, setTemperatureUnit] = useState<TemperatureUnit>(initialUnit);
   const [isSaving, setIsSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [localTestWeather, setLocalTestWeather] = useState<TestWeatherData>(testWeather || defaultTestWeather);
   
   const proxyMode = isProxyMode();
 
   useEffect(() => {
     loadSettings();
   }, []);
+
+  useEffect(() => {
+    if (testWeather) {
+      setLocalTestWeather(testWeather);
+    }
+  }, [testWeather]);
 
   const loadSettings = async () => {
     try {
@@ -39,8 +81,8 @@ export function Settings({ onSettingsSaved, initialApiKey = '', initialUnit = 'c
     setError(null);
     setSaved(false);
 
-    // Only validate API key if not in proxy mode
-    if (!proxyMode) {
+    // Only validate API key if not in proxy mode and not in test mode
+    if (!proxyMode && !testMode) {
       if (!apiKey.trim()) {
         setError('Please enter an API key');
         return;
@@ -56,7 +98,8 @@ export function Settings({ onSettingsSaved, initialApiKey = '', initialUnit = 'c
     try {
       await saveSettings({
         weatherApiKey: apiKey.trim(),
-        temperatureUnit: temperatureUnit
+        temperatureUnit: temperatureUnit,
+        testMode: testMode
       });
       setSaved(true);
       onSettingsSaved();
@@ -66,6 +109,25 @@ export function Settings({ onSettingsSaved, initialApiKey = '', initialUnit = 'c
     } finally {
       setIsSaving(false);
     }
+  };
+
+  const handleTestModeToggle = () => {
+    const newTestMode = !testMode;
+    onTestModeChange?.(newTestMode);
+    if (newTestMode && !testWeather) {
+      onTestWeatherChange?.(defaultTestWeather);
+    }
+  };
+
+  const handleTestWeatherUpdate = (field: keyof TestWeatherData, value: number | string) => {
+    const updated = { ...localTestWeather, [field]: value };
+    setLocalTestWeather(updated);
+    onTestWeatherChange?.(updated);
+  };
+
+  const handlePresetSelect = (preset: TestWeatherData) => {
+    setLocalTestWeather(preset);
+    onTestWeatherChange?.(preset);
   };
 
   return (
@@ -112,7 +174,7 @@ export function Settings({ onSettingsSaved, initialApiKey = '', initialUnit = 'c
           </div>
 
           {/* API Key Section - only show if not in proxy mode */}
-          {!proxyMode && (
+          {!proxyMode && !testMode && (
             <div>
               <label className="block text-sm font-medium mb-2">
                 OpenWeatherMap API Key
@@ -139,7 +201,7 @@ export function Settings({ onSettingsSaved, initialApiKey = '', initialUnit = 'c
           )}
 
           {/* Proxy mode indicator */}
-          {proxyMode && (
+          {proxyMode && !testMode && (
             <div className="p-3 bg-[rgba(34,197,94,0.2)] border border-[var(--color-success)] rounded-lg">
               <p className="text-[var(--color-success)] text-sm flex items-center gap-2">
                 <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
@@ -190,8 +252,184 @@ export function Settings({ onSettingsSaved, initialApiKey = '', initialUnit = 'c
         </div>
       </div>
 
+      {/* Test Mode Section */}
+      <div className="glass-card p-6 mb-6">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="font-semibold flex items-center gap-2">
+            <svg className="w-5 h-5 text-[var(--color-accent)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+            </svg>
+            Test Mode
+          </h3>
+          <button
+            onClick={handleTestModeToggle}
+            className={`relative w-14 h-7 rounded-full transition-colors ${
+              testMode ? 'bg-[var(--color-accent)]' : 'bg-[rgba(255,255,255,0.2)]'
+            }`}
+          >
+            <div className={`absolute top-1 w-5 h-5 bg-white rounded-full transition-transform ${
+              testMode ? 'translate-x-8' : 'translate-x-1'
+            }`} />
+          </button>
+        </div>
+
+        <p className="text-sm text-[var(--color-text-muted)] mb-4">
+          Test the app with custom weather conditions to verify recommendations.
+        </p>
+
+        {testMode && (
+          <div className="space-y-4 pt-4 border-t border-[rgba(255,255,255,0.1)]">
+            {/* Weather Presets */}
+            <div>
+              <label className="block text-sm font-medium mb-2">Quick Presets</label>
+              <div className="grid grid-cols-4 gap-2">
+                {weatherPresets.map((preset) => (
+                  <button
+                    key={preset.name}
+                    onClick={() => handlePresetSelect(preset.data)}
+                    className="p-2 text-xs rounded-lg bg-[rgba(255,255,255,0.1)] hover:bg-[rgba(255,255,255,0.15)] transition-colors"
+                  >
+                    {preset.name}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Temperature */}
+            <div>
+              <label className="block text-sm font-medium mb-2">
+                Temperature: {localTestWeather.temperature}°F
+              </label>
+              <input
+                type="range"
+                min="-10"
+                max="110"
+                value={localTestWeather.temperature}
+                onChange={(e) => handleTestWeatherUpdate('temperature', parseInt(e.target.value))}
+                className="w-full accent-[var(--color-accent)]"
+              />
+              <div className="flex justify-between text-xs text-[var(--color-text-muted)]">
+                <span>-10°F</span>
+                <span>110°F</span>
+              </div>
+            </div>
+
+            {/* Feels Like */}
+            <div>
+              <label className="block text-sm font-medium mb-2">
+                Feels Like: {localTestWeather.feelsLike}°F
+              </label>
+              <input
+                type="range"
+                min="-20"
+                max="120"
+                value={localTestWeather.feelsLike}
+                onChange={(e) => handleTestWeatherUpdate('feelsLike', parseInt(e.target.value))}
+                className="w-full accent-[var(--color-accent)]"
+              />
+            </div>
+
+            {/* Humidity */}
+            <div>
+              <label className="block text-sm font-medium mb-2">
+                Humidity: {localTestWeather.humidity}%
+              </label>
+              <input
+                type="range"
+                min="0"
+                max="100"
+                value={localTestWeather.humidity}
+                onChange={(e) => handleTestWeatherUpdate('humidity', parseInt(e.target.value))}
+                className="w-full accent-[var(--color-accent)]"
+              />
+            </div>
+
+            {/* Wind Speed */}
+            <div>
+              <label className="block text-sm font-medium mb-2">
+                Wind Speed: {localTestWeather.windSpeed} mph
+              </label>
+              <input
+                type="range"
+                min="0"
+                max="50"
+                value={localTestWeather.windSpeed}
+                onChange={(e) => handleTestWeatherUpdate('windSpeed', parseInt(e.target.value))}
+                className="w-full accent-[var(--color-accent)]"
+              />
+            </div>
+
+            {/* Precipitation */}
+            <div>
+              <label className="block text-sm font-medium mb-2">
+                Precipitation: {localTestWeather.precipitation}" per hour
+              </label>
+              <input
+                type="range"
+                min="0"
+                max="2"
+                step="0.1"
+                value={localTestWeather.precipitation}
+                onChange={(e) => handleTestWeatherUpdate('precipitation', parseFloat(e.target.value))}
+                className="w-full accent-[var(--color-accent)]"
+              />
+            </div>
+
+            {/* Cloud Cover */}
+            <div>
+              <label className="block text-sm font-medium mb-2">
+                Cloud Cover: {localTestWeather.cloudCover}%
+              </label>
+              <input
+                type="range"
+                min="0"
+                max="100"
+                value={localTestWeather.cloudCover}
+                onChange={(e) => handleTestWeatherUpdate('cloudCover', parseInt(e.target.value))}
+                className="w-full accent-[var(--color-accent)]"
+              />
+            </div>
+
+            {/* Description */}
+            <div>
+              <label className="block text-sm font-medium mb-2">Description</label>
+              <select
+                value={localTestWeather.description}
+                onChange={(e) => handleTestWeatherUpdate('description', e.target.value)}
+                className="input-field"
+              >
+                <option value="clear sky">Clear sky</option>
+                <option value="few clouds">Few clouds</option>
+                <option value="partly cloudy">Partly cloudy</option>
+                <option value="cloudy">Cloudy</option>
+                <option value="overcast clouds">Overcast</option>
+                <option value="light rain">Light rain</option>
+                <option value="moderate rain">Moderate rain</option>
+                <option value="heavy rain">Heavy rain</option>
+                <option value="light snow">Light snow</option>
+                <option value="snow">Snow</option>
+                <option value="windy">Windy</option>
+                <option value="foggy">Foggy</option>
+              </select>
+            </div>
+
+            <div className="p-3 bg-[rgba(251,191,36,0.2)] border border-yellow-500/50 rounded-lg">
+              <p className="text-yellow-300 text-sm flex items-center gap-2">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+                Test Mode Active
+              </p>
+              <p className="text-xs text-[var(--color-text-muted)] mt-1">
+                Go to Home tab to see recommendations for these conditions.
+              </p>
+            </div>
+          </div>
+        )}
+      </div>
+
       {/* Help section - only show if not in proxy mode */}
-      {!proxyMode && (
+      {!proxyMode && !testMode && (
         <div className="glass-card p-6">
           <h3 className="font-semibold mb-3 flex items-center gap-2">
             <svg className="w-5 h-5 text-[var(--color-accent)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -236,7 +474,7 @@ export function Settings({ onSettingsSaved, initialApiKey = '', initialUnit = 'c
       {/* Version info */}
       <div className="mt-6 text-center">
         <p className="text-xs text-[var(--color-text-muted)]">
-          Runner's Wardrobe v1.9.0
+          Runner's Wardrobe v2.0.0
         </p>
       </div>
     </div>

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import type { AppView } from './types';
+import type { AppView, TestWeatherData } from './types';
 import { getSettings, getRunCount } from './services/database';
 import { StartRun } from './components/StartRun';
 import { FileUpload } from './components/FileUpload';
@@ -15,6 +15,8 @@ function App() {
   const [temperatureUnit, setTemperatureUnit] = useState<TemperatureUnit>('celsius');
   const [runCount, setRunCount] = useState<number>(0);
   const [isLoading, setIsLoading] = useState(true);
+  const [testMode, setTestMode] = useState(false);
+  const [testWeather, setTestWeather] = useState<TestWeatherData | null>(null);
 
   useEffect(() => {
     loadInitialData();
@@ -105,9 +107,11 @@ function App() {
         {view === 'home' && (
           <StartRun 
             apiKey={apiKey}
-            hasApiKey={!!apiKey || isProxyMode()}
+            hasApiKey={!!apiKey || isProxyMode() || testMode}
             temperatureUnit={temperatureUnit}
             onNeedApiKey={() => setView('settings')}
+            testMode={testMode}
+            testWeather={testWeather}
           />
         )}
         {view === 'upload' && (
@@ -128,6 +132,10 @@ function App() {
             initialApiKey={apiKey}
             initialUnit={temperatureUnit}
             onHelpClick={() => setView('help')}
+            testMode={testMode}
+            onTestModeChange={setTestMode}
+            testWeather={testWeather}
+            onTestWeatherChange={setTestWeather}
           />
         )}
         {view === 'help' && <Help />}

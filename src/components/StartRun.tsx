@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import type { WeatherData, ClothingRecommendation as ClothingRec, ClothingItems, RunFeedback, ComfortLevel } from '../types';
+import type { WeatherData, ClothingRecommendation as ClothingRec, ClothingItems, RunFeedback, ComfortLevel, TestWeatherData } from '../types';
 import { getCurrentPosition, fetchWeather, clearWeatherCache } from '../services/weatherApi';
 import { getClothingRecommendation, getFallbackRecommendation, calculateComfortAdjustment } from '../services/recommendationEngine';
 import { getAllRuns, getAllFeedback, addFeedback } from '../services/database';
@@ -15,9 +15,11 @@ interface StartRunProps {
   hasApiKey: boolean;
   temperatureUnit: TemperatureUnit;
   onNeedApiKey: () => void;
+  testMode?: boolean;
+  testWeather?: TestWeatherData | null;
 }
 
-export function StartRun({ apiKey, hasApiKey, temperatureUnit, onNeedApiKey }: StartRunProps) {
+export function StartRun({ apiKey, hasApiKey, temperatureUnit, onNeedApiKey, testMode = false, testWeather }: StartRunProps) {
   const [weather, setWeather] = useState<WeatherData | null>(null);
   const [recommendation, setRecommendation] = useState<ClothingRec | null>(null);
   const [fallback, setFallback] = useState<ClothingItems | null>(null);
@@ -33,7 +35,7 @@ export function StartRun({ apiKey, hasApiKey, temperatureUnit, onNeedApiKey }: S
   const [comfortAdjustment, setComfortAdjustment] = useState<number>(0);
 
   const loadWeatherAndRecommendations = async (forceRefresh = false) => {
-    if (!hasApiKey) {
+    if (!hasApiKey && !testMode) {
       onNeedApiKey();
       return;
     }
@@ -42,14 +44,35 @@ export function StartRun({ apiKey, hasApiKey, temperatureUnit, onNeedApiKey }: S
     setIsLoadingWeather(true);
 
     try {
-      // Get location
-      const position = await getCurrentPosition();
-      
-      // Fetch weather
-      if (forceRefresh) {
-        clearWeatherCache();
+      let weatherData: WeatherData;
+
+      if (testMode && testWeather) {
+        // Use test weather data
+        weatherData = {
+          temperature: testWeather.temperature,
+          feelsLike: testWeather.feelsLike,
+          humidity: testWeather.humidity,
+          pressure: 30,
+          precipitation: testWeather.precipitation,
+          uvIndex: 5,
+          windSpeed: testWeather.windSpeed,
+          cloudCover: testWeather.cloudCover,
+          description: testWeather.description,
+          icon: getTestWeatherIcon(testWeather),
+          location: '🧪 Test Mode',
+          timestamp: new Date()
+        };
+      } else {
+        // Get location
+        const position = await getCurrentPosition();
+        
+        // Fetch weather
+        if (forceRefresh) {
+          clearWeatherCache();
+        }
+        weatherData = await fetchWeather(apiKey, position, forceRefresh);
       }
-      const weatherData = await fetchWeather(apiKey, position, forceRefresh);
+
       setWeather(weatherData);
       setLastUpdate(new Date());
 
@@ -91,11 +114,24 @@ export function StartRun({ apiKey, hasApiKey, temperatureUnit, onNeedApiKey }: S
     }
   };
 
+  // Helper to get appropriate weather icon for test mode
+  const getTestWeatherIcon = (tw: TestWeatherData): string => {
+    const desc = tw.description.toLowerCase();
+    if (desc.includes('rain')) return '10d';
+    if (desc.includes('snow')) return '13d';
+    if (desc.includes('cloud') || desc.includes('overcast')) return '04d';
+    if (desc.includes('partly')) return '02d';
+    if (desc.includes('fog')) return '50d';
+    if (tw.cloudCover > 70) return '04d';
+    if (tw.cloudCover > 30) return '03d';
+    return '01d'; // Clear
+  };
+
   useEffect(() => {
-    if (hasApiKey) {
+    if (hasApiKey || testMode) {
       loadWeatherAndRecommendations();
     }
-  }, [hasApiKey, apiKey]);
+  }, [hasApiKey, apiKey, testMode, testWeather]);
 
   const handleClothingChange = (clothing: ClothingItems) => {
     setActualClothing(clothing);

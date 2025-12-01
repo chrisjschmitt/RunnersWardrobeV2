@@ -103,6 +103,18 @@ export interface AppSettings {
     lon: number;
     name: string;
   };
+  testMode?: boolean;
+}
+
+// Test weather data for testing different conditions
+export interface TestWeatherData {
+  temperature: number;
+  feelsLike: number;
+  humidity: number;
+  windSpeed: number;
+  precipitation: number;
+  cloudCover: number;
+  description: string;
 }
 
 // Navigation views
