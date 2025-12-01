@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { getSettings, saveSettings } from '../services/database';
-import { isValidApiKeyFormat } from '../services/weatherApi';
+import { isValidApiKeyFormat, isProxyMode } from '../services/weatherApi';
 import type { TemperatureUnit } from '../services/temperatureUtils';
 
 interface SettingsProps {
@@ -16,6 +16,8 @@ export function Settings({ onSettingsSaved, initialApiKey = '', initialUnit = 'f
   const [isSaving, setIsSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  
+  const proxyMode = isProxyMode();
 
   useEffect(() => {
     loadSettings();
@@ -37,14 +39,17 @@ export function Settings({ onSettingsSaved, initialApiKey = '', initialUnit = 'f
     setError(null);
     setSaved(false);
 
-    if (!apiKey.trim()) {
-      setError('Please enter an API key');
-      return;
-    }
+    // Only validate API key if not in proxy mode
+    if (!proxyMode) {
+      if (!apiKey.trim()) {
+        setError('Please enter an API key');
+        return;
+      }
 
-    if (!isValidApiKeyFormat(apiKey.trim())) {
-      setError('Invalid API key format. OpenWeatherMap keys are 32 characters.');
-      return;
+      if (!isValidApiKeyFormat(apiKey.trim())) {
+        setError('Invalid API key format. OpenWeatherMap keys are 32 characters.');
+        return;
+      }
     }
 
     setIsSaving(true);
@@ -106,30 +111,47 @@ export function Settings({ onSettingsSaved, initialApiKey = '', initialUnit = 'f
             </div>
           </div>
 
-          {/* API Key Section */}
-          <div>
-            <label className="block text-sm font-medium mb-2">
-              OpenWeatherMap API Key
-            </label>
-            <input
-              type="text"
-              value={apiKey}
-              onChange={(e) => setApiKey(e.target.value)}
-              placeholder="Enter your API key"
-              className="input-field"
-            />
-            <p className="text-xs text-[var(--color-text-muted)] mt-2">
-              Get a free API key at{' '}
-              <a 
-                href="https://openweathermap.org/api" 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="text-[var(--color-accent)] underline"
-              >
-                openweathermap.org/api
-              </a>
-            </p>
-          </div>
+          {/* API Key Section - only show if not in proxy mode */}
+          {!proxyMode && (
+            <div>
+              <label className="block text-sm font-medium mb-2">
+                OpenWeatherMap API Key
+              </label>
+              <input
+                type="text"
+                value={apiKey}
+                onChange={(e) => setApiKey(e.target.value)}
+                placeholder="Enter your API key"
+                className="input-field"
+              />
+              <p className="text-xs text-[var(--color-text-muted)] mt-2">
+                Get a free API key at{' '}
+                <a 
+                  href="https://openweathermap.org/api" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="text-[var(--color-accent)] underline"
+                >
+                  openweathermap.org/api
+                </a>
+              </p>
+            </div>
+          )}
+
+          {/* Proxy mode indicator */}
+          {proxyMode && (
+            <div className="p-3 bg-[rgba(34,197,94,0.2)] border border-[var(--color-success)] rounded-lg">
+              <p className="text-[var(--color-success)] text-sm flex items-center gap-2">
+                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                </svg>
+                Weather API configured automatically
+              </p>
+              <p className="text-xs text-[var(--color-text-muted)] mt-1">
+                No API key required - weather data is fetched securely through our server.
+              </p>
+            </div>
+          )}
 
           {/* Error message */}
           {error && (
@@ -168,25 +190,27 @@ export function Settings({ onSettingsSaved, initialApiKey = '', initialUnit = 'f
         </div>
       </div>
 
-      {/* Help section */}
-      <div className="glass-card p-6">
-        <h3 className="font-semibold mb-3 flex items-center gap-2">
-          <svg className="w-5 h-5 text-[var(--color-accent)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
-          How to get an API key
-        </h3>
-        <ol className="text-sm text-[var(--color-text-muted)] space-y-2 list-decimal list-inside">
-          <li>Visit <a href="https://openweathermap.org/api" target="_blank" rel="noopener noreferrer" className="text-[var(--color-accent)] underline">openweathermap.org/api</a></li>
-          <li>Create a free account</li>
-          <li>Go to "API Keys" in your account</li>
-          <li>Copy your default key or generate a new one</li>
-          <li>Paste it above and save</li>
-        </ol>
-        <p className="text-xs text-[var(--color-text-muted)] mt-4">
-          The free tier includes 1,000 API calls per day, which is more than enough for personal use.
-        </p>
-      </div>
+      {/* Help section - only show if not in proxy mode */}
+      {!proxyMode && (
+        <div className="glass-card p-6">
+          <h3 className="font-semibold mb-3 flex items-center gap-2">
+            <svg className="w-5 h-5 text-[var(--color-accent)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            How to get an API key
+          </h3>
+          <ol className="text-sm text-[var(--color-text-muted)] space-y-2 list-decimal list-inside">
+            <li>Visit <a href="https://openweathermap.org/api" target="_blank" rel="noopener noreferrer" className="text-[var(--color-accent)] underline">openweathermap.org/api</a></li>
+            <li>Create a free account</li>
+            <li>Go to "API Keys" in your account</li>
+            <li>Copy your default key or generate a new one</li>
+            <li>Paste it above and save</li>
+          </ol>
+          <p className="text-xs text-[var(--color-text-muted)] mt-4">
+            The free tier includes 1,000 API calls per day, which is more than enough for personal use.
+          </p>
+        </div>
+      )}
 
       {/* Help button */}
       {onHelpClick && (
@@ -212,7 +236,7 @@ export function Settings({ onSettingsSaved, initialApiKey = '', initialUnit = 'f
       {/* Version info */}
       <div className="mt-6 text-center">
         <p className="text-xs text-[var(--color-text-muted)]">
-          Runner's Wardrobe v1.7.1
+          Runner's Wardrobe v1.8.0
         </p>
       </div>
     </div>

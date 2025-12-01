@@ -2,6 +2,10 @@ import type { WeatherData, GeoPosition } from '../types';
 
 const OPENWEATHERMAP_BASE_URL = 'https://api.openweathermap.org/data/2.5';
 
+// Check if we're deployed on Vercel (use proxy) or local development
+const isProduction = import.meta.env.PROD;
+const useProxy = isProduction || import.meta.env.VITE_USE_PROXY === 'true';
+
 interface OpenWeatherResponse {
   coord: { lon: number; lat: number };
   weather: Array<{ id: number; main: string; description: string; icon: string }>;
@@ -77,35 +81,55 @@ export async function fetchWeather(
 
   const { lat, lon } = position;
 
-  // Fetch current weather
-  const weatherUrl = `${OPENWEATHERMAP_BASE_URL}/weather?lat=${lat}&lon=${lon}&appid=${apiKey}&units=imperial`;
-  
-  const weatherResponse = await fetch(weatherUrl);
-  
-  if (!weatherResponse.ok) {
-    if (weatherResponse.status === 401) {
-      throw new Error('Invalid API key. Please check your OpenWeatherMap API key in settings.');
-    }
-    if (weatherResponse.status === 429) {
-      throw new Error('API rate limit exceeded. Please try again later.');
-    }
-    throw new Error(`Weather API error: ${weatherResponse.statusText}`);
-  }
+  let weatherData: OpenWeatherResponse;
 
-  const weatherData: OpenWeatherResponse = await weatherResponse.json();
+  if (useProxy) {
+    // Use serverless proxy (API key is stored securely on server)
+    const proxyUrl = `/api/weather?lat=${lat}&lon=${lon}`;
+    const weatherResponse = await fetch(proxyUrl);
+    
+    if (!weatherResponse.ok) {
+      const errorData = await weatherResponse.json().catch(() => ({}));
+      throw new Error(errorData.error || `Weather API error: ${weatherResponse.statusText}`);
+    }
+    
+    weatherData = await weatherResponse.json();
+  } else {
+    // Direct API call (for local development)
+    if (!apiKey) {
+      throw new Error('API key required for local development. Set it in Settings.');
+    }
+    
+    const weatherUrl = `${OPENWEATHERMAP_BASE_URL}/weather?lat=${lat}&lon=${lon}&appid=${apiKey}&units=imperial`;
+    const weatherResponse = await fetch(weatherUrl);
+    
+    if (!weatherResponse.ok) {
+      if (weatherResponse.status === 401) {
+        throw new Error('Invalid API key. Please check your OpenWeatherMap API key in settings.');
+      }
+      if (weatherResponse.status === 429) {
+        throw new Error('API rate limit exceeded. Please try again later.');
+      }
+      throw new Error(`Weather API error: ${weatherResponse.statusText}`);
+    }
+    
+    weatherData = await weatherResponse.json();
+  }
 
   // Try to fetch UV index (separate endpoint, may fail)
   let uvIndex = 0;
-  try {
-    const uvUrl = `${OPENWEATHERMAP_BASE_URL}/uvi?lat=${lat}&lon=${lon}&appid=${apiKey}`;
-    const uvResponse = await fetch(uvUrl);
-    if (uvResponse.ok) {
-      const uvData: UVIndexResponse = await uvResponse.json();
-      uvIndex = uvData.value;
+  if (!useProxy && apiKey) {
+    try {
+      const uvUrl = `${OPENWEATHERMAP_BASE_URL}/uvi?lat=${lat}&lon=${lon}&appid=${apiKey}`;
+      const uvResponse = await fetch(uvUrl);
+      if (uvResponse.ok) {
+        const uvData: UVIndexResponse = await uvResponse.json();
+        uvIndex = uvData.value;
+      }
+    } catch {
+      // UV index is optional, continue without it
+      console.warn('Could not fetch UV index');
     }
-  } catch {
-    // UV index is optional, continue without it
-    console.warn('Could not fetch UV index');
   }
 
   // Calculate precipitation (rain or snow in last hour)
@@ -146,3 +170,7 @@ export function isValidApiKeyFormat(apiKey: string): boolean {
   return /^[a-f0-9]{32}$/i.test(apiKey);
 }
 
+// Check if proxy mode is enabled (no API key needed)
+export function isProxyMode(): boolean {
+  return useProxy;
+}

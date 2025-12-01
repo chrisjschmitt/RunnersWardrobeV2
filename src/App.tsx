@@ -7,6 +7,7 @@ import { RunHistory } from './components/RunHistory';
 import { Settings } from './components/Settings';
 import { Help } from './components/Help';
 import type { TemperatureUnit } from './services/temperatureUtils';
+import { isProxyMode } from './services/weatherApi';
 
 function App() {
   const [view, setView] = useState<AppView>('home');
@@ -104,7 +105,7 @@ function App() {
         {view === 'home' && (
           <StartRun 
             apiKey={apiKey}
-            hasApiKey={!!apiKey}
+            hasApiKey={!!apiKey || isProxyMode()}
             temperatureUnit={temperatureUnit}
             onNeedApiKey={() => setView('settings')}
           />
