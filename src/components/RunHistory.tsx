@@ -61,7 +61,15 @@ export function RunHistory({ onDataCleared, temperatureUnit }: RunHistoryProps) 
       
       // Combine and sort by date descending
       const allRuns = [...csvRuns, ...feedbackRuns];
-      allRuns.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+      // Parse dates as local time for proper sorting
+      const parseLocalDate = (dateStr: string) => {
+        const parts = dateStr.split('-');
+        if (parts.length === 3) {
+          return new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2])).getTime();
+        }
+        return new Date(dateStr).getTime();
+      };
+      allRuns.sort((a, b) => parseLocalDate(b.date) - parseLocalDate(a.date));
       setRuns(allRuns);
     } catch (error) {
       console.error('Failed to load runs:', error);
@@ -249,13 +257,23 @@ function RunCard({ run, index, temperatureUnit, onDelete }: RunCardProps) {
   
   const formatDate = (dateStr: string) => {
     try {
-      const date = new Date(dateStr);
-      return date.toLocaleDateString('en-US', { 
-        weekday: 'short', 
-        month: 'short', 
-        day: 'numeric',
-        year: 'numeric'
-      });
+      // Parse date string as LOCAL time, not UTC
+      // "2024-12-02" should be Dec 2nd local, not UTC which shows as Dec 1st in US
+      const parts = dateStr.split('-');
+      if (parts.length === 3) {
+        const date = new Date(
+          parseInt(parts[0]),      // year
+          parseInt(parts[1]) - 1,  // month (0-indexed)
+          parseInt(parts[2])       // day
+        );
+        return date.toLocaleDateString('en-US', { 
+          weekday: 'short', 
+          month: 'short', 
+          day: 'numeric',
+          year: 'numeric'
+        });
+      }
+      return dateStr;
     } catch {
       return dateStr;
     }
