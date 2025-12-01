@@ -12,7 +12,7 @@ import { isProxyMode } from './services/weatherApi';
 function App() {
   const [view, setView] = useState<AppView>('home');
   const [apiKey, setApiKey] = useState<string>('');
-  const [temperatureUnit, setTemperatureUnit] = useState<TemperatureUnit>('fahrenheit');
+  const [temperatureUnit, setTemperatureUnit] = useState<TemperatureUnit>('celsius');
   const [runCount, setRunCount] = useState<number>(0);
   const [isLoading, setIsLoading] = useState(true);
 

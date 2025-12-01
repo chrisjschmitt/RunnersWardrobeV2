@@ -10,7 +10,7 @@ interface SettingsProps {
   onHelpClick?: () => void;
 }
 
-export function Settings({ onSettingsSaved, initialApiKey = '', initialUnit = 'fahrenheit', onHelpClick }: SettingsProps) {
+export function Settings({ onSettingsSaved, initialApiKey = '', initialUnit = 'celsius', onHelpClick }: SettingsProps) {
   const [apiKey, setApiKey] = useState(initialApiKey);
   const [temperatureUnit, setTemperatureUnit] = useState<TemperatureUnit>(initialUnit);
   const [isSaving, setIsSaving] = useState(false);
@@ -28,7 +28,7 @@ export function Settings({ onSettingsSaved, initialApiKey = '', initialUnit = 'f
       const settings = await getSettings();
       if (settings) {
         setApiKey(settings.weatherApiKey || '');
-        setTemperatureUnit(settings.temperatureUnit || 'fahrenheit');
+        setTemperatureUnit(settings.temperatureUnit || 'celsius');
       }
     } catch (err) {
       console.error('Failed to load settings:', err);
