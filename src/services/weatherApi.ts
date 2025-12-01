@@ -1,4 +1,4 @@
-import type { WeatherData, GeoPosition } from '../types';
+import type { WeatherData, GeoPosition, WeatherForecast, WeatherAlert } from '../types';
 
 const OPENWEATHERMAP_BASE_URL = 'https://api.openweathermap.org/data/2.5';
 
@@ -21,6 +21,22 @@ interface OpenWeatherResponse {
   snow?: { '1h'?: number; '3h'?: number };
   name: string;
   sys: { country: string };
+}
+
+interface ForecastItem {
+  dt: number;
+  main: {
+    temp: number;
+    feels_like: number;
+  };
+  weather: Array<{ description: string; icon: string; main: string }>;
+  wind: { speed: number };
+  rain?: { '3h'?: number };
+  snow?: { '3h'?: number };
+}
+
+interface ForecastResponse {
+  list: ForecastItem[];
 }
 
 interface UVIndexResponse {
@@ -82,26 +98,32 @@ export async function fetchWeather(
   const { lat, lon } = position;
 
   let weatherData: OpenWeatherResponse;
+  let forecastData: ForecastResponse | null = null;
 
   if (useProxy) {
     // Use serverless proxy (API key is stored securely on server)
     const proxyUrl = `/api/weather?lat=${lat}&lon=${lon}`;
-    const weatherResponse = await fetch(proxyUrl);
+    const response = await fetch(proxyUrl);
     
-    if (!weatherResponse.ok) {
-      const errorData = await weatherResponse.json().catch(() => ({}));
-      throw new Error(errorData.error || `Weather API error: ${weatherResponse.statusText}`);
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.error || `Weather API error: ${response.statusText}`);
     }
     
-    weatherData = await weatherResponse.json();
+    const data = await response.json();
+    weatherData = data.current;
+    forecastData = data.forecast;
   } else {
-    // Direct API call (for local development)
+    // Direct API calls (for local development)
     if (!apiKey) {
       throw new Error('API key required for local development. Set it in Settings.');
     }
     
-    const weatherUrl = `${OPENWEATHERMAP_BASE_URL}/weather?lat=${lat}&lon=${lon}&appid=${apiKey}&units=imperial`;
-    const weatherResponse = await fetch(weatherUrl);
+    // Fetch current weather and forecast in parallel
+    const [weatherResponse, forecastResponse] = await Promise.all([
+      fetch(`${OPENWEATHERMAP_BASE_URL}/weather?lat=${lat}&lon=${lon}&appid=${apiKey}&units=imperial`),
+      fetch(`${OPENWEATHERMAP_BASE_URL}/forecast?lat=${lat}&lon=${lon}&appid=${apiKey}&units=imperial&cnt=3`)
+    ]);
     
     if (!weatherResponse.ok) {
       if (weatherResponse.status === 401) {
@@ -114,6 +136,10 @@ export async function fetchWeather(
     }
     
     weatherData = await weatherResponse.json();
+    
+    if (forecastResponse.ok) {
+      forecastData = await forecastResponse.json();
+    }
   }
 
   // Try to fetch UV index (separate endpoint, may fail)
@@ -135,6 +161,17 @@ export async function fetchWeather(
   // Calculate precipitation (rain or snow in last hour)
   const precipitation = (weatherData.rain?.['1h'] || 0) + (weatherData.snow?.['1h'] || 0);
 
+  // Parse forecast data
+  const forecast: WeatherForecast[] = forecastData?.list?.map((item: ForecastItem) => ({
+    time: new Date(item.dt * 1000),
+    temperature: Math.round(item.main.temp),
+    feelsLike: Math.round(item.main.feels_like),
+    description: item.weather[0]?.description || 'Unknown',
+    icon: item.weather[0]?.icon || '01d',
+    precipitation: (item.rain?.['3h'] || 0) + (item.snow?.['3h'] || 0),
+    windSpeed: Math.round(item.wind.speed)
+  })) || [];
+
   const result: WeatherData = {
     temperature: Math.round(weatherData.main.temp),
     feelsLike: Math.round(weatherData.main.feels_like),
@@ -147,13 +184,97 @@ export async function fetchWeather(
     description: weatherData.weather[0]?.description || 'Unknown',
     icon: weatherData.weather[0]?.icon || '01d',
     location: `${weatherData.name}, ${weatherData.sys.country}`,
-    timestamp: new Date()
+    timestamp: new Date(),
+    forecast: forecast
   };
 
   // Update cache
   weatherCache = { data: result, timestamp: Date.now() };
 
   return result;
+}
+
+// Analyze forecast to detect upcoming weather changes
+export function getWeatherAlerts(weather: WeatherData): WeatherAlert[] {
+  const alerts: WeatherAlert[] = [];
+  
+  if (!weather.forecast || weather.forecast.length === 0) {
+    return alerts;
+  }
+
+  const currentTemp = weather.temperature;
+  const currentPrecip = weather.precipitation;
+  const currentWind = weather.windSpeed;
+  const currentDescription = weather.description.toLowerCase();
+
+  // Check each forecast period
+  for (const forecast of weather.forecast) {
+    const hoursFromNow = Math.round((forecast.time.getTime() - Date.now()) / (1000 * 60 * 60));
+    const timeframe = hoursFromNow <= 1 ? 'within 1 hour' : `in ~${hoursFromNow} hours`;
+
+    // Temperature drop (more than 5°F)
+    const tempDiff = forecast.temperature - currentTemp;
+    if (tempDiff <= -5) {
+      alerts.push({
+        type: 'temperature_drop',
+        message: `Temperature dropping ${Math.abs(tempDiff)}°F ${timeframe}`,
+        severity: tempDiff <= -10 ? 'warning' : 'info',
+        timeframe
+      });
+      break; // Only show first significant change
+    }
+
+    // Temperature rise (more than 5°F)
+    if (tempDiff >= 5) {
+      alerts.push({
+        type: 'temperature_rise',
+        message: `Temperature rising ${tempDiff}°F ${timeframe}`,
+        severity: 'info',
+        timeframe
+      });
+      break;
+    }
+
+    // Rain coming
+    const forecastDesc = forecast.description.toLowerCase();
+    const isRainyForecast = forecastDesc.includes('rain') || forecastDesc.includes('drizzle') || forecastDesc.includes('shower');
+    const isRainyNow = currentDescription.includes('rain') || currentDescription.includes('drizzle') || currentDescription.includes('shower');
+    
+    if (isRainyForecast && !isRainyNow && forecast.precipitation > 0) {
+      alerts.push({
+        type: 'rain_coming',
+        message: `Rain expected ${timeframe}`,
+        severity: 'warning',
+        timeframe
+      });
+      break;
+    }
+
+    // Rain clearing
+    if (isRainyNow && !isRainyForecast && currentPrecip > 0) {
+      alerts.push({
+        type: 'clearing',
+        message: `Rain clearing ${timeframe}`,
+        severity: 'info',
+        timeframe
+      });
+      break;
+    }
+
+    // Wind increase (more than 5 mph)
+    const windDiff = forecast.windSpeed - currentWind;
+    if (windDiff >= 5) {
+      alerts.push({
+        type: 'wind_increase',
+        message: `Wind increasing to ${forecast.windSpeed} mph ${timeframe}`,
+        severity: windDiff >= 10 ? 'warning' : 'info',
+        timeframe
+      });
+      break;
+    }
+  }
+
+  return alerts;
 }
 
 export function getWeatherIconUrl(iconCode: string): string {

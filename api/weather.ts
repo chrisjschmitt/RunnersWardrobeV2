@@ -21,28 +21,42 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   try {
-    const response = await fetch(
-      `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${apiKey}&units=imperial`
-    );
+    // Fetch both current weather and forecast in parallel
+    const [currentResponse, forecastResponse] = await Promise.all([
+      fetch(
+        `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${apiKey}&units=imperial`
+      ),
+      fetch(
+        `https://api.openweathermap.org/data/2.5/forecast?lat=${lat}&lon=${lon}&appid=${apiKey}&units=imperial&cnt=3`
+      )
+    ]);
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      return res.status(response.status).json({ 
+    if (!currentResponse.ok) {
+      const errorText = await currentResponse.text();
+      return res.status(currentResponse.status).json({ 
         error: 'Weather API error', 
         details: errorText 
       });
     }
 
-    const data = await response.json();
+    const currentData = await currentResponse.json();
+    
+    // Add forecast data if available
+    let forecastData = null;
+    if (forecastResponse.ok) {
+      forecastData = await forecastResponse.json();
+    }
     
     // Set CORS headers
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Cache-Control', 's-maxage=300'); // Cache for 5 minutes
     
-    return res.status(200).json(data);
+    return res.status(200).json({
+      current: currentData,
+      forecast: forecastData
+    });
   } catch (error) {
     console.error('Weather API error:', error);
     return res.status(500).json({ error: 'Failed to fetch weather data' });
   }
 }
-

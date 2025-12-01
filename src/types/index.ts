@@ -12,6 +12,26 @@ export interface WeatherData {
   icon: string;
   location: string;
   timestamp: Date;
+  forecast?: WeatherForecast[];
+}
+
+// Forecast data for upcoming hours
+export interface WeatherForecast {
+  time: Date;
+  temperature: number;
+  feelsLike: number;
+  description: string;
+  icon: string;
+  precipitation: number;
+  windSpeed: number;
+}
+
+// Weather change alert
+export interface WeatherAlert {
+  type: 'temperature_drop' | 'temperature_rise' | 'rain_coming' | 'wind_increase' | 'clearing';
+  message: string;
+  severity: 'info' | 'warning';
+  timeframe: string;
 }
 
 // Clothing items for each category

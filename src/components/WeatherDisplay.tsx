@@ -1,5 +1,5 @@
-import type { WeatherData } from '../types';
-import { getWeatherIconUrl } from '../services/weatherApi';
+import type { WeatherData, WeatherAlert } from '../types';
+import { getWeatherIconUrl, getWeatherAlerts } from '../services/weatherApi';
 import { formatTemperature, getUnitSymbol, type TemperatureUnit } from '../services/temperatureUtils';
 
 interface WeatherDisplayProps {
@@ -9,6 +9,8 @@ interface WeatherDisplayProps {
 }
 
 export function WeatherDisplay({ weather, unit, compact = false }: WeatherDisplayProps) {
+  const alerts = getWeatherAlerts(weather);
+
   if (compact) {
     return (
       <div className="flex items-center gap-3">
@@ -81,6 +83,15 @@ export function WeatherDisplay({ weather, unit, compact = false }: WeatherDispla
             value={weather.precipitation > 0 ? `${weather.precipitation}"` : 'None'}
           />
         </div>
+
+        {/* Weather Alerts */}
+        {alerts.length > 0 && (
+          <div className="mt-6 space-y-2">
+            {alerts.map((alert, index) => (
+              <WeatherAlertBanner key={index} alert={alert} />
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );
@@ -101,6 +112,71 @@ function WeatherStat({ icon, label, value }: WeatherStatProps) {
       <div>
         <div className="text-xs text-[var(--color-text-muted)]">{label}</div>
         <div className="font-medium">{value}</div>
+      </div>
+    </div>
+  );
+}
+
+interface WeatherAlertBannerProps {
+  alert: WeatherAlert;
+}
+
+function WeatherAlertBanner({ alert }: WeatherAlertBannerProps) {
+  const getAlertIcon = () => {
+    switch (alert.type) {
+      case 'temperature_drop':
+        return (
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+          </svg>
+        );
+      case 'temperature_rise':
+        return (
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 10l7-7m0 0l7 7m-7-7v18" />
+          </svg>
+        );
+      case 'rain_coming':
+        return (
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 10-9.78 2.096A4.001 4.001 0 003 15z" />
+          </svg>
+        );
+      case 'wind_increase':
+        return (
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 18.657A8 8 0 016.343 7.343S7 9 9 10c0-2 .5-5 2.986-7C14 5 16.09 5.777 17.656 7.343A7.975 7.975 0 0120 13a7.975 7.975 0 01-2.343 5.657z" />
+          </svg>
+        );
+      case 'clearing':
+        return (
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+          </svg>
+        );
+      default:
+        return null;
+    }
+  };
+
+  const isWarning = alert.severity === 'warning';
+
+  return (
+    <div className={`flex items-center gap-3 p-3 rounded-lg ${
+      isWarning 
+        ? 'bg-[rgba(251,191,36,0.2)] border border-yellow-500/50' 
+        : 'bg-[rgba(59,130,246,0.2)] border border-blue-500/50'
+    }`}>
+      <div className={isWarning ? 'text-yellow-400' : 'text-blue-400'}>
+        {getAlertIcon()}
+      </div>
+      <div className="flex-1">
+        <div className={`text-sm font-medium ${isWarning ? 'text-yellow-300' : 'text-blue-300'}`}>
+          {isWarning ? '⚠️ Weather Alert' : '📊 Weather Change'}
+        </div>
+        <div className="text-sm text-[var(--color-text-muted)]">
+          {alert.message}
+        </div>
       </div>
     </div>
   );
