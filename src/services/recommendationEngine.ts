@@ -399,46 +399,128 @@ export function getClothingRecommendation(
     clothing[rainKey.key] = adjustedTemp < 50 ? 'Waterproof jacket' : 'Light rain jacket';
   }
 
+  // Helper to find first valid option from a list of preferences
+  // This ensures we never set a value that doesn't exist in the activity's options
+  const findValidOption = (categoryKey: string, preferences: string[]): string | null => {
+    const category = categories.find(c => c.key === categoryKey);
+    if (!category) return null;
+    for (const pref of preferences) {
+      const match = category.options.find(opt => opt.toLowerCase() === pref.toLowerCase());
+      if (match) return match;
+    }
+    // If no preference matches, return null (keep existing value)
+    return null;
+  };
+
+  // Comprehensive preference lists for all activities
+  // When adding a new activity, add its clothing terms to these lists
+  const WARM_TOPS = [
+    // Athletic
+    'Heavy merino', 'Base layer + jacket', 'Expedition weight',
+    // Casual
+    'Fleece', 'Sweater', 'Light jacket',
+    // Cycling specific
+    'Thermal jersey', 'Jersey + jacket', 'Jersey + vest',
+    // XC Skiing specific
+    'Wind jacket + fleece', 'XC jacket', 'Soft shell'
+  ];
+  
+  const COLD_TOPS = [
+    // Athletic
+    'Merino base', 'Long sleeve', 'Base layer',
+    // Casual
+    'Sweater', 'Fleece',
+    // Cycling specific
+    'Long sleeve jersey', 'Thermal jersey',
+    // XC Skiing specific
+    'XC jacket'
+  ];
+
+  const WARM_OUTER = [
+    'Insulated jacket', 'Down jacket', 'Winter coat', 
+    'Hardshell', 'Heavy puffy', 'Softshell'
+  ];
+
+  const VERY_COLD_GLOVES = [
+    // Standard
+    'Heavy gloves', 'Warm gloves', 'Insulated gloves', 'Mittens',
+    // Specialty
+    'Heavy mittens', 'Lobster mitts', 'Lobster gloves', 'Liner + mittens',
+    // Cycling
+    'Thermal gloves'
+  ];
+
+  const COLD_GLOVES = [
+    'Light gloves', 'Warm gloves', 'Fleece gloves',
+    // Cycling
+    'Full finger light',
+    // XC Skiing
+    'XC gloves'
+  ];
+
+  const VERY_COLD_HEAD = [
+    'Beanie', 'Balaclava', 'Insulated hat', 'Light beanie'
+  ];
+
+  const COLD_HEAD = [
+    'Headband', 'Ear warmers', 'Fleece headband', 'Beanie', 'Cap', 'Buff'
+  ];
+
   // Base layer override for cold - prevent T-shirt recommendations in freezing weather
   const baseKey = categories.find(c => c.key === 'baseLayer' || c.key === 'tops');
   if (baseKey) {
     const currentBase = clothing[baseKey.key]?.toLowerCase() || '';
-    const isTooLight = currentBase.includes('t-shirt') || currentBase.includes('singlet') || currentBase.includes('tank');
+    const isTooLight = currentBase.includes('t-shirt') || 
+                       currentBase.includes('singlet') || 
+                       currentBase.includes('tank') ||
+                       currentBase.includes('sleeveless') ||
+                       currentBase.includes('short sleeve');
     
     if (adjustedTemp < 25 && isTooLight) {
       // Very cold: need heavy base layer
-      clothing[baseKey.key] = baseKey.key === 'baseLayer' ? 'Heavy merino' : 'Base layer + jacket';
+      const warmTop = findValidOption(baseKey.key, WARM_TOPS);
+      if (warmTop) clothing[baseKey.key] = warmTop;
     } else if (adjustedTemp < 40 && isTooLight) {
       // Cold: need at least a long sleeve
-      clothing[baseKey.key] = baseKey.key === 'baseLayer' ? 'Merino base' : 'Long sleeve';
-    } else if (adjustedTemp < 50 && currentBase.includes('singlet')) {
-      // Cool: singlet is too light
-      clothing[baseKey.key] = baseKey.key === 'baseLayer' ? 'Long sleeve' : 'Long sleeve';
+      const coldTop = findValidOption(baseKey.key, COLD_TOPS);
+      if (coldTop) clothing[baseKey.key] = coldTop;
+    } else if (adjustedTemp < 50 && (currentBase.includes('singlet') || currentBase.includes('sleeveless'))) {
+      // Cool: singlet/sleeveless is too light
+      const coolTop = findValidOption(baseKey.key, ['Long sleeve', 'Long sleeve jersey', 'T-shirt']);
+      if (coolTop) clothing[baseKey.key] = coolTop;
     }
   }
 
   // Mid layer override for very cold
   const midKey = categories.find(c => c.key === 'midLayer');
   if (midKey && adjustedTemp < 25 && clothing[midKey.key]?.toLowerCase() === 'none') {
-    clothing[midKey.key] = 'Fleece';
+    const midLayer = findValidOption('midLayer', ['Fleece', 'Light fleece', 'Grid fleece', 'Light puffy', 'Heavy puffy']);
+    if (midLayer) clothing[midKey.key] = midLayer;
   }
 
   // Outer layer override for very cold (when not raining/snowing which is already handled)
   const outerKey = categories.find(c => c.key === 'outerLayer');
   if (outerKey && adjustedTemp < 20 && clothing[outerKey.key]?.toLowerCase() === 'none') {
-    clothing[outerKey.key] = 'Insulated jacket';
+    const outerLayer = findValidOption('outerLayer', WARM_OUTER);
+    if (outerLayer) clothing[outerKey.key] = outerLayer;
   }
 
   // Gloves override for cold
   const glovesKey = categories.find(c => c.key === 'gloves');
   if (glovesKey && adjustedTemp < 35 && clothing[glovesKey.key]?.toLowerCase() === 'none') {
-    clothing[glovesKey.key] = adjustedTemp < 25 ? 'Heavy gloves' : 'Light gloves';
+    const gloves = adjustedTemp < 25 
+      ? findValidOption('gloves', VERY_COLD_GLOVES)
+      : findValidOption('gloves', COLD_GLOVES);
+    if (gloves) clothing[glovesKey.key] = gloves;
   }
 
   // Head cover override for cold
   const headKey = categories.find(c => c.key === 'headCover' || c.key === 'helmet');
   if (headKey && headKey.key === 'headCover' && adjustedTemp < 40 && clothing[headKey.key]?.toLowerCase() === 'none') {
-    clothing[headKey.key] = adjustedTemp < 25 ? 'Beanie' : 'Headband';
+    const headCover = adjustedTemp < 25
+      ? findValidOption('headCover', VERY_COLD_HEAD)
+      : findValidOption('headCover', COLD_HEAD);
+    if (headCover) clothing[headKey.key] = headCover;
   }
 
   // Footwear override for cold/wet weather

@@ -62,6 +62,11 @@ export interface ClothingCategory {
 }
 
 // Activity-specific clothing schemas
+// 
+// IMPORTANT: When adding a new activity, also update the preference lists in
+// src/services/recommendationEngine.ts (search for "WARM_TOPS", "COLD_GLOVES", etc.)
+// This ensures smart weather overrides work correctly for the new activity.
+//
 export const ACTIVITY_CONFIGS: Record<ActivityType, ActivityInfo> = {
   running: {
     id: 'running',
