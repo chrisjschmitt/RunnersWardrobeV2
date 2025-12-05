@@ -10,6 +10,12 @@ interface WeatherDisplayProps {
 
 export function WeatherDisplay({ weather, unit, compact = false }: WeatherDisplayProps) {
   const alerts = getWeatherAlerts(weather, unit);
+  
+  // Format time for sunrise/sunset display
+  const formatTime = (date?: Date) => {
+    if (!date) return '--:--';
+    return date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+  };
 
   if (compact) {
     return (
@@ -81,6 +87,16 @@ export function WeatherDisplay({ weather, unit, compact = false }: WeatherDispla
             icon={<RainIcon />}
             label="Precipitation"
             value={weather.precipitation > 0 ? `${weather.precipitation}"` : 'None'}
+          />
+          <WeatherStat 
+            icon={<SunriseIcon />}
+            label="Sunrise"
+            value={formatTime(weather.sunrise)}
+          />
+          <WeatherStat 
+            icon={<SunsetIcon />}
+            label="Sunset"
+            value={formatTime(weather.sunset)}
           />
         </div>
 
@@ -227,6 +243,24 @@ function RainIcon() {
   return (
     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
+    </svg>
+  );
+}
+
+function SunriseIcon() {
+  return (
+    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v1m0 0V3m0 1a9 9 0 019 9M12 4a9 9 0 00-9 9m9-9v1m0 16v1m-9-9h1m16 0h1M5.636 5.636l.707.707m12.02-.707l-.707.707M12 9v3m0 0l2 2m-2-2l-2 2" />
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 17h18M7 17l5-5 5 5" />
+    </svg>
+  );
+}
+
+function SunsetIcon() {
+  return (
+    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v1m0 0V3m0 1a9 9 0 019 9M12 4a9 9 0 00-9 9m9-9v1m0 16v1m-9-9h1m16 0h1M5.636 5.636l.707.707m12.02-.707l-.707.707" />
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 17h18M7 17l5 5 5-5" />
     </svg>
   );
 }
