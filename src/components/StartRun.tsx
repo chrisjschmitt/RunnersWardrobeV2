@@ -266,7 +266,7 @@ export function StartRun({ apiKey, hasApiKey, temperatureUnit, onNeedApiKey, tes
       {/* Header with refresh */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold">Ready to Run?</h1>
+          <h1 className="text-2xl font-bold">Ready to Go?</h1>
           {lastUpdate && (
             <p className="text-sm text-[var(--color-text-muted)]">
               Updated {lastUpdate.toLocaleTimeString()}
