@@ -1,12 +1,13 @@
 import { useState, useEffect } from 'react';
 import type { AppView, TestWeatherData, ActivityType } from './types';
 import { ACTIVITY_CONFIGS } from './types';
-import { getSettings, getRunCount, saveSettings } from './services/database';
+import { getSettings, getRunCount, saveSettings, isOnboardingComplete, setOnboardingComplete } from './services/database';
 import { StartRun } from './components/StartRun';
 import { FileUpload } from './components/FileUpload';
 import { RunHistory } from './components/RunHistory';
 import { Settings } from './components/Settings';
 import { Help } from './components/Help';
+import { Onboarding } from './components/Onboarding';
 import type { TemperatureUnit } from './services/temperatureUtils';
 import { isProxyMode } from './services/weatherApi';
 
@@ -20,6 +21,7 @@ function App() {
   const [testWeather, setTestWeather] = useState<TestWeatherData | null>(null);
   const [selectedActivity, setSelectedActivity] = useState<ActivityType>('running');
   const [showActivityPicker, setShowActivityPicker] = useState(false);
+  const [showOnboarding, setShowOnboarding] = useState(false);
 
   useEffect(() => {
     loadInitialData();
@@ -27,9 +29,10 @@ function App() {
 
   const loadInitialData = async () => {
     try {
-      const [settings, count] = await Promise.all([
+      const [settings, count, onboardingDone] = await Promise.all([
         getSettings(),
-        getRunCount()
+        getRunCount(),
+        isOnboardingComplete()
       ]);
       
       if (settings?.weatherApiKey) {
@@ -42,11 +45,21 @@ function App() {
         setSelectedActivity(settings.selectedActivity);
       }
       setRunCount(count);
+      
+      // Show onboarding for first-time users
+      if (!onboardingDone) {
+        setShowOnboarding(true);
+      }
     } catch (error) {
       console.error('Failed to load initial data:', error);
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleOnboardingComplete = async () => {
+    await setOnboardingComplete();
+    setShowOnboarding(false);
   };
 
   const handleActivityChange = async (activity: ActivityType) => {
@@ -98,6 +111,11 @@ function App() {
         </div>
       </div>
     );
+  }
+
+  // Show onboarding for first-time users
+  if (showOnboarding) {
+    return <Onboarding onComplete={handleOnboardingComplete} />;
   }
 
   return (

@@ -90,6 +90,25 @@ export async function clearSettings(): Promise<void> {
   await db.settings.clear();
 }
 
+// Onboarding helpers
+export async function isOnboardingComplete(): Promise<boolean> {
+  const settings = await getSettings();
+  return settings?.onboardingComplete === true;
+}
+
+export async function setOnboardingComplete(): Promise<void> {
+  const settings = await getSettings();
+  if (settings) {
+    await saveSettings({ ...settings, onboardingComplete: true });
+  } else {
+    await saveSettings({
+      weatherApiKey: '',
+      temperatureUnit: 'celsius',
+      onboardingComplete: true
+    });
+  }
+}
+
 // Feedback operations
 export async function addFeedback(feedback: Omit<RunFeedback, 'id'>): Promise<void> {
   await db.feedback.add(feedback as RunFeedback);
@@ -153,6 +172,122 @@ export async function getAllCustomClothingOptions(): Promise<Record<string, stri
     result[record.category] = record.options;
   }
   return result;
+}
+
+// Export history as CSV
+export async function exportHistoryAsCSV(activity?: ActivityType): Promise<string> {
+  const [runs, feedbackData] = await Promise.all([
+    getAllRuns(activity),
+    getAllFeedback(activity)
+  ]);
+
+  // Combine all records
+  interface ExportRecord {
+    date: string;
+    time: string;
+    source: string;
+    temperature: number;
+    feelsLike: number;
+    humidity: number;
+    windSpeed: number;
+    precipitation: number;
+    cloudCover: number;
+    comfort?: string;
+    clothing: Record<string, string>;
+  }
+
+  const allRecords: ExportRecord[] = [];
+
+  // Add CSV runs
+  for (const run of runs) {
+    allRecords.push({
+      date: run.date,
+      time: run.time || '',
+      source: 'imported',
+      temperature: run.temperature,
+      feelsLike: run.feelsLike,
+      humidity: run.humidity,
+      windSpeed: run.windSpeed,
+      precipitation: run.precipitation,
+      cloudCover: run.cloudCover,
+      clothing: run.clothing
+    });
+  }
+
+  // Add feedback runs
+  for (const fb of feedbackData) {
+    allRecords.push({
+      date: fb.date,
+      time: new Date(fb.timestamp).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
+      source: 'recorded',
+      temperature: fb.temperature,
+      feelsLike: fb.feelsLike,
+      humidity: fb.humidity,
+      windSpeed: fb.windSpeed,
+      precipitation: fb.precipitation,
+      cloudCover: fb.cloudCover,
+      comfort: fb.comfort,
+      clothing: fb.clothing
+    });
+  }
+
+  // Sort by date descending
+  allRecords.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+
+  if (allRecords.length === 0) {
+    return '';
+  }
+
+  // Get all unique clothing keys
+  const clothingKeys = new Set<string>();
+  for (const record of allRecords) {
+    Object.keys(record.clothing).forEach(key => clothingKeys.add(key));
+  }
+  const clothingKeysArray = Array.from(clothingKeys).sort();
+
+  // Build CSV header
+  const headers = [
+    'date',
+    'time',
+    'source',
+    'temperature',
+    'feels_like',
+    'humidity',
+    'wind_speed',
+    'precipitation',
+    'cloud_cover',
+    'comfort',
+    ...clothingKeysArray.map(k => k.replace(/([A-Z])/g, '_$1').toLowerCase())
+  ];
+
+  // Build CSV rows
+  const rows = allRecords.map(record => {
+    const clothingValues = clothingKeysArray.map(key => 
+      escapeCSVValue(record.clothing[key] || '')
+    );
+    return [
+      record.date,
+      record.time,
+      record.source,
+      record.temperature,
+      record.feelsLike,
+      record.humidity,
+      record.windSpeed,
+      record.precipitation,
+      record.cloudCover,
+      record.comfort || '',
+      ...clothingValues
+    ].map(v => escapeCSVValue(String(v))).join(',');
+  });
+
+  return [headers.join(','), ...rows].join('\n');
+}
+
+function escapeCSVValue(value: string): string {
+  if (value.includes(',') || value.includes('"') || value.includes('\n')) {
+    return `"${value.replace(/"/g, '""')}"`;
+  }
+  return value;
 }
 
 // Export database instance for direct access if needed

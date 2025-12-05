@@ -237,6 +237,7 @@ export interface AppSettings {
   };
   testMode?: boolean;
   selectedActivity?: ActivityType;
+  onboardingComplete?: boolean;
 }
 
 // Test weather data for testing different conditions

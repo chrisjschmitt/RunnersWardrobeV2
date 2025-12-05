@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import type { RunRecord, RunFeedback, ActivityType } from '../types';
 import { ACTIVITY_CONFIGS } from '../types';
-import { getAllRuns, clearAllRuns, getAllFeedback, clearAllFeedback, deleteRun, deleteFeedback } from '../services/database';
+import { getAllRuns, clearAllRuns, getAllFeedback, clearAllFeedback, deleteRun, deleteFeedback, exportHistoryAsCSV } from '../services/database';
 import { formatTemperature, type TemperatureUnit } from '../services/temperatureUtils';
 
 // Extended type to track source
@@ -101,6 +101,30 @@ export function RunHistory({ onDataCleared, temperatureUnit, activity = 'running
     setRuns(prev => prev.filter(r => !(r.id === run.id && r.source === run.source)));
   };
 
+  const handleExportCSV = async () => {
+    try {
+      const csv = await exportHistoryAsCSV(activity);
+      if (!csv) {
+        alert('No data to export');
+        return;
+      }
+      
+      // Create and download file
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `${activity}-history-${new Date().toISOString().split('T')[0]}.csv`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Failed to export CSV:', error);
+      alert('Failed to export data');
+    }
+  };
+
   const filteredRuns = runs.filter(run => {
     // First apply source filter
     if (sourceFilter !== 'all' && run.source !== sourceFilter) return false;
@@ -191,10 +215,19 @@ export function RunHistory({ onDataCleared, temperatureUnit, activity = 'running
 
             <div className="flex gap-2">
               <button
+                onClick={handleExportCSV}
+                className="btn-secondary flex items-center gap-2"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                Export CSV
+              </button>
+              <button
                 onClick={() => setShowConfirmClear(true)}
                 className="btn-secondary text-[var(--color-error)] border-[var(--color-error)]"
               >
-                Clear All Data
+                Clear All
               </button>
             </div>
           </>
