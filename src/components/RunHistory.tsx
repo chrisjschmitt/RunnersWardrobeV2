@@ -167,7 +167,7 @@ export function RunHistory({ onDataCleared, temperatureUnit, activity = 'running
                     : 'bg-[rgba(255,255,255,0.1)] text-[var(--color-text-muted)] hover:bg-[rgba(255,255,255,0.15)]'
                 }`}
               >
-                My Runs ({feedbackCount})
+                My {activityConfig.name} ({feedbackCount})
               </button>
               <button
                 onClick={() => setSourceFilter('csv')}
@@ -234,6 +234,7 @@ export function RunHistory({ onDataCleared, temperatureUnit, activity = 'running
               index={index} 
               temperatureUnit={temperatureUnit}
               onDelete={handleDeleteRun}
+              activityName={activityConfig.name}
             />
           ))}
           {filteredRuns.length === 0 && (filter || sourceFilter !== 'all') && (
@@ -252,9 +253,10 @@ interface RunCardProps {
   index: number;
   temperatureUnit: TemperatureUnit;
   onDelete: (run: DisplayRun) => void;
+  activityName: string;
 }
 
-function RunCard({ run, index, temperatureUnit, onDelete }: RunCardProps) {
+function RunCard({ run, index, temperatureUnit, onDelete, activityName }: RunCardProps) {
   const [isExpanded, setIsExpanded] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   
@@ -321,7 +323,7 @@ function RunCard({ run, index, temperatureUnit, onDelete }: RunCardProps) {
                 ? 'bg-[var(--color-success)] text-white' 
                 : 'bg-[rgba(255,255,255,0.1)] text-[var(--color-text-muted)]'
             }`}>
-              {run.source === 'feedback' ? 'My Run' : 'Imported'}
+              {run.source === 'feedback' ? `My ${activityName}` : 'Imported'}
             </span>
             {/* Comfort indicator */}
             {run.comfort && (
