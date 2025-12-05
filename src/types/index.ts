@@ -42,6 +42,7 @@ export type ActivityType =
   | 'running' 
   | 'trail_running' 
   | 'hiking' 
+  | 'walking'
   | 'cycling' 
   | 'snowshoeing' 
   | 'cross_country_skiing';
@@ -108,6 +109,21 @@ export const ACTIVITY_CONFIGS: Record<ActivityType, ActivityInfo> = {
       { key: 'gloves', label: 'Gloves', defaultValue: 'None', options: ['None', 'Light gloves', 'Fleece gloves', 'Insulated gloves', 'Mittens'] },
       { key: 'pack', label: 'Pack', defaultValue: 'Daypack', options: ['None', 'Waist pack', 'Daypack (20L)', 'Daypack (30L)', 'Overnight pack'] },
       { key: 'accessories', label: 'Accessories', defaultValue: 'None', options: ['None', 'Sunglasses', 'Headlamp', 'Trekking poles', 'Gaiters', 'Sunglasses + poles', 'Headlamp + poles'] },
+    ]
+  },
+  walking: {
+    id: 'walking',
+    name: 'Walking',
+    icon: '🚶',
+    clothingCategories: [
+      { key: 'headCover', label: 'Head', defaultValue: 'None', options: ['None', 'Sun hat', 'Cap', 'Beanie', 'Ear warmers'] },
+      { key: 'tops', label: 'Top', defaultValue: 'T-shirt', options: ['T-shirt', 'Long sleeve', 'Sweater', 'Fleece', 'Light jacket'] },
+      { key: 'outerLayer', label: 'Jacket', defaultValue: 'None', options: ['None', 'Light jacket', 'Rain jacket', 'Winter coat', 'Down jacket'] },
+      { key: 'bottoms', label: 'Pants', defaultValue: 'Casual pants', options: ['Shorts', 'Capris', 'Casual pants', 'Jeans', 'Leggings', 'Sweatpants'] },
+      { key: 'shoes', label: 'Shoes', defaultValue: 'Sneakers', options: ['Sandals', 'Sneakers', 'Walking shoes', 'Boots', 'Waterproof shoes'] },
+      { key: 'socks', label: 'Socks', defaultValue: 'Regular', options: ['No-show', 'Regular', 'Wool', 'Thick'] },
+      { key: 'gloves', label: 'Gloves', defaultValue: 'None', options: ['None', 'Light gloves', 'Warm gloves', 'Mittens'] },
+      { key: 'accessories', label: 'Accessories', defaultValue: 'None', options: ['None', 'Sunglasses', 'Umbrella', 'Scarf', 'Sunglasses + hat'] },
     ]
   },
   cycling: {

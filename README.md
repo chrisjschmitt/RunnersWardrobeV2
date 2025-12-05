@@ -4,14 +4,15 @@ A Progressive Web App (PWA) that recommends what to wear for outdoor activities 
 
 ## Features
 
-### Multi-Activity Support 🆕
-Switch between 6 different outdoor activities, each with tailored clothing categories:
+### Multi-Activity Support
+Switch between 7 different outdoor activities, each with tailored clothing categories:
 
 | Activity | Icon | Key Categories |
 |----------|------|----------------|
 | **Running** | 🏃 | Head, tops, bottoms, shoes, socks, gloves, rain gear, accessories |
 | **Trail Running** | 🏔️ | + Hydration vest, poles, gaiters |
 | **Hiking** | 🥾 | Base/mid/outer layers, pack size, trekking poles |
+| **Walking** | 🚶 | Casual tops, jackets, pants, everyday shoes |
 | **Cycling** | 🚴 | Helmet, jersey, bibs, arm/leg warmers, eyewear |
 | **Snowshoeing** | ❄️ | Full winter layering system, gaiters, poles |
 | **XC Skiing** | ⛷️ | Race suits, classic/skate boots, wax considerations |

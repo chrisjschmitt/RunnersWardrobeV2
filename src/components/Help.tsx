@@ -126,11 +126,12 @@ If you're offline, you'll see a message that weather can't be loaded. Once you'r
   },
   {
     question: "What activities does the app support?",
-    answer: `Currently six outdoor activities:
+    answer: `Currently seven outdoor activities:
 
 🏃 **Running** - Standard running gear
 🏔️ **Trail Running** - Plus hydration vests and poles
 🥾 **Hiking** - Layering system with packs
+🚶 **Walking** - Casual everyday options
 🚴 **Cycling** - Jerseys, bibs, helmets
 ❄️ **Snowshoeing** - Full winter gear
 ⛷️ **XC Skiing** - Nordic-specific clothing
