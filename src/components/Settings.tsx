@@ -3,6 +3,7 @@ import { getSettings, saveSettings } from '../services/database';
 import { isValidApiKeyFormat, isProxyMode } from '../services/weatherApi';
 import type { TemperatureUnit } from '../services/temperatureUtils';
 import type { TestWeatherData } from '../types';
+import { version } from '../../package.json';
 
 interface SettingsProps {
   onSettingsSaved: () => void;
@@ -474,7 +475,7 @@ export function Settings({
       {/* Version info */}
       <div className="mt-6 text-center">
         <p className="text-xs text-[var(--color-text-muted)]">
-          Runner's Wardrobe v2.0.2
+          Outdoor Wardrobe v{version}
         </p>
       </div>
     </div>
