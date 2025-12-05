@@ -441,6 +441,38 @@ export function getClothingRecommendation(
     clothing[headKey.key] = adjustedTemp < 25 ? 'Beanie' : 'Headband';
   }
 
+  // Footwear override for cold/wet weather
+  const shoesKey = categories.find(c => c.key === 'shoes' || c.key === 'boots');
+  if (shoesKey) {
+    const currentShoes = clothing[shoesKey.key]?.toLowerCase() || '';
+    const isTooLight = currentShoes.includes('sandal') || 
+                       currentShoes.includes('sneaker') || 
+                       currentShoes.includes('flat') ||
+                       currentShoes.includes('running shoes');
+    
+    // In freezing temps, recommend boots/warmer footwear
+    if (adjustedTemp < 32 && isTooLight) {
+      // Different recommendations based on activity
+      if (activity === 'walking') {
+        clothing[shoesKey.key] = adjustedTemp < 20 ? 'Waterproof boots' : 'Boots';
+      } else if (activity === 'hiking') {
+        clothing[shoesKey.key] = adjustedTemp < 20 ? 'Waterproof boots' : 'Hiking boots';
+      } else if (activity === 'running' || activity === 'trail_running') {
+        // Runners typically stick to running shoes, but suggest trail shoes in cold
+        clothing[shoesKey.key] = activity === 'trail_running' ? 'Trail shoes' : 'Running shoes';
+      }
+    }
+    
+    // If it's wet/snowy, recommend waterproof options
+    if (isSnowing || isRaining) {
+      if (activity === 'walking' && isTooLight) {
+        clothing[shoesKey.key] = 'Waterproof shoes';
+      } else if (activity === 'hiking' && !currentShoes.includes('waterproof')) {
+        clothing[shoesKey.key] = 'Waterproof boots';
+      }
+    }
+  }
+
   // Apply accessory logic
   const finalClothing = applyAccessoryLogic(clothing, currentWeather, activity);
 
@@ -548,6 +580,25 @@ export function getFallbackRecommendation(
   if (hasRain) {
     applyIfExists(clothing, categories, 'rainGear', temp < 50 ? 'Waterproof jacket' : 'Light rain jacket');
     applyIfExists(clothing, categories, 'outerLayer', 'Rain jacket');
+  }
+
+  // Cold weather footwear adjustments
+  if (temp < 32) {
+    // Freezing - recommend warmer/waterproof footwear
+    if (activity === 'walking') {
+      applyIfExists(clothing, categories, 'shoes', temp < 20 ? 'Waterproof boots' : 'Boots');
+    } else if (activity === 'hiking') {
+      applyIfExists(clothing, categories, 'shoes', 'Waterproof boots');
+    }
+  }
+  
+  // Wet weather footwear adjustments
+  if (hasRain || isSnowing) {
+    if (activity === 'walking') {
+      applyIfExists(clothing, categories, 'shoes', 'Waterproof shoes');
+    } else if (activity === 'hiking') {
+      applyIfExists(clothing, categories, 'shoes', 'Waterproof boots');
+    }
   }
 
   // Apply accessory logic
