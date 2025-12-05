@@ -56,20 +56,19 @@ export function ClothingPicker({
 
   // Load custom options from database
   useEffect(() => {
+    const loadCustomOptions = async () => {
+      setIsLoading(true);
+      try {
+        const options = await getCustomClothingOptions(category, activity);
+        setCustomOptions(options);
+      } catch (error) {
+        console.error('Failed to load custom options:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
     loadCustomOptions();
   }, [category, activity]);
-
-  const loadCustomOptions = async () => {
-    setIsLoading(true);
-    try {
-      const options = await getCustomClothingOptions(category, activity);
-      setCustomOptions(options);
-    } catch (error) {
-      console.error('Failed to load custom options:', error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
   // Combine default and custom options
   const allOptions = [...defaultOptions, ...customOptions.filter(opt => !defaultOptions.includes(opt))];
@@ -189,5 +188,3 @@ export function ClothingPicker({
     </div>
   );
 }
-
-export { CATEGORY_ICONS };

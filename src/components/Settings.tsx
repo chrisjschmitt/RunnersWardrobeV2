@@ -142,7 +142,7 @@ export function Settings({
       setSaved(true);
       onSettingsSaved();
       setTimeout(() => setSaved(false), 3000);
-    } catch (err) {
+    } catch {
       setError('Failed to save settings');
     } finally {
       setIsSaving(false);

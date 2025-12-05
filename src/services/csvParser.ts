@@ -112,7 +112,7 @@ export function parseCSV(csvContent: string): ParseResult {
 
     try {
       const values = parseCSVLine(line);
-      const record = createRunRecord(values, columnMap, i + 1);
+      const record = createRunRecord(values, columnMap);
       
       if (record) {
         result.records.push(record);
@@ -167,8 +167,7 @@ function parseCSVLine(line: string): string[] {
 
 function createRunRecord(
   values: string[],
-  columnMap: Record<number, string>,
-  _rowNum: number
+  columnMap: Record<number, string>
 ): RunRecord | null {
   const data: Record<string, string> = {};
   

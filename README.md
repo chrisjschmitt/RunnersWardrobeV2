@@ -208,11 +208,12 @@ If you consistently report "too cold", recommendations shift warmer. "Too hot" s
 
 ### 5. Smart Overrides
 Even if voting says "None", the app will recommend:
-- Rain gear when precipitation detected
+- Rain gear when precipitation detected (rain only, not snow)
+- Base layers appropriate for temperature (no T-shirts below 40°F)
 - Gloves when temperature < 35°F
 - Hats when temperature < 40°F
-- Sunglasses when sunny (cloud cover < 50%, UV > 2)
-- Headlamp when dark (before 6am or after 7pm)
+- Sunglasses when sunny (cloud cover < 30% or UV > 3)
+- Headlamp when dark (based on actual sunrise/sunset times)
 
 ### 6. Activity-Specific Defaults
 With no history, sensible defaults based on temperature and activity type.
@@ -261,6 +262,14 @@ With no history, sensible defaults based on temperature and activity type.
 
 ## Version History
 
+- **v3.1.7**: Check for app updates on Refresh button tap
+- **v3.1.6**: Smart cold weather overrides (prevents T-shirt in freezing weather)
+- **v3.1.5**: Fix rain gear recommendation in snowy conditions
+- **v3.1.4**: Sunrise/sunset times on Home screen
+- **v3.1.3**: "Check for Updates" button in Settings
+- **v3.1.2**: Smarter accessory logic (uses actual sunrise/sunset times)
+- **v3.1.1**: Activity-specific text fixes, generic "Ready to Go?" prompt
+- **v3.1.0**: Onboarding flow for new users, CSV export feature
 - **v3.0.0**: Multi-activity support (Running, Trail Running, Hiking, Cycling, Snowshoeing, XC Skiing), smart accessories (sunglasses/headlamp), activity-specific clothing categories
 - **v2.0.2**: Fix date display timezone issues
 - **v2.0.1**: Smart overrides for rain/cold gear

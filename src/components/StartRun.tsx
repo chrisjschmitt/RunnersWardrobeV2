@@ -180,6 +180,7 @@ export function StartRun({ apiKey, hasApiKey, temperatureUnit, onNeedApiKey, tes
     if (hasApiKey || testMode) {
       loadWeatherAndRecommendations();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [hasApiKey, apiKey, testMode, testWeather, activity]);
 
   const handleClothingChange = (clothing: ClothingItems) => {

@@ -25,61 +25,60 @@ export function RunHistory({ onDataCleared, temperatureUnit, activity = 'running
   const [sourceFilter, setSourceFilter] = useState<'all' | 'csv' | 'feedback'>('all');
 
   useEffect(() => {
+    const loadRuns = async () => {
+      setIsLoading(true);
+      try {
+        // Load both CSV runs and feedback runs (filtered by activity)
+        const [csvData, feedbackData] = await Promise.all([
+          getAllRuns(activity),
+          getAllFeedback(activity)
+        ]);
+        
+        // Convert CSV runs
+        const csvRuns: DisplayRun[] = csvData.map(run => ({
+          ...run,
+          source: 'csv' as const
+        }));
+        
+        // Convert feedback to DisplayRun format
+        const feedbackRuns: DisplayRun[] = feedbackData.map((fb: RunFeedback) => ({
+          id: fb.id,
+          date: fb.date,
+          time: new Date(fb.timestamp).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
+          location: 'Current Location',
+          temperature: fb.temperature,
+          feelsLike: fb.feelsLike,
+          humidity: fb.humidity,
+          pressure: 0,
+          precipitation: fb.precipitation,
+          uvIndex: 0,
+          windSpeed: fb.windSpeed,
+          cloudCover: fb.cloudCover,
+          clothing: fb.clothing,
+          source: 'feedback' as const,
+          comfort: fb.comfort
+        }));
+        
+        // Combine and sort by date descending
+        const allRuns = [...csvRuns, ...feedbackRuns];
+        // Parse dates as local time for proper sorting
+        const parseLocalDate = (dateStr: string) => {
+          const parts = dateStr.split('-');
+          if (parts.length === 3) {
+            return new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2])).getTime();
+          }
+          return new Date(dateStr).getTime();
+        };
+        allRuns.sort((a, b) => parseLocalDate(b.date) - parseLocalDate(a.date));
+        setRuns(allRuns);
+      } catch (error) {
+        console.error('Failed to load runs:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
     loadRuns();
   }, [activity]);
-
-  const loadRuns = async () => {
-    setIsLoading(true);
-    try {
-      // Load both CSV runs and feedback runs (filtered by activity)
-      const [csvData, feedbackData] = await Promise.all([
-        getAllRuns(activity),
-        getAllFeedback(activity)
-      ]);
-      
-      // Convert CSV runs
-      const csvRuns: DisplayRun[] = csvData.map(run => ({
-        ...run,
-        source: 'csv' as const
-      }));
-      
-      // Convert feedback to DisplayRun format
-      const feedbackRuns: DisplayRun[] = feedbackData.map((fb: RunFeedback) => ({
-        id: fb.id,
-        date: fb.date,
-        time: new Date(fb.timestamp).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
-        location: 'Current Location',
-        temperature: fb.temperature,
-        feelsLike: fb.feelsLike,
-        humidity: fb.humidity,
-        pressure: 0,
-        precipitation: fb.precipitation,
-        uvIndex: 0,
-        windSpeed: fb.windSpeed,
-        cloudCover: fb.cloudCover,
-        clothing: fb.clothing,
-        source: 'feedback' as const,
-        comfort: fb.comfort
-      }));
-      
-      // Combine and sort by date descending
-      const allRuns = [...csvRuns, ...feedbackRuns];
-      // Parse dates as local time for proper sorting
-      const parseLocalDate = (dateStr: string) => {
-        const parts = dateStr.split('-');
-        if (parts.length === 3) {
-          return new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2])).getTime();
-        }
-        return new Date(dateStr).getTime();
-      };
-      allRuns.sort((a, b) => parseLocalDate(b.date) - parseLocalDate(a.date));
-      setRuns(allRuns);
-    } catch (error) {
-      console.error('Failed to load runs:', error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
   const handleClearAll = async () => {
     await Promise.all([clearAllRuns(), clearAllFeedback()]);
