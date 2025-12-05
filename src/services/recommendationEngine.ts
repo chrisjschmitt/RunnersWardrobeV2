@@ -399,6 +399,36 @@ export function getClothingRecommendation(
     clothing[rainKey.key] = adjustedTemp < 50 ? 'Waterproof jacket' : 'Light rain jacket';
   }
 
+  // Base layer override for cold - prevent T-shirt recommendations in freezing weather
+  const baseKey = categories.find(c => c.key === 'baseLayer' || c.key === 'tops');
+  if (baseKey) {
+    const currentBase = clothing[baseKey.key]?.toLowerCase() || '';
+    const isTooLight = currentBase.includes('t-shirt') || currentBase.includes('singlet') || currentBase.includes('tank');
+    
+    if (adjustedTemp < 25 && isTooLight) {
+      // Very cold: need heavy base layer
+      clothing[baseKey.key] = baseKey.key === 'baseLayer' ? 'Heavy merino' : 'Base layer + jacket';
+    } else if (adjustedTemp < 40 && isTooLight) {
+      // Cold: need at least a long sleeve
+      clothing[baseKey.key] = baseKey.key === 'baseLayer' ? 'Merino base' : 'Long sleeve';
+    } else if (adjustedTemp < 50 && currentBase.includes('singlet')) {
+      // Cool: singlet is too light
+      clothing[baseKey.key] = baseKey.key === 'baseLayer' ? 'Long sleeve' : 'Long sleeve';
+    }
+  }
+
+  // Mid layer override for very cold
+  const midKey = categories.find(c => c.key === 'midLayer');
+  if (midKey && adjustedTemp < 25 && clothing[midKey.key]?.toLowerCase() === 'none') {
+    clothing[midKey.key] = 'Fleece';
+  }
+
+  // Outer layer override for very cold (when not raining/snowing which is already handled)
+  const outerKey = categories.find(c => c.key === 'outerLayer');
+  if (outerKey && adjustedTemp < 20 && clothing[outerKey.key]?.toLowerCase() === 'none') {
+    clothing[outerKey.key] = 'Insulated jacket';
+  }
+
   // Gloves override for cold
   const glovesKey = categories.find(c => c.key === 'gloves');
   if (glovesKey && adjustedTemp < 35 && clothing[glovesKey.key]?.toLowerCase() === 'none') {
