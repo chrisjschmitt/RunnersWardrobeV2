@@ -92,12 +92,12 @@ export function ClothingPicker({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 backdrop-blur-sm animate-fade-in">
+    <div className="fixed inset-0 z-50 flex items-start justify-center bg-black/60 backdrop-blur-sm animate-fade-in">
       <div 
         className="absolute inset-0" 
         onClick={onClose}
       />
-      <div className="relative w-full max-w-lg bg-[var(--color-surface)] rounded-t-2xl animate-slide-up safe-bottom">
+      <div className="relative w-full max-w-lg bg-[var(--color-surface)] rounded-b-2xl animate-fade-in safe-top">
         <div className="p-4 border-b border-[rgba(255,255,255,0.1)]">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
@@ -115,7 +115,7 @@ export function ClothingPicker({
           </div>
         </div>
 
-        <div className="p-4 max-h-[60vh] overflow-y-auto">
+        <div className="p-4 max-h-[70vh] overflow-y-auto">
           {isLoading ? (
             <div className="flex items-center justify-center py-8">
               <div className="spinner animate-spin"></div>
