@@ -270,7 +270,7 @@ function getMostCommonItem(
   return { item: mostCommon, count: maxCount, total: items.length };
 }
 
-// Apply smart accessory logic based on conditions
+// Apply smart accessory and eyewear logic based on conditions
 function applyAccessoryLogic(
   clothing: ClothingItems,
   weather: WeatherData,
@@ -278,25 +278,38 @@ function applyAccessoryLogic(
 ): ClothingItems {
   const result = { ...clothing };
   const categories = getClothingCategories(activity);
-  const hasAccessories = categories.some(c => c.key === 'accessories');
   
-  if (!hasAccessories) return result;
-  
-  // Check current accessory value
-  const currentAccessory = result.accessories?.toLowerCase() || 'none';
-  
-  // Determine what accessories are needed
+  // Determine what's needed based on conditions
   const needsSunglasses = isSunny(weather);
-  const needsHeadlamp = isDarkOutside();
+  const needsHeadlamp = isDarkOutside(weather);
   
-  // Only override if current is "none" or we need to add something
-  if (currentAccessory === 'none' || currentAccessory === '') {
-    if (needsSunglasses && needsHeadlamp) {
-      result.accessories = 'Sunglasses + headlamp';
-    } else if (needsSunglasses) {
-      result.accessories = 'Sunglasses';
-    } else if (needsHeadlamp) {
-      result.accessories = 'Headlamp';
+  // Handle 'eyewear' category (cycling, XC skiing)
+  const hasEyewear = categories.some(c => c.key === 'eyewear');
+  if (hasEyewear) {
+    const currentEyewear = result.eyewear?.toLowerCase() || 'none';
+    if (currentEyewear === 'none' || currentEyewear === '') {
+      if (needsSunglasses) {
+        result.eyewear = 'Sunglasses';
+      } else if (needsHeadlamp) {
+        result.eyewear = 'Clear glasses'; // For visibility at dusk/night
+      }
+    }
+  }
+  
+  // Handle 'accessories' category (running, trail running, hiking, etc.)
+  const hasAccessories = categories.some(c => c.key === 'accessories');
+  if (hasAccessories) {
+    const currentAccessory = result.accessories?.toLowerCase() || 'none';
+    
+    // Only override if current is "none" or empty
+    if (currentAccessory === 'none' || currentAccessory === '') {
+      if (needsSunglasses && needsHeadlamp) {
+        result.accessories = 'Sunglasses + headlamp';
+      } else if (needsSunglasses) {
+        result.accessories = 'Sunglasses';
+      } else if (needsHeadlamp) {
+        result.accessories = 'Headlamp';
+      }
     }
   }
   

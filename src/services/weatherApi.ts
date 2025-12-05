@@ -20,7 +20,7 @@ interface OpenWeatherResponse {
   rain?: { '1h'?: number; '3h'?: number };
   snow?: { '1h'?: number; '3h'?: number };
   name: string;
-  sys: { country: string };
+  sys: { country: string; sunrise: number; sunset: number };
 }
 
 interface ForecastItem {
@@ -185,7 +185,9 @@ export async function fetchWeather(
     icon: weatherData.weather[0]?.icon || '01d',
     location: `${weatherData.name}, ${weatherData.sys.country}`,
     timestamp: new Date(),
-    forecast: forecast
+    forecast: forecast,
+    sunrise: new Date(weatherData.sys.sunrise * 1000),
+    sunset: new Date(weatherData.sys.sunset * 1000)
   };
 
   // Update cache

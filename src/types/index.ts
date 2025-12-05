@@ -13,6 +13,8 @@ export interface WeatherData {
   location: string;
   timestamp: Date;
   forecast?: WeatherForecast[];
+  sunrise?: Date;
+  sunset?: Date;
 }
 
 // Forecast data for upcoming hours
@@ -120,7 +122,7 @@ export const ACTIVITY_CONFIGS: Record<ActivityType, ActivityInfo> = {
       { key: 'socks', label: 'Socks', defaultValue: 'Cycling socks', options: ['No-show', 'Cycling socks', 'Wool socks', 'Thermal socks', 'Overshoes'] },
       { key: 'gloves', label: 'Gloves', defaultValue: 'None', options: ['None', 'Fingerless', 'Full finger light', 'Thermal gloves', 'Lobster gloves'] },
       { key: 'armWarmers', label: 'Arm/Leg', defaultValue: 'None', options: ['None', 'Arm warmers', 'Leg warmers', 'Knee warmers', 'Arm + leg warmers', 'Arm + knee warmers'] },
-      { key: 'eyewear', label: 'Eyewear', defaultValue: 'Sunglasses', options: ['None', 'Sunglasses', 'Clear glasses', 'Photochromic'] },
+      { key: 'eyewear', label: 'Eyewear', defaultValue: 'None', options: ['None', 'Sunglasses', 'Clear glasses', 'Photochromic'] },
       { key: 'rainGear', label: 'Rain Gear', defaultValue: 'None', options: ['None', 'Rain cape', 'Rain jacket', 'Shoe covers', 'Full rain kit'] },
       { key: 'accessories', label: 'Accessories', defaultValue: 'None', options: ['None', 'Lights', 'Headlamp', 'Reflective vest', 'Lights + vest'] },
     ]
@@ -154,7 +156,7 @@ export const ACTIVITY_CONFIGS: Record<ActivityType, ActivityInfo> = {
       { key: 'boots', label: 'Boots', defaultValue: 'Classic boots', options: ['Classic boots', 'Skate boots', 'Combi boots', 'Insulated boots'] },
       { key: 'socks', label: 'Socks', defaultValue: 'XC socks', options: ['Thin socks', 'XC socks', 'Wool socks'] },
       { key: 'gloves', label: 'Gloves', defaultValue: 'XC gloves', options: ['Light gloves', 'XC gloves', 'Lobster mitts', 'Heavy mittens'] },
-      { key: 'eyewear', label: 'Eyewear', defaultValue: 'Sunglasses', options: ['None', 'Sunglasses', 'Goggles', 'Photochromic'] },
+      { key: 'eyewear', label: 'Eyewear', defaultValue: 'None', options: ['None', 'Sunglasses', 'Goggles', 'Photochromic'] },
       { key: 'accessories', label: 'Accessories', defaultValue: 'None', options: ['None', 'Neck gaiter', 'Hand warmers', 'Headlamp', 'Neck gaiter + hand warmers'] },
     ]
   }
@@ -308,14 +310,35 @@ export function getDefaultClothing(activity: ActivityType): ClothingItems {
   return defaults;
 }
 
-// Helper to check if it's dark (for headlamp recommendations)
-export function isDarkOutside(): boolean {
-  const hour = new Date().getHours();
-  // Consider dark before 6am or after 7pm
-  return hour < 6 || hour >= 19;
+// Helper to check if it's dark or near dark (for headlamp recommendations)
+// Uses actual sunrise/sunset times if available, with 30-minute buffer
+export function isDarkOutside(weather?: WeatherData): boolean {
+  const now = new Date();
+  
+  // If we have actual sunrise/sunset data, use it
+  if (weather?.sunrise && weather?.sunset) {
+    const sunrise = new Date(weather.sunrise);
+    const sunset = new Date(weather.sunset);
+    
+    // Add 30-minute buffer before sunrise and after sunset
+    const bufferMs = 30 * 60 * 1000; // 30 minutes
+    const sunriseWithBuffer = new Date(sunrise.getTime() - bufferMs);
+    const sunsetWithBuffer = new Date(sunset.getTime() + bufferMs);
+    
+    // It's dark if before sunrise (with buffer) or after sunset (with buffer)
+    return now < sunriseWithBuffer || now > sunsetWithBuffer;
+  }
+  
+  // Fallback: use simple hour-based logic
+  const hour = now.getHours();
+  return hour < 6 || hour >= 17;
 }
 
 // Helper to check if sunny (for sunglasses recommendations)
+// More restrictive: low cloud cover AND either decent UV or very clear skies
 export function isSunny(weather: WeatherData): boolean {
-  return weather.cloudCover < 50 && weather.uvIndex > 2;
+  // Sunny if: very few clouds (<30%) OR moderate clouds (<50%) with good UV
+  const veryClear = weather.cloudCover < 30;
+  const clearWithUV = weather.cloudCover < 50 && weather.uvIndex > 3;
+  return veryClear || clearWithUV;
 }
