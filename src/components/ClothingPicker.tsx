@@ -1,83 +1,29 @@
 import { useState, useEffect } from 'react';
 import { getCustomClothingOptions, addCustomClothingOption } from '../services/database';
+import type { ActivityType } from '../types';
+import { getClothingCategories } from '../types';
 
-// Common options for each clothing category
-const DEFAULT_CLOTHING_OPTIONS: Record<string, string[]> = {
-  headCover: [
-    'None',
-    'Running cap',
-    'Visor',
-    'Light beanie',
-    'Beanie',
-    'Headband',
-    'Buff/Gaiter'
-  ],
-  tops: [
-    'Singlet',
-    'T-shirt',
-    'Long sleeve',
-    'Base layer',
-    'Base layer + vest',
-    'Base layer + jacket',
-    'Base layer + heavy jacket',
-    'Long sleeve + vest'
-  ],
-  bottoms: [
-    'Short shorts',
-    'Shorts',
-    'Capris',
-    'Tights',
-    'Shorts + tights'
-  ],
-  shoes: [
-    'Running shoes',
-    'Trail shoes',
-    'Racing flats',
-    'Carbon plated',
-    'Waterproof shoes'
-  ],
-  socks: [
-    'No-show',
-    'Light',
-    'Regular',
-    'Light wool',
-    'Wool',
-    'Compression'
-  ],
-  gloves: [
-    'None',
-    'Light',
-    'Medium',
-    'Heavy',
-    'Mittens'
-  ],
-  rainGear: [
-    'None',
-    'Light rain jacket',
-    'Waterproof jacket',
-    'Poncho',
-    'Full rain suit'
-  ]
-};
-
-const CATEGORY_LABELS: Record<string, string> = {
-  headCover: 'Head Cover',
-  tops: 'Top',
-  bottoms: 'Bottom',
-  shoes: 'Shoes',
-  socks: 'Socks',
-  gloves: 'Gloves',
-  rainGear: 'Rain Gear'
-};
-
+// Icons for categories (shared with ClothingRecommendation)
 const CATEGORY_ICONS: Record<string, string> = {
   headCover: '🧢',
+  helmet: '⛑️',
   tops: '👕',
+  jersey: '👕',
+  baseLayer: '🎽',
+  midLayer: '🧥',
+  outerLayer: '🧥',
   bottoms: '🩳',
   shoes: '👟',
+  boots: '🥾',
   socks: '🧦',
   gloves: '🧤',
-  rainGear: '🌧️'
+  rainGear: '🌧️',
+  armWarmers: '💪',
+  eyewear: '🕶️',
+  hydration: '💧',
+  pack: '🎒',
+  gaiters: '🦵',
+  accessories: '✨',
 };
 
 interface ClothingPickerProps {
@@ -85,27 +31,38 @@ interface ClothingPickerProps {
   currentValue: string;
   onSelect: (value: string) => void;
   onClose: () => void;
+  activity?: ActivityType;
 }
 
-export function ClothingPicker({ category, currentValue, onSelect, onClose }: ClothingPickerProps) {
+export function ClothingPicker({ 
+  category, 
+  currentValue, 
+  onSelect, 
+  onClose, 
+  activity = 'running' 
+}: ClothingPickerProps) {
   const [customValue, setCustomValue] = useState('');
   const [showCustom, setShowCustom] = useState(false);
   const [customOptions, setCustomOptions] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   
-  const defaultOptions = DEFAULT_CLOTHING_OPTIONS[category] || [];
-  const label = CATEGORY_LABELS[category] || category;
+  // Get category info from activity config
+  const categories = getClothingCategories(activity);
+  const categoryConfig = categories.find(c => c.key === category);
+  
+  const defaultOptions = categoryConfig?.options || [];
+  const label = categoryConfig?.label || category;
   const icon = CATEGORY_ICONS[category] || '👔';
 
   // Load custom options from database
   useEffect(() => {
     loadCustomOptions();
-  }, [category]);
+  }, [category, activity]);
 
   const loadCustomOptions = async () => {
     setIsLoading(true);
     try {
-      const options = await getCustomClothingOptions(category);
+      const options = await getCustomClothingOptions(category, activity);
       setCustomOptions(options);
     } catch (error) {
       console.error('Failed to load custom options:', error);
@@ -125,8 +82,8 @@ export function ClothingPicker({ category, currentValue, onSelect, onClose }: Cl
   const handleCustomSubmit = async () => {
     if (customValue.trim()) {
       const newOption = customValue.trim();
-      // Save to database
-      await addCustomClothingOption(category, newOption);
+      // Save to database with activity context
+      await addCustomClothingOption(category, newOption, activity);
       // Update local state
       setCustomOptions(prev => [...prev, newOption]);
       // Select the new option
@@ -233,4 +190,4 @@ export function ClothingPicker({ category, currentValue, onSelect, onClose }: Cl
   );
 }
 
-export { DEFAULT_CLOTHING_OPTIONS as CLOTHING_OPTIONS, CATEGORY_LABELS, CATEGORY_ICONS };
+export { CATEGORY_ICONS };

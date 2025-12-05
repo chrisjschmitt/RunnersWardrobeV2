@@ -1,0 +1,14 @@
+date,time,location,temperature,feels_like,humidity,pressure,precipitation,uv,wind_speed,cloud_cover,head_cover,base_layer,tops,bottoms,boots,socks,gloves,eyewear,accessories
+2024-01-05,09:00,Lapland Lake,22,12,42,30.2,0,2,18,15,Light beanie,Light synthetic,XC jacket,XC pants,Classic boots,XC socks,XC gloves,Sunglasses,None
+2024-01-12,10:30,Garnet Hill,28,22,48,30.0,0,2,12,30,Headband,Light synthetic,XC jacket,XC pants,Skate boots,XC socks,XC gloves,Sunglasses,Neck gaiter
+2024-01-19,08:00,Lake Placid,15,2,38,30.4,0,1,25,10,Balaclava,Merino base,Wind jacket + fleece,Wind pants over tights,Insulated boots,Wool socks,Lobster mitts,Goggles,Neck gaiter + hand warmers
+2024-01-26,09:30,Cascade,25,18,45,30.1,0,2,15,25,Light beanie,Light synthetic,XC jacket,XC pants,Classic boots,XC socks,XC gloves,Photochromic,None
+2024-02-02,10:00,Lapland Lake,32,28,52,29.9,0,2,8,40,Headband,Light synthetic,Soft shell,XC pants,Skate boots,XC socks,Light gloves,Sunglasses,None
+2024-02-09,08:30,Garnet Hill,18,5,40,30.3,0,1,22,15,Beanie,Merino base,Wind jacket + fleece,Wind pants over tights,Insulated boots,Wool socks,Heavy mittens,Goggles,Neck gaiter + hand warmers
+2024-02-16,09:00,Lake Placid,28,22,48,30.0,0,2,12,30,Light beanie,Light synthetic,XC jacket,XC pants,Combi boots,XC socks,XC gloves,Sunglasses,Neck gaiter
+2024-02-23,10:30,Cascade,35,32,55,29.8,0,3,6,20,Headband,Light synthetic,Soft shell,XC pants,Skate boots,Thin socks,Light gloves,Sunglasses,None
+2024-03-01,09:00,Lapland Lake,22,14,42,30.2,0,2,16,25,Light beanie,Light synthetic,XC jacket,XC pants,Classic boots,XC socks,XC gloves,Photochromic,None
+2024-03-08,08:00,Garnet Hill,30,26,50,30.1,0,2,10,35,Headband,Light synthetic,Soft shell,XC pants,Skate boots,XC socks,Light gloves,Sunglasses,None
+2024-03-15,10:00,Lake Placid,38,35,58,29.9,0,3,5,30,None,Race suit base,Race suit top,Race suit tights,Skate boots,Thin socks,Light gloves,Sunglasses,None
+2024-12-01,09:30,Cascade,25,18,45,30.0,0,2,14,25,Light beanie,Light synthetic,XC jacket,XC pants,Classic boots,XC socks,XC gloves,Photochromic,Neck gaiter
+

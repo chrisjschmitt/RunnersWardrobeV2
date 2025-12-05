@@ -34,8 +34,139 @@ export interface WeatherAlert {
   timeframe: string;
 }
 
-// Clothing items for each category
+// ============ ACTIVITY TYPES ============
+
+export type ActivityType = 
+  | 'running' 
+  | 'trail_running' 
+  | 'hiking' 
+  | 'cycling' 
+  | 'snowshoeing' 
+  | 'cross_country_skiing';
+
+export interface ActivityInfo {
+  id: ActivityType;
+  name: string;
+  icon: string;
+  clothingCategories: ClothingCategory[];
+}
+
+export interface ClothingCategory {
+  key: string;
+  label: string;
+  defaultValue: string;
+  options: string[];
+}
+
+// Activity-specific clothing schemas
+export const ACTIVITY_CONFIGS: Record<ActivityType, ActivityInfo> = {
+  running: {
+    id: 'running',
+    name: 'Running',
+    icon: '🏃',
+    clothingCategories: [
+      { key: 'headCover', label: 'Head', defaultValue: 'None', options: ['None', 'Cap', 'Visor', 'Headband', 'Beanie', 'Balaclava'] },
+      { key: 'tops', label: 'Top', defaultValue: 'T-shirt', options: ['Singlet', 'T-shirt', 'Long sleeve', 'Base layer', 'Base layer + jacket', 'Vest + long sleeve'] },
+      { key: 'bottoms', label: 'Bottom', defaultValue: 'Shorts', options: ['Short shorts', 'Shorts', 'Capris', 'Tights', 'Shorts over tights'] },
+      { key: 'shoes', label: 'Shoes', defaultValue: 'Running shoes', options: ['Running shoes', 'Racing flats', 'Track spikes'] },
+      { key: 'socks', label: 'Socks', defaultValue: 'Regular', options: ['No-show', 'Regular', 'Wool', 'Compression'] },
+      { key: 'gloves', label: 'Gloves', defaultValue: 'None', options: ['None', 'Light gloves', 'Heavy gloves', 'Mittens'] },
+      { key: 'rainGear', label: 'Rain Gear', defaultValue: 'None', options: ['None', 'Light rain jacket', 'Waterproof jacket'] },
+      { key: 'accessories', label: 'Accessories', defaultValue: 'None', options: ['None', 'Sunglasses', 'Headlamp', 'Sunglasses + watch', 'Headlamp + reflective vest'] },
+    ]
+  },
+  trail_running: {
+    id: 'trail_running',
+    name: 'Trail Running',
+    icon: '🏔️',
+    clothingCategories: [
+      { key: 'headCover', label: 'Head', defaultValue: 'None', options: ['None', 'Cap', 'Visor', 'Buff', 'Beanie', 'Balaclava'] },
+      { key: 'tops', label: 'Top', defaultValue: 'T-shirt', options: ['Singlet', 'T-shirt', 'Long sleeve', 'Base layer', 'Base layer + jacket', 'Wind jacket'] },
+      { key: 'bottoms', label: 'Bottom', defaultValue: 'Shorts', options: ['Short shorts', 'Shorts', 'Capris', 'Tights', 'Shorts over tights'] },
+      { key: 'shoes', label: 'Shoes', defaultValue: 'Trail shoes', options: ['Trail shoes', 'Light trail shoes', 'Aggressive trail shoes', 'Approach shoes'] },
+      { key: 'socks', label: 'Socks', defaultValue: 'Regular', options: ['No-show', 'Regular', 'Wool', 'Compression', 'Waterproof'] },
+      { key: 'gloves', label: 'Gloves', defaultValue: 'None', options: ['None', 'Light gloves', 'Heavy gloves', 'Mittens'] },
+      { key: 'rainGear', label: 'Rain/Wind', defaultValue: 'None', options: ['None', 'Wind jacket', 'Light rain jacket', 'Waterproof jacket', 'Rain pants'] },
+      { key: 'hydration', label: 'Hydration', defaultValue: 'None', options: ['None', 'Handheld bottle', 'Waist belt', 'Hydration vest', 'Running pack'] },
+      { key: 'accessories', label: 'Accessories', defaultValue: 'None', options: ['None', 'Sunglasses', 'Headlamp', 'Poles', 'Gaiters', 'Sunglasses + poles', 'Headlamp + poles'] },
+    ]
+  },
+  hiking: {
+    id: 'hiking',
+    name: 'Hiking',
+    icon: '🥾',
+    clothingCategories: [
+      { key: 'headCover', label: 'Head', defaultValue: 'None', options: ['None', 'Sun hat', 'Cap', 'Beanie', 'Balaclava'] },
+      { key: 'baseLayer', label: 'Base Layer', defaultValue: 'T-shirt', options: ['None', 'T-shirt', 'Long sleeve', 'Merino base', 'Synthetic base'] },
+      { key: 'midLayer', label: 'Mid Layer', defaultValue: 'None', options: ['None', 'Fleece', 'Light puffy', 'Heavy puffy', 'Softshell'] },
+      { key: 'outerLayer', label: 'Outer Layer', defaultValue: 'None', options: ['None', 'Wind jacket', 'Rain jacket', 'Hardshell', 'Insulated jacket'] },
+      { key: 'bottoms', label: 'Pants', defaultValue: 'Hiking pants', options: ['Shorts', 'Convertible pants', 'Hiking pants', 'Softshell pants', 'Insulated pants', 'Rain pants'] },
+      { key: 'shoes', label: 'Footwear', defaultValue: 'Hiking boots', options: ['Trail runners', 'Hiking shoes', 'Hiking boots', 'Waterproof boots', 'Mountaineering boots'] },
+      { key: 'socks', label: 'Socks', defaultValue: 'Hiking socks', options: ['Light hiking', 'Hiking socks', 'Heavy wool', 'Liner + wool'] },
+      { key: 'gloves', label: 'Gloves', defaultValue: 'None', options: ['None', 'Light gloves', 'Fleece gloves', 'Insulated gloves', 'Mittens'] },
+      { key: 'pack', label: 'Pack', defaultValue: 'Daypack', options: ['None', 'Waist pack', 'Daypack (20L)', 'Daypack (30L)', 'Overnight pack'] },
+      { key: 'accessories', label: 'Accessories', defaultValue: 'None', options: ['None', 'Sunglasses', 'Headlamp', 'Trekking poles', 'Gaiters', 'Sunglasses + poles', 'Headlamp + poles'] },
+    ]
+  },
+  cycling: {
+    id: 'cycling',
+    name: 'Cycling',
+    icon: '🚴',
+    clothingCategories: [
+      { key: 'helmet', label: 'Helmet', defaultValue: 'Road helmet', options: ['Road helmet', 'Aero helmet', 'MTB helmet', 'Commuter helmet'] },
+      { key: 'tops', label: 'Jersey/Top', defaultValue: 'Short sleeve jersey', options: ['Sleeveless jersey', 'Short sleeve jersey', 'Long sleeve jersey', 'Thermal jersey', 'Jersey + vest', 'Jersey + jacket'] },
+      { key: 'bottoms', label: 'Shorts/Bibs', defaultValue: 'Bib shorts', options: ['Shorts', 'Bib shorts', '3/4 bibs', 'Bib tights', 'Tights over bibs'] },
+      { key: 'shoes', label: 'Shoes', defaultValue: 'Road shoes', options: ['Road shoes', 'MTB shoes', 'Flat pedal shoes', 'Shoe covers'] },
+      { key: 'socks', label: 'Socks', defaultValue: 'Cycling socks', options: ['No-show', 'Cycling socks', 'Wool socks', 'Thermal socks', 'Overshoes'] },
+      { key: 'gloves', label: 'Gloves', defaultValue: 'None', options: ['None', 'Fingerless', 'Full finger light', 'Thermal gloves', 'Lobster gloves'] },
+      { key: 'armWarmers', label: 'Arm/Leg', defaultValue: 'None', options: ['None', 'Arm warmers', 'Leg warmers', 'Knee warmers', 'Arm + leg warmers', 'Arm + knee warmers'] },
+      { key: 'eyewear', label: 'Eyewear', defaultValue: 'Sunglasses', options: ['None', 'Sunglasses', 'Clear glasses', 'Photochromic'] },
+      { key: 'rainGear', label: 'Rain Gear', defaultValue: 'None', options: ['None', 'Rain cape', 'Rain jacket', 'Shoe covers', 'Full rain kit'] },
+      { key: 'accessories', label: 'Accessories', defaultValue: 'None', options: ['None', 'Lights', 'Headlamp', 'Reflective vest', 'Lights + vest'] },
+    ]
+  },
+  snowshoeing: {
+    id: 'snowshoeing',
+    name: 'Snowshoeing',
+    icon: '❄️',
+    clothingCategories: [
+      { key: 'headCover', label: 'Head', defaultValue: 'Beanie', options: ['Beanie', 'Balaclava', 'Fleece headband', 'Insulated hat'] },
+      { key: 'baseLayer', label: 'Base Layer', defaultValue: 'Merino base', options: ['Light synthetic', 'Merino base', 'Heavy merino', 'Expedition weight'] },
+      { key: 'midLayer', label: 'Mid Layer', defaultValue: 'Fleece', options: ['Light fleece', 'Fleece', 'Grid fleece', 'Light puffy', 'Heavy puffy'] },
+      { key: 'outerLayer', label: 'Outer Layer', defaultValue: 'Softshell', options: ['None', 'Wind jacket', 'Softshell', 'Hardshell', 'Insulated jacket'] },
+      { key: 'bottoms', label: 'Pants', defaultValue: 'Softshell pants', options: ['Hiking pants', 'Softshell pants', 'Insulated pants', 'Hardshell pants', 'Bibs'] },
+      { key: 'boots', label: 'Boots', defaultValue: 'Winter boots', options: ['Hiking boots', 'Winter hiking boots', 'Winter boots', 'Pac boots'] },
+      { key: 'socks', label: 'Socks', defaultValue: 'Heavy wool', options: ['Wool', 'Heavy wool', 'Liner + wool', 'Heated socks'] },
+      { key: 'gloves', label: 'Gloves', defaultValue: 'Insulated gloves', options: ['Light gloves', 'Insulated gloves', 'Heavy mittens', 'Lobster mitts', 'Liner + mittens'] },
+      { key: 'gaiters', label: 'Gaiters', defaultValue: 'Gaiters', options: ['None', 'Low gaiters', 'Gaiters', 'Full gaiters'] },
+      { key: 'accessories', label: 'Accessories', defaultValue: 'Poles', options: ['None', 'Poles', 'Sunglasses', 'Goggles', 'Poles + sunglasses', 'Poles + goggles', 'Headlamp + poles'] },
+    ]
+  },
+  cross_country_skiing: {
+    id: 'cross_country_skiing',
+    name: 'XC Skiing',
+    icon: '⛷️',
+    clothingCategories: [
+      { key: 'headCover', label: 'Head', defaultValue: 'Headband', options: ['Headband', 'Light beanie', 'Beanie', 'Balaclava'] },
+      { key: 'baseLayer', label: 'Base Layer', defaultValue: 'Light synthetic', options: ['Light synthetic', 'Merino base', 'Race suit base'] },
+      { key: 'tops', label: 'Top', defaultValue: 'XC jacket', options: ['Race suit top', 'XC jacket', 'Soft shell', 'Wind jacket + fleece'] },
+      { key: 'bottoms', label: 'Pants', defaultValue: 'XC pants', options: ['Race suit tights', 'XC pants', 'Softshell pants', 'Wind pants over tights'] },
+      { key: 'boots', label: 'Boots', defaultValue: 'Classic boots', options: ['Classic boots', 'Skate boots', 'Combi boots', 'Insulated boots'] },
+      { key: 'socks', label: 'Socks', defaultValue: 'XC socks', options: ['Thin socks', 'XC socks', 'Wool socks'] },
+      { key: 'gloves', label: 'Gloves', defaultValue: 'XC gloves', options: ['Light gloves', 'XC gloves', 'Lobster mitts', 'Heavy mittens'] },
+      { key: 'eyewear', label: 'Eyewear', defaultValue: 'Sunglasses', options: ['None', 'Sunglasses', 'Goggles', 'Photochromic'] },
+      { key: 'accessories', label: 'Accessories', defaultValue: 'None', options: ['None', 'Neck gaiter', 'Hand warmers', 'Headlamp', 'Neck gaiter + hand warmers'] },
+    ]
+  }
+};
+
+// Generic clothing items (flexible key-value pairs)
 export interface ClothingItems {
+  [key: string]: string;
+}
+
+// Legacy support - base running schema
+export interface BaseClothingItems {
   headCover: string;
   tops: string;
   bottoms: string;
@@ -60,6 +191,7 @@ export interface RunRecord {
   windSpeed: number;
   cloudCover: number;
   clothing: ClothingItems;
+  activity?: ActivityType;
 }
 
 // CSV column mapping
@@ -104,6 +236,7 @@ export interface AppSettings {
     name: string;
   };
   testMode?: boolean;
+  selectedActivity?: ActivityType;
 }
 
 // Test weather data for testing different conditions
@@ -142,6 +275,7 @@ export interface RunFeedback {
   clothing: ClothingItems;
   comfort: ComfortLevel;
   timestamp: Date;
+  activity?: ActivityType;
 }
 
 // Temperature adjustment based on feedback history
@@ -155,5 +289,32 @@ export interface CustomClothingOptions {
   id?: number;
   category: string;
   options: string[];
+  activity?: ActivityType;
 }
 
+// Helper to get clothing categories for an activity
+export function getClothingCategories(activity: ActivityType): ClothingCategory[] {
+  return ACTIVITY_CONFIGS[activity]?.clothingCategories || ACTIVITY_CONFIGS.running.clothingCategories;
+}
+
+// Helper to get default clothing for an activity
+export function getDefaultClothing(activity: ActivityType): ClothingItems {
+  const categories = getClothingCategories(activity);
+  const defaults: ClothingItems = {};
+  for (const cat of categories) {
+    defaults[cat.key] = cat.defaultValue;
+  }
+  return defaults;
+}
+
+// Helper to check if it's dark (for headlamp recommendations)
+export function isDarkOutside(): boolean {
+  const hour = new Date().getHours();
+  // Consider dark before 6am or after 7pm
+  return hour < 6 || hour >= 19;
+}
+
+// Helper to check if sunny (for sunglasses recommendations)
+export function isSunny(weather: WeatherData): boolean {
+  return weather.cloudCover < 50 && weather.uvIndex > 2;
+}

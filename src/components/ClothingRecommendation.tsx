@@ -1,14 +1,39 @@
 import { useState } from 'react';
-import type { ClothingRecommendation as ClothingRec, ClothingItems } from '../types';
+import type { ClothingRecommendation as ClothingRec, ClothingItems, ActivityType } from '../types';
+import { getClothingCategories } from '../types';
 import { ClothingPicker } from './ClothingPicker';
+
+// Icons for different clothing categories
+const CATEGORY_ICONS: Record<string, string> = {
+  headCover: '🧢',
+  helmet: '⛑️',
+  tops: '👕',
+  jersey: '👕',
+  baseLayer: '🎽',
+  midLayer: '🧥',
+  outerLayer: '🧥',
+  bottoms: '🩳',
+  shoes: '👟',
+  boots: '🥾',
+  socks: '🧦',
+  gloves: '🧤',
+  rainGear: '🌧️',
+  armWarmers: '💪',
+  eyewear: '🕶️',
+  hydration: '💧',
+  pack: '🎒',
+  gaiters: '🦵',
+  accessories: '✨',
+};
 
 interface ClothingRecommendationProps {
   recommendation: ClothingRec | null;
   fallback: ClothingItems | null;
-  currentClothing?: ClothingItems | null; // The actual clothing (including user edits)
+  currentClothing?: ClothingItems | null;
   isLoading: boolean;
   editable?: boolean;
   onClothingChange?: (clothing: ClothingItems) => void;
+  activity?: ActivityType;
 }
 
 export function ClothingRecommendation({ 
@@ -17,9 +42,13 @@ export function ClothingRecommendation({
   currentClothing,
   isLoading,
   editable = false,
-  onClothingChange
+  onClothingChange,
+  activity = 'running'
 }: ClothingRecommendationProps) {
   const [editingCategory, setEditingCategory] = useState<string | null>(null);
+  
+  // Get categories for this activity
+  const categories = getClothingCategories(activity);
   
   // Base clothing from recommendation or fallback
   const baseClothing = recommendation?.clothing || fallback;
@@ -27,6 +56,9 @@ export function ClothingRecommendation({
   // Use currentClothing if provided (preserves user edits), otherwise use base
   const clothing = currentClothing || baseClothing;
   const hasHistory = recommendation !== null;
+  
+  // Highlight important categories
+  const highlightCategories = ['tops', 'jersey', 'bottoms', 'baseLayer', 'outerLayer'];
 
   if (isLoading) {
     return (
@@ -57,9 +89,11 @@ export function ClothingRecommendation({
     onClothingChange?.(newClothing);
   };
 
-  const isEdited = (category: keyof ClothingItems) => {
+  const isEdited = (categoryKey: string) => {
     if (!currentClothing || !baseClothing) return false;
-    return currentClothing[category].toLowerCase() !== baseClothing[category].toLowerCase();
+    const current = currentClothing[categoryKey]?.toLowerCase() || '';
+    const base = baseClothing[categoryKey]?.toLowerCase() || '';
+    return current !== base;
   };
 
   return (
@@ -68,9 +102,10 @@ export function ClothingRecommendation({
       {editingCategory && (
         <ClothingPicker
           category={editingCategory}
-          currentValue={clothing[editingCategory as keyof ClothingItems]}
+          currentValue={clothing[editingCategory] || ''}
           onSelect={(value) => handleItemChange(editingCategory, value)}
           onClose={() => setEditingCategory(null)}
+          activity={activity}
         />
       )}
 
@@ -90,7 +125,7 @@ export function ClothingRecommendation({
         {!hasHistory && (
           <div className="mb-4 p-3 bg-[rgba(234,179,8,0.15)] border border-[var(--color-warning)] rounded-lg">
             <p className="text-sm text-[var(--color-warning)]">
-              <strong>No history data.</strong> These are general recommendations. Upload your running history for personalized suggestions!
+              <strong>No history data.</strong> These are general recommendations. Upload your history for personalized suggestions!
             </p>
           </div>
         )}
@@ -98,7 +133,7 @@ export function ClothingRecommendation({
         {hasHistory && recommendation && (
           <div className="mb-4 p-3 bg-[rgba(34,197,94,0.15)] border border-[var(--color-success)] rounded-lg">
             <p className="text-sm text-[var(--color-success)]">
-              Based on <strong>{recommendation.matchingRuns}</strong> similar runs from your history
+              Based on <strong>{recommendation.matchingRuns}</strong> similar sessions from your history
             </p>
           </div>
         )}
@@ -115,64 +150,18 @@ export function ClothingRecommendation({
         )}
 
         <div className="grid grid-cols-1 gap-3">
-          <ClothingItem 
-            icon="🧢" 
-            label="Head" 
-            value={clothing.headCover}
-            editable={editable}
-            edited={isEdited('headCover')}
-            onClick={() => handleItemClick('headCover')}
-          />
-          <ClothingItem 
-            icon="👕" 
-            label="Top" 
-            value={clothing.tops} 
-            highlight
-            editable={editable}
-            edited={isEdited('tops')}
-            onClick={() => handleItemClick('tops')}
-          />
-          <ClothingItem 
-            icon="🩳" 
-            label="Bottom" 
-            value={clothing.bottoms} 
-            highlight
-            editable={editable}
-            edited={isEdited('bottoms')}
-            onClick={() => handleItemClick('bottoms')}
-          />
-          <ClothingItem 
-            icon="👟" 
-            label="Shoes" 
-            value={clothing.shoes}
-            editable={editable}
-            edited={isEdited('shoes')}
-            onClick={() => handleItemClick('shoes')}
-          />
-          <ClothingItem 
-            icon="🧦" 
-            label="Socks" 
-            value={clothing.socks}
-            editable={editable}
-            edited={isEdited('socks')}
-            onClick={() => handleItemClick('socks')}
-          />
-          <ClothingItem 
-            icon="🧤" 
-            label="Gloves" 
-            value={clothing.gloves}
-            editable={editable}
-            edited={isEdited('gloves')}
-            onClick={() => handleItemClick('gloves')}
-          />
-          <ClothingItem 
-            icon="🌧️" 
-            label="Rain Gear" 
-            value={clothing.rainGear}
-            editable={editable}
-            edited={isEdited('rainGear')}
-            onClick={() => handleItemClick('rainGear')}
-          />
+          {categories.map((cat) => (
+            <ClothingItem 
+              key={cat.key}
+              icon={CATEGORY_ICONS[cat.key] || '👔'} 
+              label={cat.label} 
+              value={clothing[cat.key] || cat.defaultValue}
+              highlight={highlightCategories.includes(cat.key)}
+              editable={editable}
+              edited={isEdited(cat.key)}
+              onClick={() => handleItemClick(cat.key)}
+            />
+          ))}
         </div>
       </div>
     </div>

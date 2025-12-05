@@ -1,0 +1,15 @@
+date,time,location,temperature,feels_like,humidity,pressure,precipitation,uv,wind_speed,cloud_cover,head_cover,base_layer,mid_layer,outer_layer,bottoms,shoes,socks,gloves,pack,accessories
+2024-09-15,08:00,Bear Mountain,58,56,65,30.0,0,4,8,30,Cap,T-shirt,None,None,Hiking pants,Hiking boots,Hiking socks,None,Daypack (20L),Sunglasses + poles
+2024-09-22,07:30,Harriman State Park,52,48,70,29.9,0,3,12,45,None,Long sleeve,Fleece,None,Hiking pants,Hiking boots,Hiking socks,None,Daypack (20L),Poles
+2024-09-28,09:00,Catskills,45,40,55,30.2,0,2,15,20,Beanie,Merino base,Fleece,Wind jacket,Hiking pants,Hiking boots,Heavy wool,Light gloves,Daypack (30L),Poles
+2024-10-05,08:30,Hudson Highlands,62,60,50,30.1,0,5,6,15,Sun hat,T-shirt,None,None,Convertible pants,Hiking shoes,Light hiking,None,Daypack (20L),Sunglasses
+2024-10-12,07:00,Breakneck Ridge,48,44,60,29.8,0.1,2,10,75,Cap,Long sleeve,Fleece,Rain jacket,Hiking pants,Waterproof boots,Hiking socks,None,Daypack (30L),Poles
+2024-10-19,08:00,Minnewaska,55,52,58,30.0,0,3,8,35,None,Long sleeve,Light puffy,None,Hiking pants,Hiking boots,Hiking socks,None,Daypack (20L),Sunglasses + poles
+2024-10-26,09:30,Shawangunk Ridge,42,36,50,30.3,0,2,18,10,Beanie,Merino base,Heavy puffy,Softshell,Softshell pants,Hiking boots,Heavy wool,Fleece gloves,Daypack (30L),Poles
+2024-11-02,08:00,Storm King,50,46,62,29.9,0,2,12,50,Headband,Long sleeve,Fleece,None,Hiking pants,Hiking boots,Hiking socks,Light gloves,Daypack (20L),Poles
+2024-11-09,07:30,Bear Mountain,38,30,45,30.4,0,1,20,5,Beanie,Merino base,Heavy puffy,Hardshell,Insulated pants,Winter hiking boots,Heavy wool,Insulated gloves,Daypack (30L),Poles + goggles
+2024-11-16,09:00,Harriman,52,50,55,30.1,0,3,7,25,None,T-shirt,Fleece,None,Hiking pants,Hiking boots,Hiking socks,None,Daypack (20L),Sunglasses
+2024-11-23,08:30,Catskills,35,28,48,30.2,0.3,1,15,85,Beanie,Merino base,Heavy puffy,Hardshell,Insulated pants,Winter hiking boots,Heavy wool,Insulated gloves,Daypack (30L),Poles + headlamp
+2024-11-30,10:00,Hudson Valley,44,40,60,29.8,0,2,10,40,Headband,Long sleeve,Fleece,Wind jacket,Hiking pants,Hiking boots,Hiking socks,Light gloves,Daypack (20L),Poles
+2024-12-01,08:00,Breakneck Ridge,40,34,52,30.0,0,2,14,30,Beanie,Merino base,Fleece,Softshell,Softshell pants,Hiking boots,Heavy wool,Fleece gloves,Daypack (30L),Poles
+

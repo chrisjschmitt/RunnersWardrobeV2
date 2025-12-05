@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import type { RunRecord, RunFeedback } from '../types';
+import type { RunRecord, RunFeedback, ActivityType } from '../types';
+import { ACTIVITY_CONFIGS } from '../types';
 import { getAllRuns, clearAllRuns, getAllFeedback, clearAllFeedback, deleteRun, deleteFeedback } from '../services/database';
 import { formatTemperature, type TemperatureUnit } from '../services/temperatureUtils';
 
@@ -12,9 +13,11 @@ interface DisplayRun extends RunRecord {
 interface RunHistoryProps {
   onDataCleared: () => void;
   temperatureUnit: TemperatureUnit;
+  activity?: ActivityType;
 }
 
-export function RunHistory({ onDataCleared, temperatureUnit }: RunHistoryProps) {
+export function RunHistory({ onDataCleared, temperatureUnit, activity = 'running' }: RunHistoryProps) {
+  const activityConfig = ACTIVITY_CONFIGS[activity];
   const [runs, setRuns] = useState<DisplayRun[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [showConfirmClear, setShowConfirmClear] = useState(false);
@@ -23,15 +26,15 @@ export function RunHistory({ onDataCleared, temperatureUnit }: RunHistoryProps) 
 
   useEffect(() => {
     loadRuns();
-  }, []);
+  }, [activity]);
 
   const loadRuns = async () => {
     setIsLoading(true);
     try {
-      // Load both CSV runs and feedback runs
+      // Load both CSV runs and feedback runs (filtered by activity)
       const [csvData, feedbackData] = await Promise.all([
-        getAllRuns(),
-        getAllFeedback()
+        getAllRuns(activity),
+        getAllFeedback(activity)
       ]);
       
       // Convert CSV runs
@@ -135,7 +138,7 @@ export function RunHistory({ onDataCleared, temperatureUnit }: RunHistoryProps) 
             <svg className="w-6 h-6 text-[var(--color-accent)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
-            Run History
+            {activityConfig.name} History
           </h2>
           <span className="text-sm text-[var(--color-text-muted)]">
             {runs.length} runs
@@ -219,8 +222,8 @@ export function RunHistory({ onDataCleared, temperatureUnit }: RunHistoryProps) 
           <svg className="w-16 h-16 mx-auto mb-4 text-[var(--color-text-muted)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
           </svg>
-          <p className="text-[var(--color-text-muted)]">No running history yet</p>
-          <p className="text-sm text-[var(--color-text-muted)] mt-1">Upload a CSV file or complete a run to get started</p>
+          <p className="text-[var(--color-text-muted)]">No {activityConfig.name.toLowerCase()} history yet</p>
+          <p className="text-sm text-[var(--color-text-muted)] mt-1">Upload a CSV file or complete a session to get started</p>
         </div>
       ) : (
         <div className="space-y-3">

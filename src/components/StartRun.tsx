@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import type { WeatherData, ClothingRecommendation as ClothingRec, ClothingItems, RunFeedback, ComfortLevel, TestWeatherData } from '../types';
+import type { WeatherData, ClothingRecommendation as ClothingRec, ClothingItems, RunFeedback, ComfortLevel, TestWeatherData, ActivityType } from '../types';
+import { ACTIVITY_CONFIGS } from '../types';
 import { getCurrentPosition, fetchWeather, clearWeatherCache } from '../services/weatherApi';
 import { getClothingRecommendation, getFallbackRecommendation, calculateComfortAdjustment } from '../services/recommendationEngine';
 import { getAllRuns, getAllFeedback, addFeedback } from '../services/database';
@@ -17,9 +18,11 @@ interface StartRunProps {
   onNeedApiKey: () => void;
   testMode?: boolean;
   testWeather?: TestWeatherData | null;
+  activity?: ActivityType;
 }
 
-export function StartRun({ apiKey, hasApiKey, temperatureUnit, onNeedApiKey, testMode = false, testWeather }: StartRunProps) {
+export function StartRun({ apiKey, hasApiKey, temperatureUnit, onNeedApiKey, testMode = false, testWeather, activity = 'running' }: StartRunProps) {
+  const activityConfig = ACTIVITY_CONFIGS[activity];
   const [weather, setWeather] = useState<WeatherData | null>(null);
   const [recommendation, setRecommendation] = useState<ClothingRec | null>(null);
   const [fallback, setFallback] = useState<ClothingItems | null>(null);
@@ -76,11 +79,11 @@ export function StartRun({ apiKey, hasApiKey, temperatureUnit, onNeedApiKey, tes
       setWeather(weatherData);
       setLastUpdate(new Date());
 
-      // Generate recommendations
+      // Generate recommendations (filter by activity)
       setIsLoadingRec(true);
       const [runs, feedbackHistory] = await Promise.all([
-        getAllRuns(),
-        getAllFeedback()
+        getAllRuns(activity),
+        getAllFeedback(activity)
       ]);
       
       setFeedbackCount(feedbackHistory.length);
@@ -89,8 +92,8 @@ export function StartRun({ apiKey, hasApiKey, temperatureUnit, onNeedApiKey, tes
       const adjustment = calculateComfortAdjustment(weatherData, feedbackHistory);
       setComfortAdjustment(adjustment.temperatureOffset);
       
-      if (runs.length > 0) {
-        const rec = getClothingRecommendation(weatherData, runs, feedbackHistory);
+      if (runs.length > 0 || feedbackHistory.length > 0) {
+        const rec = getClothingRecommendation(weatherData, runs, feedbackHistory, activity);
         setRecommendation(rec);
         setFallback(null);
         // Only update actualClothing if user hasn't made edits
@@ -98,7 +101,7 @@ export function StartRun({ apiKey, hasApiKey, temperatureUnit, onNeedApiKey, tes
           setActualClothing(rec.clothing);
         }
       } else {
-        const fallbackRec = getFallbackRecommendation(weatherData, feedbackHistory);
+        const fallbackRec = getFallbackRecommendation(weatherData, feedbackHistory, activity);
         setFallback(fallbackRec);
         setRecommendation(null);
         // Only update actualClothing if user hasn't made edits
@@ -131,7 +134,7 @@ export function StartRun({ apiKey, hasApiKey, temperatureUnit, onNeedApiKey, tes
     if (hasApiKey || testMode) {
       loadWeatherAndRecommendations();
     }
-  }, [hasApiKey, apiKey, testMode, testWeather]);
+  }, [hasApiKey, apiKey, testMode, testWeather, activity]);
 
   const handleClothingChange = (clothing: ClothingItems) => {
     setActualClothing(clothing);
@@ -164,7 +167,8 @@ export function StartRun({ apiKey, hasApiKey, temperatureUnit, onNeedApiKey, tes
       cloudCover: weather.cloudCover,
       clothing: actualClothing, // Store what they actually wore, not what was recommended
       comfort,
-      timestamp: new Date()
+      timestamp: new Date(),
+      activity
     };
 
     await addFeedback(feedback);
@@ -209,7 +213,7 @@ export function StartRun({ apiKey, hasApiKey, temperatureUnit, onNeedApiKey, tes
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
             </svg>
           </div>
-          <h2 className="text-2xl font-bold mb-2">Running...</h2>
+          <h2 className="text-2xl font-bold mb-2">{activityConfig.icon} {activityConfig.name} in progress...</h2>
           <p className="text-[var(--color-text-muted)] mb-4">
             Started at {runStartTime?.toLocaleTimeString()}
           </p>
@@ -230,6 +234,7 @@ export function StartRun({ apiKey, hasApiKey, temperatureUnit, onNeedApiKey, tes
             isLoading={false}
             editable={true}
             onClothingChange={handleClothingChange}
+            activity={activity}
           />
         )}
 
@@ -241,7 +246,7 @@ export function StartRun({ apiKey, hasApiKey, temperatureUnit, onNeedApiKey, tes
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
             </svg>
-            End Run
+            End {activityConfig.name}
           </span>
         </button>
       </div>
@@ -343,6 +348,7 @@ export function StartRun({ apiKey, hasApiKey, temperatureUnit, onNeedApiKey, tes
           isLoading={isLoadingRec}
           editable={true}
           onClothingChange={handleClothingChange}
+          activity={activity}
         />
       )}
 
@@ -357,7 +363,7 @@ export function StartRun({ apiKey, hasApiKey, temperatureUnit, onNeedApiKey, tes
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
               </svg>
-              Start Your Run!
+              Start {activityConfig.name}!
             </span>
           </button>
         </div>

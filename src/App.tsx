@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
-import type { AppView, TestWeatherData } from './types';
-import { getSettings, getRunCount } from './services/database';
+import type { AppView, TestWeatherData, ActivityType } from './types';
+import { ACTIVITY_CONFIGS } from './types';
+import { getSettings, getRunCount, saveSettings } from './services/database';
 import { StartRun } from './components/StartRun';
 import { FileUpload } from './components/FileUpload';
 import { RunHistory } from './components/RunHistory';
@@ -17,6 +18,8 @@ function App() {
   const [isLoading, setIsLoading] = useState(true);
   const [testMode, setTestMode] = useState(false);
   const [testWeather, setTestWeather] = useState<TestWeatherData | null>(null);
+  const [selectedActivity, setSelectedActivity] = useState<ActivityType>('running');
+  const [showActivityPicker, setShowActivityPicker] = useState(false);
 
   useEffect(() => {
     loadInitialData();
@@ -35,11 +38,32 @@ function App() {
       if (settings?.temperatureUnit) {
         setTemperatureUnit(settings.temperatureUnit);
       }
+      if (settings?.selectedActivity) {
+        setSelectedActivity(settings.selectedActivity);
+      }
       setRunCount(count);
     } catch (error) {
       console.error('Failed to load initial data:', error);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleActivityChange = async (activity: ActivityType) => {
+    setSelectedActivity(activity);
+    setShowActivityPicker(false);
+    
+    // Save to settings
+    try {
+      const settings = await getSettings();
+      await saveSettings({
+        weatherApiKey: settings?.weatherApiKey || '',
+        temperatureUnit: settings?.temperatureUnit || 'celsius',
+        selectedActivity: activity,
+        testMode: settings?.testMode
+      });
+    } catch (error) {
+      console.error('Failed to save activity:', error);
     }
   };
 
@@ -63,6 +87,8 @@ function App() {
     setRunCount(0);
   };
 
+  const activityConfig = ACTIVITY_CONFIGS[selectedActivity];
+
   if (isLoading) {
     return (
       <div className="flex-1 flex items-center justify-center">
@@ -84,26 +110,51 @@ function App() {
               className="flex items-center gap-2 cursor-pointer" 
               onClick={() => setView('home')}
             >
-              <div className="w-8 h-8 bg-gradient-to-br from-[var(--color-accent)] to-[var(--color-accent-light)] rounded-lg flex items-center justify-center">
-                <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                </svg>
+              <div className="w-8 h-8 bg-gradient-to-br from-[var(--color-accent)] to-[var(--color-accent-light)] rounded-lg flex items-center justify-center text-lg">
+                {activityConfig.icon}
               </div>
-              <span className="font-semibold text-lg">Runner's Wardrobe</span>
+              <span className="font-semibold text-lg">Outdoor Wardrobe</span>
             </div>
-            <div className="flex items-center gap-1">
-              {runCount > 0 && (
-                <span className="text-xs bg-[var(--color-accent)] text-white px-2 py-0.5 rounded-full">
-                  {runCount} runs
-                </span>
-              )}
-            </div>
+            
+            {/* Activity Selector */}
+            <button
+              onClick={() => setShowActivityPicker(!showActivityPicker)}
+              className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-[rgba(255,255,255,0.1)] hover:bg-[rgba(255,255,255,0.15)] transition-colors"
+            >
+              <span className="text-sm">{activityConfig.icon} {activityConfig.name}</span>
+              <svg className={`w-4 h-4 transition-transform ${showActivityPicker ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
+            </button>
           </div>
+
+          {/* Activity Dropdown */}
+          {showActivityPicker && (
+            <div className="absolute right-4 top-16 z-50 bg-[rgba(30,41,59,0.98)] backdrop-blur-lg rounded-lg border border-[rgba(255,255,255,0.1)] shadow-xl overflow-hidden">
+              {Object.values(ACTIVITY_CONFIGS).map((config) => (
+                <button
+                  key={config.id}
+                  onClick={() => handleActivityChange(config.id)}
+                  className={`w-full px-4 py-3 flex items-center gap-3 hover:bg-[rgba(255,255,255,0.1)] transition-colors ${
+                    selectedActivity === config.id ? 'bg-[rgba(255,255,255,0.05)]' : ''
+                  }`}
+                >
+                  <span className="text-xl">{config.icon}</span>
+                  <span className="text-sm">{config.name}</span>
+                  {selectedActivity === config.id && (
+                    <svg className="w-4 h-4 ml-auto text-[var(--color-accent)]" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                    </svg>
+                  )}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
       </header>
 
       {/* Main content */}
-      <main className="flex-1 px-4 py-6 overflow-y-auto">
+      <main className="flex-1 px-4 py-6 overflow-y-auto" onClick={() => setShowActivityPicker(false)}>
         {view === 'home' && (
           <StartRun 
             apiKey={apiKey}
@@ -112,18 +163,21 @@ function App() {
             onNeedApiKey={() => setView('settings')}
             testMode={testMode}
             testWeather={testWeather}
+            activity={selectedActivity}
           />
         )}
         {view === 'upload' && (
           <FileUpload 
             onUploadComplete={handleUploadComplete}
             existingCount={runCount}
+            activity={selectedActivity}
           />
         )}
         {view === 'history' && (
           <RunHistory 
             onDataCleared={handleDataCleared}
             temperatureUnit={temperatureUnit}
+            activity={selectedActivity}
           />
         )}
         {view === 'settings' && (

@@ -33,6 +33,26 @@ const faqs: FAQItem[] = [
 5. **Give Feedback**: After your run, tell us if you were too cold, just right, or too hot. This helps improve future recommendations!`
   },
   {
+    question: "Why does the app have a Start/End button?",
+    answer: `The Start/End flow serves several important purposes:
+
+**1. Captures What You Actually Wore**
+Before clicking "Start", you can edit the recommendations to match what you're actually wearing. Your actual choice becomes training data for future recommendations.
+
+**2. Enables Post-Activity Feedback**
+When you click "End", the app prompts you to rate your comfort (Too Cold / Just Right / Too Hot). This feedback, combined with the weather and what you wore, teaches the algorithm your preferences.
+
+**3. Creates a Complete Data Record**
+Each session saves: date/time, weather conditions, actual clothing worn, your comfort feedback, and activity type.
+
+**4. The Learning Loop**
+Weather → Recommendation → Your Edits → Start → Activity → End → Feedback → Saved for future recommendations
+
+Without this flow, the app would only learn from CSV imports. The Start/End cycle lets it learn from your real experiences over time.
+
+**Note:** You can skip this flow and just use the app for one-time recommendations, but then it won't learn your personal temperature preferences.`
+  },
+  {
     question: "What should my CSV file look like?",
     answer: `Your CSV should have a header row with these columns (only date and temperature are required):
 

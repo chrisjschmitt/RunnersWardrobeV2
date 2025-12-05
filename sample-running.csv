@@ -1,0 +1,17 @@
+date,time,location,temperature,feels_like,humidity,pressure,precipitation,uv,wind_speed,cloud_cover,head_cover,tops,bottoms,shoes,socks,gloves,rain_gear,accessories
+2024-11-01,06:30,Central Park,45,42,65,30.1,0,2,8,50,None,Long sleeve,Tights,Running shoes,Wool,Light gloves,None,None
+2024-11-03,07:00,Riverside,52,50,60,30.0,0,3,5,30,None,T-shirt,Shorts,Running shoes,Regular,None,None,Sunglasses
+2024-11-05,06:15,Central Park,38,32,55,30.2,0,1,12,20,Beanie,Base layer + jacket,Tights,Running shoes,Wool,Heavy gloves,None,Headlamp
+2024-11-08,16:30,Brooklyn Bridge,48,46,58,29.9,0,2,6,40,Headband,Long sleeve,Tights,Running shoes,Regular,Light gloves,None,Sunglasses
+2024-11-10,07:00,Prospect Park,55,54,62,30.1,0,3,4,25,None,T-shirt,Shorts,Running shoes,Regular,None,None,Sunglasses
+2024-11-12,06:00,Central Park,42,38,70,29.8,0.1,1,10,80,Cap,Long sleeve,Tights,Running shoes,Wool,Light gloves,Light rain jacket,Headlamp
+2024-11-15,07:30,Hudson River,35,28,50,30.3,0,1,15,10,Beanie,Base layer + jacket,Tights,Running shoes,Wool,Heavy gloves,None,None
+2024-11-18,06:45,Central Park,50,48,55,30.0,0,2,7,35,None,Long sleeve,Capris,Running shoes,Regular,None,None,Headlamp
+2024-11-20,17:00,Riverside,58,57,52,30.1,0,3,5,20,None,T-shirt,Shorts,Running shoes,Regular,None,None,Sunglasses
+2024-11-22,06:30,Central Park,28,20,45,30.4,0,1,18,5,Balaclava,Base layer + jacket,Tights,Running shoes,Wool,Heavy gloves,None,Headlamp
+2024-11-25,07:00,Brooklyn,44,40,65,29.9,0.2,1,8,90,Cap,Long sleeve,Tights,Running shoes,Wool,Light gloves,Waterproof jacket,None
+2024-11-28,08:00,Central Park,52,50,58,30.0,0,2,6,30,None,T-shirt,Shorts,Running shoes,Regular,None,None,Sunglasses
+2024-12-01,06:00,Prospect Park,32,25,48,30.2,0,1,12,15,Beanie,Base layer + jacket,Tights,Running shoes,Wool,Heavy gloves,None,Headlamp
+2024-12-03,07:30,Hudson River,40,36,60,30.1,0,2,9,45,Headband,Long sleeve,Tights,Running shoes,Wool,Light gloves,None,None
+2024-12-05,06:15,Central Park,48,45,55,29.8,0,2,7,40,None,Long sleeve,Capris,Running shoes,Regular,None,None,Headlamp
+

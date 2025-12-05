@@ -1,0 +1,14 @@
+date,time,location,temperature,feels_like,humidity,pressure,precipitation,uv,wind_speed,cloud_cover,head_cover,base_layer,mid_layer,outer_layer,bottoms,boots,socks,gloves,gaiters,accessories
+2024-01-06,09:00,Catskills,25,15,45,30.2,0,2,18,20,Beanie,Heavy merino,Heavy puffy,Hardshell,Insulated pants,Winter boots,Heavy wool,Heavy mittens,Gaiters,Poles + goggles
+2024-01-13,10:00,Harriman,32,28,50,30.0,0,2,10,35,Beanie,Merino base,Fleece,Softshell,Softshell pants,Winter hiking boots,Heavy wool,Insulated gloves,Gaiters,Poles + sunglasses
+2024-01-20,08:30,Bear Mountain,18,5,40,30.4,0,1,25,10,Balaclava,Expedition weight,Heavy puffy,Insulated jacket,Bibs,Pac boots,Liner + wool,Liner + mittens,Full gaiters,Poles + goggles
+2024-01-27,09:30,Minnewaska,28,20,48,30.1,0.5,1,15,80,Beanie,Heavy merino,Heavy puffy,Hardshell,Insulated pants,Winter boots,Heavy wool,Heavy mittens,Gaiters,Poles
+2024-02-03,10:00,Shawangunk,35,30,52,29.9,0,2,8,30,Fleece headband,Merino base,Fleece,Wind jacket,Softshell pants,Winter hiking boots,Heavy wool,Insulated gloves,Low gaiters,Poles + sunglasses
+2024-02-10,09:00,Catskills,22,10,42,30.3,0,2,22,15,Balaclava,Heavy merino,Heavy puffy,Hardshell,Bibs,Winter boots,Liner + wool,Heavy mittens,Full gaiters,Poles + goggles
+2024-02-17,08:00,Harriman,30,24,50,30.0,0,2,12,40,Beanie,Merino base,Light puffy,Softshell,Softshell pants,Winter hiking boots,Heavy wool,Insulated gloves,Gaiters,Poles + sunglasses
+2024-02-24,10:30,Storm King,38,34,55,29.8,0,3,6,25,Insulated hat,Merino base,Fleece,None,Softshell pants,Winter hiking boots,Wool,Light gloves,Low gaiters,Poles + sunglasses
+2024-03-02,09:00,Bear Mountain,28,18,45,30.2,0.2,1,20,70,Beanie,Heavy merino,Heavy puffy,Hardshell,Insulated pants,Winter boots,Heavy wool,Heavy mittens,Gaiters,Poles
+2024-03-09,10:00,Catskills,35,30,50,30.1,0,2,10,30,Fleece headband,Merino base,Light puffy,Wind jacket,Softshell pants,Winter hiking boots,Heavy wool,Insulated gloves,Gaiters,Poles + sunglasses
+2024-03-16,08:30,Minnewaska,25,15,42,30.3,0,1,18,20,Beanie,Heavy merino,Heavy puffy,Softshell,Insulated pants,Winter boots,Liner + wool,Heavy mittens,Full gaiters,Poles + goggles
+2024-12-01,09:00,Harriman,30,22,48,30.0,0,2,15,35,Beanie,Merino base,Fleece,Hardshell,Softshell pants,Winter hiking boots,Heavy wool,Insulated gloves,Gaiters,Poles + sunglasses
+

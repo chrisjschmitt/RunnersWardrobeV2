@@ -1,13 +1,16 @@
 import { useState, useRef, type DragEvent, type ChangeEvent } from 'react';
 import { parseCSV, validateCSVFile, readFileAsText } from '../services/csvParser';
 import { addRuns, clearAllRuns, getRunCount } from '../services/database';
+import type { ActivityType } from '../types';
+import { ACTIVITY_CONFIGS } from '../types';
 
 interface FileUploadProps {
   onUploadComplete: (count: number) => void;
   existingCount: number;
+  activity?: ActivityType;
 }
 
-export function FileUpload({ onUploadComplete, existingCount }: FileUploadProps) {
+export function FileUpload({ onUploadComplete, existingCount, activity = 'running' }: FileUploadProps) {
   const [isDragging, setIsDragging] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -81,8 +84,12 @@ export function FileUpload({ onUploadComplete, existingCount }: FileUploadProps)
         await clearAllRuns();
       }
 
-      // Add new records
-      await addRuns(result.records);
+      // Add activity to each record and save
+      const recordsWithActivity = result.records.map(record => ({
+        ...record,
+        activity
+      }));
+      await addRuns(recordsWithActivity);
 
       // Get new total count
       const newCount = await getRunCount();
@@ -95,6 +102,8 @@ export function FileUpload({ onUploadComplete, existingCount }: FileUploadProps)
     }
   };
 
+  const activityConfig = ACTIVITY_CONFIGS[activity];
+
   return (
     <div className="animate-fade-in">
       <div className="glass-card p-6 mb-6">
@@ -102,8 +111,15 @@ export function FileUpload({ onUploadComplete, existingCount }: FileUploadProps)
           <svg className="w-6 h-6 text-[var(--color-accent)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
           </svg>
-          Upload Running History
+          Upload {activityConfig.name} History
         </h2>
+        
+        <div className="mb-4 p-2 bg-[rgba(249,115,22,0.1)] rounded-lg flex items-center gap-2 text-sm">
+          <span className="text-xl">{activityConfig.icon}</span>
+          <span className="text-[var(--color-accent)]">
+            Uploading data for: <strong>{activityConfig.name}</strong>
+          </span>
+        </div>
 
         {existingCount > 0 && (
           <div className="mb-4 p-3 bg-[rgba(255,255,255,0.05)] rounded-lg">

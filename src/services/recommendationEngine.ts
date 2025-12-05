@@ -1,4 +1,5 @@
-import type { WeatherData, RunRecord, ClothingItems, ClothingRecommendation, RunFeedback, ComfortAdjustment } from '../types';
+import type { WeatherData, RunRecord, ClothingItems, ClothingRecommendation, RunFeedback, ComfortAdjustment, ActivityType } from '../types';
+import { getDefaultClothing, getClothingCategories, isDarkOutside, isSunny } from '../types';
 
 // Weather similarity thresholds
 const THRESHOLDS = {
@@ -157,28 +158,24 @@ export function calculateComfortAdjustment(
 }
 
 // Find recent feedback that closely matches current weather
-// Returns the feedback if found within last 7 days with high similarity
 function findRecentSimilarFeedback(
   currentWeather: WeatherData,
   feedbackHistory: RunFeedback[]
 ): RunFeedback | null {
   const sevenDaysAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
   
-  // Filter to recent feedback only
   const recentFeedback = feedbackHistory.filter(f => 
     new Date(f.timestamp).getTime() > sevenDaysAgo
   );
   
   if (recentFeedback.length === 0) return null;
   
-  // Find the most similar recent feedback
   let bestMatch: RunFeedback | null = null;
   let bestSimilarity = 0;
   
   for (const feedback of recentFeedback) {
     const similarity = calculateFeedbackSimilarity(currentWeather, feedback);
     
-    // Require very high similarity (> 0.85) to use direct match
     if (similarity > 0.85 && similarity > bestSimilarity) {
       bestMatch = feedback;
       bestSimilarity = similarity;
@@ -202,7 +199,8 @@ function feedbackToRunRecord(feedback: RunFeedback): RunRecord {
     uvIndex: 0,
     windSpeed: feedback.windSpeed,
     cloudCover: feedback.cloudCover,
-    clothing: feedback.clothing
+    clothing: feedback.clothing,
+    activity: feedback.activity
   };
 }
 
@@ -223,27 +221,21 @@ function findSimilarRuns(
     }
   }
 
-  // Add ALL feedback records as runs (with extra weight for recency)
-  // The clothing the user actually wore is valuable data regardless of comfort level
+  // Add ALL feedback records as runs
   for (const feedback of feedbackHistory) {
     const runRecord = feedbackToRunRecord(feedback);
     const score = calculateSimilarity(currentWeather, runRecord);
     
     if (score >= minSimilarity) {
-      // Boost score for recent feedback (user's actual choices are more relevant)
       const daysSince = Math.max(1, (Date.now() - new Date(feedback.timestamp).getTime()) / (1000 * 60 * 60 * 24));
-      const recencyBoost = Math.min(0.3, 30 / daysSince * 0.1); // Up to 0.3 boost for recent feedback
-      
-      // Give extra boost to "just_right" feedback since it was comfortable
+      const recencyBoost = Math.min(0.3, 30 / daysSince * 0.1);
       const comfortBoost = feedback.comfort === 'just_right' ? 0.1 : 0;
-      
       const boostedScore = Math.min(1, score + recencyBoost + comfortBoost);
       
       similarities.push({ record: runRecord, score: boostedScore, isFromFeedback: true });
     }
   }
 
-  // Sort by similarity score (highest first)
   return similarities.sort((a, b) => b.score - a.score);
 }
 
@@ -278,30 +270,61 @@ function getMostCommonItem(
   return { item: mostCommon, count: maxCount, total: items.length };
 }
 
-// Main recommendation function with feedback adjustment
+// Apply smart accessory logic based on conditions
+function applyAccessoryLogic(
+  clothing: ClothingItems,
+  weather: WeatherData,
+  activity: ActivityType
+): ClothingItems {
+  const result = { ...clothing };
+  const categories = getClothingCategories(activity);
+  const hasAccessories = categories.some(c => c.key === 'accessories');
+  
+  if (!hasAccessories) return result;
+  
+  // Check current accessory value
+  const currentAccessory = result.accessories?.toLowerCase() || 'none';
+  
+  // Determine what accessories are needed
+  const needsSunglasses = isSunny(weather);
+  const needsHeadlamp = isDarkOutside();
+  
+  // Only override if current is "none" or we need to add something
+  if (currentAccessory === 'none' || currentAccessory === '') {
+    if (needsSunglasses && needsHeadlamp) {
+      result.accessories = 'Sunglasses + headlamp';
+    } else if (needsSunglasses) {
+      result.accessories = 'Sunglasses';
+    } else if (needsHeadlamp) {
+      result.accessories = 'Headlamp';
+    }
+  }
+  
+  return result;
+}
+
+// Main recommendation function with activity support
 export function getClothingRecommendation(
   currentWeather: WeatherData,
   runs: RunRecord[],
-  feedbackHistory: RunFeedback[] = []
+  feedbackHistory: RunFeedback[] = [],
+  activity: ActivityType = 'running'
 ): ClothingRecommendation {
-  // Calculate comfort adjustment from feedback
   const comfortAdjustment = calculateComfortAdjustment(currentWeather, feedbackHistory);
+  const categories = getClothingCategories(activity);
   
-  // Create adjusted weather for clothing lookup
-  // If user tends to run cold, we look for clothing worn at lower temps (warmer clothes)
-  // If user tends to run hot, we look for clothing worn at higher temps (lighter clothes)
   const adjustedWeather: WeatherData = {
     ...currentWeather,
     temperature: currentWeather.temperature - comfortAdjustment.temperatureOffset,
     feelsLike: currentWeather.feelsLike - comfortAdjustment.temperatureOffset
   };
 
-  // Check for very recent, very similar feedback first
-  // If user just ran in nearly identical conditions, use their choice directly
+  // Check for recent similar feedback first
   const recentMatch = findRecentSimilarFeedback(currentWeather, feedbackHistory);
   if (recentMatch) {
+    const clothing = applyAccessoryLogic(recentMatch.clothing, currentWeather, activity);
     return {
-      clothing: recentMatch.clothing,
+      clothing,
       confidence: 95,
       matchingRuns: 1,
       totalRuns: runs.length + feedbackHistory.length,
@@ -309,103 +332,76 @@ export function getClothingRecommendation(
     };
   }
 
-  // Find similar runs using adjusted weather (includes both CSV runs and feedback)
   const similarRuns = findSimilarRuns(adjustedWeather, runs, feedbackHistory, 0.4);
   
-  // Extract clothing from similar runs, weighted by similarity
-  const clothingCategories = {
-    headCover: [] as string[],
-    tops: [] as string[],
-    bottoms: [] as string[],
-    shoes: [] as string[],
-    socks: [] as string[],
-    gloves: [] as string[],
-    rainGear: [] as string[]
-  };
+  // Build clothing from similar runs for each category
+  const clothingVotes: Record<string, string[]> = {};
+  for (const cat of categories) {
+    clothingVotes[cat.key] = [];
+  }
 
-  // Add items from similar runs (more similar = add more times for weighting)
-  // Feedback-based records get extra weight (2x) since they're user's actual choices
   for (const { record, score, isFromFeedback } of similarRuns) {
-    // Add items proportional to similarity score (1-3 times)
-    // Double the weight for feedback-based records
     const baseRepeat = Math.ceil(score * 3);
     const repeatCount = isFromFeedback ? baseRepeat * 2 : baseRepeat;
     
     for (let i = 0; i < repeatCount; i++) {
-      clothingCategories.headCover.push(record.clothing.headCover);
-      clothingCategories.tops.push(record.clothing.tops);
-      clothingCategories.bottoms.push(record.clothing.bottoms);
-      clothingCategories.shoes.push(record.clothing.shoes);
-      clothingCategories.socks.push(record.clothing.socks);
-      clothingCategories.gloves.push(record.clothing.gloves);
-      clothingCategories.rainGear.push(record.clothing.rainGear);
+      for (const cat of categories) {
+        if (record.clothing[cat.key]) {
+          clothingVotes[cat.key].push(record.clothing[cat.key]);
+        }
+      }
     }
   }
 
   // Get most common item for each category
-  let headCoverResult = getMostCommonItem(clothingCategories.headCover, 'None');
-  const topsResult = getMostCommonItem(clothingCategories.tops, 'T-shirt');
-  const bottomsResult = getMostCommonItem(clothingCategories.bottoms, 'Shorts');
-  const shoesResult = getMostCommonItem(clothingCategories.shoes, 'Running shoes');
-  const socksResult = getMostCommonItem(clothingCategories.socks, 'Regular');
-  let glovesResult = getMostCommonItem(clothingCategories.gloves, 'None');
-  let rainGearResult = getMostCommonItem(clothingCategories.rainGear, 'None');
+  const clothing: ClothingItems = {};
+  const results: Record<string, { item: string; count: number; total: number }> = {};
+  
+  for (const cat of categories) {
+    results[cat.key] = getMostCommonItem(clothingVotes[cat.key], cat.defaultValue);
+    clothing[cat.key] = results[cat.key].item;
+  }
 
-  // Smart override: If it's raining but history says "None", recommend rain gear anyway
+  // Apply smart overrides
   const isRaining = currentWeather.precipitation > 0 || 
     currentWeather.description.toLowerCase().includes('rain') ||
     currentWeather.description.toLowerCase().includes('drizzle') ||
     currentWeather.description.toLowerCase().includes('shower');
   
-  if (isRaining && rainGearResult.item.toLowerCase() === 'none') {
-    // Override with appropriate rain gear based on temperature
-    const temp = currentWeather.temperature - comfortAdjustment.temperatureOffset;
-    rainGearResult = {
-      item: temp < 50 ? 'Waterproof jacket' : 'Light rain jacket',
-      count: 1,
-      total: 1
-    };
-  }
-
-  // Smart override: If it's very cold but history says no gloves/hat, recommend them
   const adjustedTemp = currentWeather.temperature - comfortAdjustment.temperatureOffset;
-  
-  if (adjustedTemp < 35 && glovesResult.item.toLowerCase() === 'none') {
-    glovesResult = {
-      item: adjustedTemp < 25 ? 'Heavy gloves' : 'Light gloves',
-      count: 1,
-      total: 1
-    };
-  }
-  
-  if (adjustedTemp < 40 && headCoverResult.item.toLowerCase() === 'none') {
-    headCoverResult = {
-      item: adjustedTemp < 25 ? 'Beanie' : 'Headband',
-      count: 1,
-      total: 1
-    };
+
+  // Rain gear override
+  const rainKey = categories.find(c => c.key === 'rainGear' || c.key === 'outerLayer');
+  if (rainKey && isRaining && clothing[rainKey.key]?.toLowerCase() === 'none') {
+    clothing[rainKey.key] = adjustedTemp < 50 ? 'Waterproof jacket' : 'Light rain jacket';
   }
 
-  // Calculate overall confidence based on number of matching runs and their similarity
+  // Gloves override for cold
+  const glovesKey = categories.find(c => c.key === 'gloves');
+  if (glovesKey && adjustedTemp < 35 && clothing[glovesKey.key]?.toLowerCase() === 'none') {
+    clothing[glovesKey.key] = adjustedTemp < 25 ? 'Heavy gloves' : 'Light gloves';
+  }
+
+  // Head cover override for cold
+  const headKey = categories.find(c => c.key === 'headCover' || c.key === 'helmet');
+  if (headKey && headKey.key === 'headCover' && adjustedTemp < 40 && clothing[headKey.key]?.toLowerCase() === 'none') {
+    clothing[headKey.key] = adjustedTemp < 25 ? 'Beanie' : 'Headband';
+  }
+
+  // Apply accessory logic
+  const finalClothing = applyAccessoryLogic(clothing, currentWeather, activity);
+
   const avgSimilarity = similarRuns.length > 0
     ? similarRuns.reduce((sum, r) => sum + r.score, 0) / similarRuns.length
     : 0;
   
   const confidence = Math.min(100, Math.round(
-    (Math.min(similarRuns.length, 10) / 10) * 50 + // Up to 50% from number of matches
-    avgSimilarity * 50 // Up to 50% from average similarity
+    (Math.min(similarRuns.length, 10) / 10) * 50 +
+    avgSimilarity * 50
   ));
 
   return {
-    clothing: {
-      headCover: headCoverResult.item,
-      tops: topsResult.item,
-      bottoms: bottomsResult.item,
-      shoes: shoesResult.item,
-      socks: socksResult.item,
-      gloves: glovesResult.item,
-      rainGear: rainGearResult.item
-    },
+    clothing: finalClothing,
     confidence,
     matchingRuns: similarRuns.length,
     totalRuns: runs.length + feedbackHistory.length,
@@ -413,92 +409,97 @@ export function getClothingRecommendation(
   };
 }
 
-// Get a simple weather-based fallback recommendation when no history exists
+// Get fallback recommendation when no history exists
 export function getFallbackRecommendation(
   weather: WeatherData,
-  feedbackHistory: RunFeedback[] = []
+  feedbackHistory: RunFeedback[] = [],
+  activity: ActivityType = 'running'
 ): ClothingItems {
-  // Check if we have any feedback with similar temperature to use directly
+  // Check if we have any feedback with similar temperature
   const relevantFeedback = feedbackHistory.filter(f => {
     const tempDiff = Math.abs(weather.temperature - f.temperature);
-    return tempDiff <= 10; // Within 10°F
+    return tempDiff <= 10;
   });
 
-  // If we have relevant feedback, prefer "just_right" but use any feedback
   if (relevantFeedback.length > 0) {
-    // Sort by: just_right first, then by recency
     relevantFeedback.sort((a, b) => {
       if (a.comfort === 'just_right' && b.comfort !== 'just_right') return -1;
       if (b.comfort === 'just_right' && a.comfort !== 'just_right') return 1;
       return new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime();
     });
-    return relevantFeedback[0].clothing;
+    return applyAccessoryLogic(relevantFeedback[0].clothing, weather, activity);
   }
 
-  // Apply comfort adjustment if we have feedback
-  const comfortAdjustment = calculateComfortAdjustment(weather, feedbackHistory);
-  const adjustedTemp = weather.temperature - comfortAdjustment.temperatureOffset;
+  // Get default clothing for this activity
+  const clothing = getDefaultClothing(activity);
+  const categories = getClothingCategories(activity);
   
-  const temp = adjustedTemp;
+  const comfortAdjustment = calculateComfortAdjustment(weather, feedbackHistory);
+  const temp = weather.temperature - comfortAdjustment.temperatureOffset;
   const hasRain = weather.precipitation > 0;
   const isWindy = weather.windSpeed > 10;
 
-  let headCover = 'None';
-  let tops = 'T-shirt';
-  let bottoms = 'Shorts';
-  let socks = 'Regular';
-  let gloves = 'None';
-  let rainGear = 'None';
-
-  // Cold weather (below 40°F)
-  if (temp < 40) {
-    headCover = 'Beanie';
-    tops = 'Base layer + jacket';
-    bottoms = 'Tights';
-    socks = 'Wool';
-    gloves = 'Heavy';
-  }
-  // Cool weather (40-55°F)
-  else if (temp < 55) {
-    headCover = temp < 45 ? 'Light beanie' : 'None';
-    tops = 'Long sleeve';
-    bottoms = 'Tights';
-    socks = 'Light wool';
-    gloves = temp < 45 ? 'Light' : 'None';
-  }
-  // Mild weather (55-65°F)
-  else if (temp < 65) {
-    tops = isWindy ? 'Long sleeve' : 'T-shirt';
-    bottoms = 'Shorts or capris';
-  }
-  // Warm weather (65-75°F)
-  else if (temp < 75) {
-    tops = 'T-shirt';
-    bottoms = 'Shorts';
-  }
-  // Hot weather (75°F+)
-  else {
-    headCover = weather.uvIndex > 5 ? 'Running cap' : 'None';
-    tops = 'Singlet or light t-shirt';
-    bottoms = 'Short shorts';
-    socks = 'Light';
+  // Apply temperature-based adjustments
+  if (temp < 25) {
+    // Very cold
+    applyIfExists(clothing, categories, 'headCover', 'Beanie');
+    applyIfExists(clothing, categories, 'tops', 'Base layer + jacket');
+    applyIfExists(clothing, categories, 'baseLayer', 'Heavy merino');
+    applyIfExists(clothing, categories, 'midLayer', 'Heavy puffy');
+    applyIfExists(clothing, categories, 'outerLayer', 'Insulated jacket');
+    applyIfExists(clothing, categories, 'bottoms', 'Tights');
+    applyIfExists(clothing, categories, 'gloves', 'Heavy gloves');
+    applyIfExists(clothing, categories, 'socks', 'Wool');
+  } else if (temp < 40) {
+    // Cold
+    applyIfExists(clothing, categories, 'headCover', 'Beanie');
+    applyIfExists(clothing, categories, 'tops', 'Long sleeve');
+    applyIfExists(clothing, categories, 'baseLayer', 'Merino base');
+    applyIfExists(clothing, categories, 'midLayer', 'Fleece');
+    applyIfExists(clothing, categories, 'bottoms', 'Tights');
+    applyIfExists(clothing, categories, 'gloves', 'Light gloves');
+    applyIfExists(clothing, categories, 'socks', 'Wool');
+  } else if (temp < 55) {
+    // Cool
+    applyIfExists(clothing, categories, 'headCover', temp < 45 ? 'Headband' : 'None');
+    applyIfExists(clothing, categories, 'tops', 'Long sleeve');
+    applyIfExists(clothing, categories, 'baseLayer', 'Long sleeve');
+    applyIfExists(clothing, categories, 'bottoms', 'Tights');
+    applyIfExists(clothing, categories, 'gloves', temp < 45 ? 'Light gloves' : 'None');
+  } else if (temp < 65) {
+    // Mild
+    applyIfExists(clothing, categories, 'tops', isWindy ? 'Long sleeve' : 'T-shirt');
+    applyIfExists(clothing, categories, 'bottoms', 'Shorts');
+  } else if (temp < 75) {
+    // Warm
+    applyIfExists(clothing, categories, 'tops', 'T-shirt');
+    applyIfExists(clothing, categories, 'bottoms', 'Shorts');
+  } else {
+    // Hot
+    applyIfExists(clothing, categories, 'headCover', weather.uvIndex > 5 ? 'Cap' : 'None');
+    applyIfExists(clothing, categories, 'tops', 'Singlet');
+    applyIfExists(clothing, categories, 'bottoms', 'Short shorts');
+    applyIfExists(clothing, categories, 'socks', 'Light');
   }
 
   // Rain adjustments
   if (hasRain) {
-    rainGear = 'Light rain jacket';
-    if (temp < 50) {
-      rainGear = 'Waterproof jacket';
-    }
+    applyIfExists(clothing, categories, 'rainGear', temp < 50 ? 'Waterproof jacket' : 'Light rain jacket');
+    applyIfExists(clothing, categories, 'outerLayer', 'Rain jacket');
   }
 
-  return {
-    headCover,
-    tops,
-    bottoms,
-    shoes: 'Running shoes',
-    socks,
-    gloves,
-    rainGear
-  };
+  // Apply accessory logic
+  return applyAccessoryLogic(clothing, weather, activity);
+}
+
+// Helper to apply a value only if the category exists
+function applyIfExists(
+  clothing: ClothingItems, 
+  categories: { key: string }[], 
+  key: string, 
+  value: string
+): void {
+  if (categories.some(c => c.key === key)) {
+    clothing[key] = value;
+  }
 }

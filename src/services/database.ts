@@ -1,5 +1,5 @@
 import Dexie, { type EntityTable } from 'dexie';
-import type { RunRecord, AppSettings, RunFeedback, CustomClothingOptions } from '../types';
+import type { RunRecord, AppSettings, RunFeedback, CustomClothingOptions, ActivityType } from '../types';
 
 // Define the database
 const db = new Dexie('RunnersWardrobeDB') as Dexie & {
@@ -29,12 +29,23 @@ db.version(3).stores({
   customClothing: '++id, category'
 });
 
+// Version 4 adds activity type to runs, feedback, and customClothing
+db.version(4).stores({
+  runs: '++id, date, time, location, temperature, activity',
+  settings: '++id',
+  feedback: '++id, date, temperature, comfort, activity',
+  customClothing: '++id, category, activity'
+});
+
 // Run records operations
 export async function addRuns(runs: RunRecord[]): Promise<void> {
   await db.runs.bulkAdd(runs);
 }
 
-export async function getAllRuns(): Promise<RunRecord[]> {
+export async function getAllRuns(activity?: ActivityType): Promise<RunRecord[]> {
+  if (activity) {
+    return await db.runs.where('activity').equals(activity).toArray();
+  }
   return await db.runs.toArray();
 }
 
@@ -84,7 +95,10 @@ export async function addFeedback(feedback: Omit<RunFeedback, 'id'>): Promise<vo
   await db.feedback.add(feedback as RunFeedback);
 }
 
-export async function getAllFeedback(): Promise<RunFeedback[]> {
+export async function getAllFeedback(activity?: ActivityType): Promise<RunFeedback[]> {
+  if (activity) {
+    return await db.feedback.where('activity').equals(activity).toArray();
+  }
   return await db.feedback.toArray();
 }
 
@@ -111,13 +125,16 @@ export async function deleteFeedback(id: number): Promise<void> {
 }
 
 // Custom clothing options operations
-export async function getCustomClothingOptions(category: string): Promise<string[]> {
-  const record = await db.customClothing.where('category').equals(category).first();
+export async function getCustomClothingOptions(category: string, activity?: ActivityType): Promise<string[]> {
+  // Build compound key for activity-specific options
+  const key = activity ? `${activity}:${category}` : category;
+  const record = await db.customClothing.where('category').equals(key).first();
   return record?.options || [];
 }
 
-export async function addCustomClothingOption(category: string, option: string): Promise<void> {
-  const existing = await db.customClothing.where('category').equals(category).first();
+export async function addCustomClothingOption(category: string, option: string, activity?: ActivityType): Promise<void> {
+  const key = activity ? `${activity}:${category}` : category;
+  const existing = await db.customClothing.where('category').equals(key).first();
   if (existing) {
     const options = existing.options || [];
     if (!options.includes(option)) {
@@ -125,7 +142,7 @@ export async function addCustomClothingOption(category: string, option: string):
       await db.customClothing.update(existing.id!, { options });
     }
   } else {
-    await db.customClothing.add({ category, options: [option] });
+    await db.customClothing.add({ category: key, options: [option], activity });
   }
 }
 

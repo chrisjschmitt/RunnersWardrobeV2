@@ -1,0 +1,16 @@
+date,time,location,temperature,feels_like,humidity,pressure,precipitation,uv,wind_speed,cloud_cover,head_cover,tops,bottoms,shoes,socks,gloves,rain_gear,hydration,accessories
+2024-09-01,06:00,Harriman Trails,62,60,65,30.0,0,3,6,30,Cap,T-shirt,Shorts,Trail shoes,Regular,None,None,Handheld bottle,Sunglasses
+2024-09-08,07:30,Bear Mountain,55,52,70,29.9,0,2,10,45,Buff,Long sleeve,Shorts,Trail shoes,Regular,None,None,Hydration vest,None
+2024-09-15,06:15,Breakneck Ridge,48,44,60,30.1,0,2,12,35,Beanie,Long sleeve,Tights,Trail shoes,Wool,Light gloves,Wind jacket,Hydration vest,Poles
+2024-09-22,08:00,Catskill Trails,58,56,55,30.0,0,4,8,20,Visor,T-shirt,Shorts,Trail shoes,Regular,None,None,Waist belt,Sunglasses
+2024-09-28,06:30,Storm King,42,38,50,30.2,0.2,1,15,80,Cap,Long sleeve,Tights,Trail shoes,Wool,Light gloves,Waterproof jacket,Hydration vest,Poles
+2024-10-05,07:00,Harriman,65,64,52,30.1,0,5,5,15,Cap,T-shirt,Short shorts,Light trail shoes,Regular,None,None,Handheld bottle,Sunglasses
+2024-10-12,06:00,Hudson Highlands,50,46,58,29.8,0,2,10,40,Headband,Long sleeve,Capris,Trail shoes,Regular,None,None,Hydration vest,Headlamp
+2024-10-19,07:30,Shawangunk,55,52,62,30.0,0,3,8,30,None,T-shirt,Shorts,Trail shoes,Regular,None,None,Waist belt,Sunglasses
+2024-10-26,06:15,Catskills,38,32,48,30.3,0,1,18,10,Beanie,Base layer + jacket,Tights,Trail shoes,Wool,Heavy gloves,None,Hydration vest,Poles + headlamp
+2024-11-02,08:00,Bear Mountain,52,50,55,29.9,0,2,7,35,Buff,Long sleeve,Capris,Trail shoes,Regular,None,None,Hydration vest,None
+2024-11-09,06:30,Breakneck,45,40,60,30.0,0.1,2,12,70,Cap,Long sleeve,Tights,Trail shoes,Wool,Light gloves,Light rain jacket,Hydration vest,Poles
+2024-11-16,07:00,Harriman,58,56,50,30.1,0,3,6,25,Cap,T-shirt,Shorts,Trail shoes,Regular,None,None,Waist belt,Sunglasses
+2024-11-23,06:00,Storm King,32,25,45,30.2,0,1,20,5,Balaclava,Base layer + jacket,Tights,Trail shoes,Wool,Heavy gloves,Wind jacket,Running pack,Poles + headlamp
+2024-12-01,07:30,Hudson Valley,42,38,58,29.8,0,2,10,45,Beanie,Long sleeve,Tights,Trail shoes,Wool,Light gloves,None,Hydration vest,Headlamp
+

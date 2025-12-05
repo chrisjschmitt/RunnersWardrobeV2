@@ -1,29 +1,41 @@
-# Runner's Wardrobe
+# Outdoor Wardrobe
 
-A Progressive Web App (PWA) that recommends what to wear for your runs based on current weather conditions, your personal running history, and comfort feedback.
+A Progressive Web App (PWA) that recommends what to wear for outdoor activities based on current weather conditions, your personal history, and comfort feedback.
 
 ## Features
 
+### Multi-Activity Support 🆕
+Switch between 6 different outdoor activities, each with tailored clothing categories:
+
+| Activity | Icon | Key Categories |
+|----------|------|----------------|
+| **Running** | 🏃 | Head, tops, bottoms, shoes, socks, gloves, rain gear, accessories |
+| **Trail Running** | 🏔️ | + Hydration vest, poles, gaiters |
+| **Hiking** | 🥾 | Base/mid/outer layers, pack size, trekking poles |
+| **Cycling** | 🚴 | Helmet, jersey, bibs, arm/leg warmers, eyewear |
+| **Snowshoeing** | ❄️ | Full winter layering system, gaiters, poles |
+| **XC Skiing** | ⛷️ | Race suits, classic/skate boots, wax considerations |
+
 ### Core Features
 - **Weather Integration**: Real-time weather data from OpenWeatherMap
-- **3-Hour Forecast Alerts**: Warnings when weather is about to change (temperature drops, rain coming, etc.)
+- **3-Hour Forecast Alerts**: Warnings when weather is about to change
 - **Smart Recommendations**: Uses your history + comfort feedback to personalize suggestions
-- **CSV Import**: Upload your running history with weather and clothing data
+- **CSV Import**: Upload your activity history with weather and clothing data
 - **Offline Support**: Works offline with cached data
 - **iPhone Ready**: Install directly to your home screen - no App Store needed
 
 ### Personalization
-- **Post-Run Feedback**: Tell the app if you were "too hot", "too cold", or "just right"
+- **Post-Activity Feedback**: Tell the app if you were "too hot", "too cold", or "just right"
 - **Learning System**: Recommendations improve based on your feedback
-- **Editable Clothing**: Tap any item to change it before your run
-- **Custom Clothing Options**: Add your own clothing items (saved for future use)
+- **Editable Clothing**: Tap any item to change it before your activity
+- **Custom Clothing Options**: Add your own items (saved per activity)
 - **Temperature Unit Toggle**: Switch between Celsius and Fahrenheit
 
-### Smart Overrides
-Even if your history doesn't have data for certain conditions, the app will recommend:
-- **Rain gear** when precipitation > 0 or rain in forecast
-- **Gloves** when temperature < 35°F
-- **Beanie/headband** when temperature < 40°F
+### Smart Features
+- **Automatic Accessories**: Recommends sunglasses when sunny, headlamp when dark
+- **Rain Gear Override**: Always suggests rain protection when precipitation > 0
+- **Cold Weather Override**: Recommends gloves (< 35°F) and hats (< 40°F)
+- **Activity-Specific Defaults**: Sensible starting recommendations for each sport
 
 ### Developer/Testing
 - **Test Mode**: Test recommendations with custom weather conditions
@@ -106,25 +118,32 @@ The app will appear on your home screen and run in standalone mode!
 
 ## Using the App
 
+### Switching Activities
+
+1. Tap the activity dropdown in the header (shows current activity)
+2. Select your activity type
+3. Clothing categories automatically update
+4. History is filtered to that activity
+
 ### Getting Recommendations
 
 1. Allow location access when prompted
 2. View current weather and clothing recommendations
 3. Tap any clothing item to change it
-4. Click "Start Your Run!"
+4. Click "Start [Activity]!"
 
-### After Your Run
+### After Your Activity
 
-1. Click "End Run"
+1. Click "End [Activity]"
 2. Select how you felt: 🥶 Too Cold | 👍 Just Right | 🥵 Too Hot
 3. Your feedback improves future recommendations
 
 ### Viewing History
 
-- **My Runs**: Runs completed through the app with feedback
-- **Imported**: Runs from your CSV upload
-- Tap any run to see details
-- Delete individual runs by expanding and tapping "Delete"
+- **My Sessions**: Activities completed through the app with feedback
+- **Imported**: Activities from your CSV upload
+- Tap any entry to see details
+- Delete individual entries by expanding and tapping "Delete"
 
 ### Test Mode
 
@@ -135,13 +154,13 @@ The app will appear on your home screen and run in standalone mode!
 
 ## CSV Format
 
-Your running history CSV should include these columns (only `date` and `temperature` are required):
+Your activity history CSV should include these columns (only `date` and `temperature` are required):
 
 | Column | Description | Example |
 |--------|-------------|---------|
-| date | Run date | 2024-01-15 |
-| time | Run time | 06:30 |
-| location | Where you ran | Central Park |
+| date | Activity date | 2024-01-15 |
+| time | Activity time | 06:30 |
+| location | Where you went | Central Park |
 | temperature | Temperature in °F | 45 |
 | feels_like | Feels like temp | 42 |
 | humidity | Humidity % | 65 |
@@ -150,27 +169,23 @@ Your running history CSV should include these columns (only `date` and `temperat
 | uv | UV index | 2 |
 | wind_speed | Wind speed (mph) | 8 |
 | cloud_cover | Cloud cover % | 50 |
-| head_cover | Head covering | beanie, cap, none |
-| tops | Upper body clothing | t-shirt, long sleeve |
-| bottoms | Lower body clothing | shorts, tights |
-| shoes | Running shoes | Brooks Ghost |
-| socks | Sock type | wool, regular |
-| gloves | Glove type | none, light, heavy |
-| rain_gear | Rain protection | none, jacket |
 
-### Example CSV
+**Clothing columns vary by activity.** See sample CSV files in the repository for each activity type.
 
-```csv
-date,time,location,temperature,feels_like,humidity,wind_speed,cloud_cover,head_cover,tops,bottoms,shoes,socks,gloves,rain_gear
-2024-01-15,06:30,Central Park,45,42,65,8,50,none,long sleeve,tights,Brooks Ghost,wool,light,none
-2024-01-20,07:00,Central Park,28,22,55,12,20,beanie,base layer + jacket,tights,Brooks Ghost,wool,heavy,none
-2024-02-05,06:00,Riverside,52,50,70,5,80,none,t-shirt,shorts,Nike Pegasus,regular,none,none
-```
+### Sample CSV Files
+
+The repository includes sample data files for each activity:
+- `sample-running.csv` - Running data with standard categories
+- `sample-hiking.csv` - Hiking with layering system
+- `sample-cycling.csv` - Cycling with bibs, jerseys, warmers
+- `sample-trail-running.csv` - Trail running with hydration
+- `sample-snowshoeing.csv` - Winter snowshoeing
+- `sample-xc-skiing.csv` - Cross-country skiing
 
 ## How Recommendations Work
 
 ### 1. Recent Feedback Priority
-If you've run in similar weather in the last 7 days, your clothing choice is used directly (95% confidence).
+If you've done the same activity in similar weather in the last 7 days, your clothing choice is used directly (95% confidence).
 
 ### 2. Historical Analysis
 Compares current weather to your CSV history + older feedback, weighing factors:
@@ -186,21 +201,21 @@ Compares current weather to your CSV history + older feedback, weighing factors:
 | UV Index | Low |
 
 ### 3. Smart Voting
-Similar runs "vote" for clothing items. Your feedback votes count **2x** more than CSV data.
+Similar activities "vote" for clothing items. Your feedback votes count **2x** more than CSV data.
 
 ### 4. Comfort Learning
 If you consistently report "too cold", recommendations shift warmer. "Too hot" shifts lighter.
 
 ### 5. Smart Overrides
-Even if voting says "None", the app will recommend rain gear, gloves, or hats when conditions warrant.
+Even if voting says "None", the app will recommend:
+- Rain gear when precipitation detected
+- Gloves when temperature < 35°F
+- Hats when temperature < 40°F
+- Sunglasses when sunny (cloud cover < 50%, UV > 2)
+- Headlamp when dark (before 6am or after 7pm)
 
-### 6. Fallback Defaults
-With no history, sensible defaults based on temperature ranges:
-- **< 40°F**: Beanie, jacket, tights, heavy gloves
-- **40-55°F**: Long sleeve, tights, light gloves
-- **55-65°F**: T-shirt, shorts or capris
-- **65-75°F**: T-shirt, shorts
-- **> 75°F**: Singlet, short shorts, cap
+### 6. Activity-Specific Defaults
+With no history, sensible defaults based on temperature and activity type.
 
 ## Tech Stack
 
@@ -223,9 +238,9 @@ With no history, sensible defaults based on temperature ranges:
 │   │   ├── WeatherDisplay.tsx  # Weather + alerts display
 │   │   ├── ClothingRecommendation.tsx
 │   │   ├── ClothingPicker.tsx  # Editable clothing selector
-│   │   ├── RunHistory.tsx      # View/manage run data
-│   │   ├── StartRun.tsx        # Main run screen
-│   │   ├── FeedbackModal.tsx   # Post-run comfort feedback
+│   │   ├── RunHistory.tsx      # View/manage activity data
+│   │   ├── StartRun.tsx        # Main activity screen
+│   │   ├── FeedbackModal.tsx   # Post-activity comfort feedback
 │   │   ├── Settings.tsx        # Configuration + Test Mode
 │   │   └── Help.tsx            # FAQ and instructions
 │   ├── services/
@@ -235,16 +250,19 @@ With no history, sensible defaults based on temperature ranges:
 │   │   ├── recommendationEngine.ts
 │   │   └── temperatureUtils.ts # °C/°F conversion
 │   ├── types/
-│   │   └── index.ts            # TypeScript interfaces
+│   │   └── index.ts            # TypeScript interfaces + activity configs
 │   ├── App.tsx
 │   ├── main.tsx
 │   └── index.css
+├── sample-*.csv                # Sample data for each activity
 ├── vercel.json                 # Vercel configuration
 └── package.json
 ```
 
 ## Version History
 
+- **v3.0.0**: Multi-activity support (Running, Trail Running, Hiking, Cycling, Snowshoeing, XC Skiing), smart accessories (sunglasses/headlamp), activity-specific clothing categories
+- **v2.0.2**: Fix date display timezone issues
 - **v2.0.1**: Smart overrides for rain/cold gear
 - **v2.0.0**: Test Mode for custom weather conditions
 - **v1.9.0**: 3-hour forecast weather change alerts
