@@ -675,23 +675,24 @@ export function getFallbackRecommendation(
     applyIfExists(clothing, categories, 'outerLayer', 'Rain jacket');
   }
 
-  // Cold weather footwear adjustments
+  // Cold weather footwear adjustments - use alternatives for different activities
+  // Includes options from all activities: Walking, Hiking, Cycling, Snowshoeing, XC Skiing
+  const COLD_FOOTWEAR = [
+    'Waterproof boots', 'Waterproof shoes', 'Boots', 'Winter boots',
+    'Winter hiking boots', 'Hiking boots', 'Walking shoes',
+    'Insulated boots',  // XC Skiing
+    'Shoe covers'       // Cycling
+  ];
+  
   if (temp < 32) {
-    // Freezing - recommend warmer/waterproof footwear
-    if (activity === 'walking') {
-      applyIfExists(clothing, categories, 'shoes', temp < 20 ? 'Waterproof boots' : 'Boots');
-    } else if (activity === 'hiking') {
-      applyIfExists(clothing, categories, 'shoes', 'Waterproof boots');
-    }
+    applyFirstValid(clothing, categories, 'shoes', COLD_FOOTWEAR);
+    applyFirstValid(clothing, categories, 'boots', ['Winter boots', 'Waterproof boots', 'Pac boots']);
   }
   
   // Wet weather footwear adjustments
   if (hasRain || isSnowing) {
-    if (activity === 'walking') {
-      applyIfExists(clothing, categories, 'shoes', 'Waterproof shoes');
-    } else if (activity === 'hiking') {
-      applyIfExists(clothing, categories, 'shoes', 'Waterproof boots');
-    }
+    applyFirstValid(clothing, categories, 'shoes', ['Waterproof shoes', 'Waterproof boots', 'Boots', 'Walking shoes']);
+    applyFirstValid(clothing, categories, 'boots', ['Waterproof boots', 'Winter boots']);
   }
 
   // Apply accessory logic
