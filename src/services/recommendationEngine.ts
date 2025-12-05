@@ -1,4 +1,4 @@
-import type { WeatherData, RunRecord, ClothingItems, ClothingRecommendation, RunFeedback, ComfortAdjustment, ActivityType } from '../types';
+import type { WeatherData, RunRecord, ClothingItems, ClothingRecommendation, RunFeedback, ComfortAdjustment, ActivityType, ClothingCategory } from '../types';
 import { getDefaultClothing, getClothingCategories, isDarkOutside, isSunny } from '../types';
 
 // Weather similarity thresholds
@@ -537,43 +537,44 @@ export function getFallbackRecommendation(
   if (temp < 25) {
     // Very cold
     applyIfExists(clothing, categories, 'headCover', 'Beanie');
-    applyIfExists(clothing, categories, 'tops', 'Base layer + jacket');
+    applyFirstValid(clothing, categories, 'tops', ['Base layer + jacket', 'Fleece', 'Light jacket']);
     applyIfExists(clothing, categories, 'baseLayer', 'Heavy merino');
     applyIfExists(clothing, categories, 'midLayer', 'Heavy puffy');
-    applyIfExists(clothing, categories, 'outerLayer', 'Insulated jacket');
-    applyIfExists(clothing, categories, 'bottoms', 'Tights');
-    applyIfExists(clothing, categories, 'gloves', 'Heavy gloves');
-    applyIfExists(clothing, categories, 'socks', 'Wool');
+    applyFirstValid(clothing, categories, 'outerLayer', ['Insulated jacket', 'Down jacket', 'Winter coat']);
+    applyFirstValid(clothing, categories, 'bottoms', ['Tights', 'Sweatpants', 'Insulated pants']);
+    applyFirstValid(clothing, categories, 'gloves', ['Heavy gloves', 'Warm gloves', 'Mittens']);
+    applyFirstValid(clothing, categories, 'socks', ['Wool', 'Heavy wool', 'Thick']);
   } else if (temp < 40) {
     // Cold
     applyIfExists(clothing, categories, 'headCover', 'Beanie');
-    applyIfExists(clothing, categories, 'tops', 'Long sleeve');
+    applyFirstValid(clothing, categories, 'tops', ['Long sleeve', 'Sweater', 'Fleece']);
     applyIfExists(clothing, categories, 'baseLayer', 'Merino base');
     applyIfExists(clothing, categories, 'midLayer', 'Fleece');
-    applyIfExists(clothing, categories, 'bottoms', 'Tights');
+    applyFirstValid(clothing, categories, 'outerLayer', ['Light jacket', 'Winter coat']);
+    applyFirstValid(clothing, categories, 'bottoms', ['Tights', 'Sweatpants', 'Jeans', 'Casual pants']);
     applyIfExists(clothing, categories, 'gloves', 'Light gloves');
-    applyIfExists(clothing, categories, 'socks', 'Wool');
+    applyFirstValid(clothing, categories, 'socks', ['Wool', 'Thick']);
   } else if (temp < 55) {
     // Cool
-    applyIfExists(clothing, categories, 'headCover', temp < 45 ? 'Headband' : 'None');
-    applyIfExists(clothing, categories, 'tops', 'Long sleeve');
+    applyFirstValid(clothing, categories, 'headCover', [temp < 45 ? 'Headband' : 'None', 'Ear warmers', 'Cap']);
+    applyFirstValid(clothing, categories, 'tops', ['Long sleeve', 'Sweater']);
     applyIfExists(clothing, categories, 'baseLayer', 'Long sleeve');
-    applyIfExists(clothing, categories, 'bottoms', 'Tights');
+    applyFirstValid(clothing, categories, 'bottoms', ['Tights', 'Casual pants', 'Jeans', 'Leggings']);
     applyIfExists(clothing, categories, 'gloves', temp < 45 ? 'Light gloves' : 'None');
   } else if (temp < 65) {
     // Mild
-    applyIfExists(clothing, categories, 'tops', isWindy ? 'Long sleeve' : 'T-shirt');
-    applyIfExists(clothing, categories, 'bottoms', 'Shorts');
+    applyFirstValid(clothing, categories, 'tops', [isWindy ? 'Long sleeve' : 'T-shirt', 'T-shirt']);
+    applyFirstValid(clothing, categories, 'bottoms', ['Shorts', 'Casual pants', 'Capris']);
   } else if (temp < 75) {
     // Warm
     applyIfExists(clothing, categories, 'tops', 'T-shirt');
-    applyIfExists(clothing, categories, 'bottoms', 'Shorts');
+    applyFirstValid(clothing, categories, 'bottoms', ['Shorts', 'Capris']);
   } else {
     // Hot
-    applyIfExists(clothing, categories, 'headCover', weather.uvIndex > 5 ? 'Cap' : 'None');
-    applyIfExists(clothing, categories, 'tops', 'Singlet');
-    applyIfExists(clothing, categories, 'bottoms', 'Short shorts');
-    applyIfExists(clothing, categories, 'socks', 'Light');
+    applyFirstValid(clothing, categories, 'headCover', [weather.uvIndex > 5 ? 'Cap' : 'None', 'Sun hat']);
+    applyFirstValid(clothing, categories, 'tops', ['Singlet', 'T-shirt']);
+    applyFirstValid(clothing, categories, 'bottoms', ['Short shorts', 'Shorts']);
+    applyFirstValid(clothing, categories, 'socks', ['Light', 'No-show']);
   }
 
   // Rain adjustments
@@ -605,14 +606,44 @@ export function getFallbackRecommendation(
   return applyAccessoryLogic(clothing, weather, activity);
 }
 
-// Helper to apply a value only if the category exists
+// Helper to apply a value only if the category exists AND the value is valid
 function applyIfExists(
   clothing: ClothingItems, 
-  categories: { key: string }[], 
+  categories: ClothingCategory[], 
   key: string, 
   value: string
 ): void {
-  if (categories.some(c => c.key === key)) {
-    clothing[key] = value;
+  const category = categories.find(c => c.key === key);
+  if (category) {
+    // Check if the value exists in options (case-insensitive)
+    const validOption = category.options.find(
+      opt => opt.toLowerCase() === value.toLowerCase()
+    );
+    if (validOption) {
+      clothing[key] = validOption; // Use the properly-cased version
+    }
+    // If value isn't valid, don't change the default
+  }
+}
+
+// Helper to apply the first valid value from a list of alternatives
+function applyFirstValid(
+  clothing: ClothingItems,
+  categories: ClothingCategory[],
+  key: string,
+  values: string[]
+): void {
+  const category = categories.find(c => c.key === key);
+  if (category) {
+    for (const value of values) {
+      const validOption = category.options.find(
+        opt => opt.toLowerCase() === value.toLowerCase()
+      );
+      if (validOption) {
+        clothing[key] = validOption;
+        return; // Use first valid match
+      }
+    }
+    // If none valid, keep the default
   }
 }
