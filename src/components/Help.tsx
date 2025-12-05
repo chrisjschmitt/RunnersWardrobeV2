@@ -7,146 +7,135 @@ interface FAQItem {
 
 const faqs: FAQItem[] = [
   {
-    question: "How does the app recommend what to wear?",
-    answer: `The app uses a smart recommendation engine that learns from your running history:
+    question: "How does the app know what to recommend?",
+    answer: `The app learns from your activities over time:
 
-1. **Recent Feedback Priority**: If you've run in similar weather in the last 7 days, it uses your clothing choice directly (95% confidence).
+**Your Recent Choices Matter Most**
+If you did the same activity in similar weather recently, the app remembers what you wore and how you felt.
 
-2. **Historical Analysis**: It compares current weather to your CSV history and past feedback, weighing factors like temperature (most important), feels-like temp, precipitation, wind, humidity, cloud cover, and UV index.
+**It Learns Your Preferences**
+Every time you give feedback ("too cold", "just right", "too hot"), the app adjusts. If you tend to run cold, it'll suggest warmer clothes. If you run hot, it'll suggest lighter options.
 
-3. **Voting System**: Similar runs "vote" for clothing items. Your personal feedback counts 2x more than CSV data.
-
-4. **Comfort Learning**: If you often report "too cold" or "too hot", the app adjusts recommendations accordingly.
-
-5. **Fallback**: With no history, it uses general running guidelines based on temperature ranges.`
+**Starting Fresh?**
+No worries! The app has sensible defaults based on temperature. As you use it and provide feedback, it gets smarter about YOUR preferences.`
   },
   {
-    question: "How do I get started?",
-    answer: `1. **Set up API Key**: Go to Settings and enter your free OpenWeatherMap API key (get one at openweathermap.org/api).
+    question: "Why do I need to tap Start and End?",
+    answer: `This is how the app learns from you:
 
-2. **Upload History** (optional): Upload a CSV file with your past running data to get personalized recommendations immediately.
+**Before You Start**
+You can change any clothing item to match what you're actually wearing. The app saves your actual choice, not just what it recommended.
 
-3. **Allow Location**: The app needs your location to fetch current weather.
+**After You Finish**
+The app asks how you felt - too cold, just right, or too hot. This feedback, combined with the weather and what you wore, teaches the app your preferences.
 
-4. **Start Running**: View recommendations, edit if needed, tap "Start Your Run!"
+**Building Your History**
+Each session creates a record that helps future recommendations. The more you use it, the smarter it gets!
 
-5. **Give Feedback**: After your run, tell us if you were too cold, just right, or too hot. This helps improve future recommendations!`
+**Just Need a Quick Suggestion?**
+You can absolutely just check the recommendation and head out without tapping Start. But then the app won't learn from that experience.`
   },
   {
-    question: "Why does the app have a Start/End button?",
-    answer: `The Start/End flow serves several important purposes:
+    question: "How do I add my own clothing options?",
+    answer: `Easy! When you tap on any clothing item:
 
-**1. Captures What You Actually Wore**
-Before clicking "Start", you can edit the recommendations to match what you're actually wearing. Your actual choice becomes training data for future recommendations.
-
-**2. Enables Post-Activity Feedback**
-When you click "End", the app prompts you to rate your comfort (Too Cold / Just Right / Too Hot). This feedback, combined with the weather and what you wore, teaches the algorithm your preferences.
-
-**3. Creates a Complete Data Record**
-Each session saves: date/time, weather conditions, actual clothing worn, your comfort feedback, and activity type.
-
-**4. The Learning Loop**
-Weather → Recommendation → Your Edits → Start → Activity → End → Feedback → Saved for future recommendations
-
-Without this flow, the app would only learn from CSV imports. The Start/End cycle lets it learn from your real experiences over time.
-
-**Note:** You can skip this flow and just use the app for one-time recommendations, but then it won't learn your personal temperature preferences.`
-  },
-  {
-    question: "What should my CSV file look like?",
-    answer: `Your CSV should have a header row with these columns (only date and temperature are required):
-
-**Required:**
-- date (e.g., 2024-01-15)
-- temperature (in °F)
-
-**Optional weather:**
-- time, location, feels_like, humidity, pressure, precipitation, uv, wind_speed, cloud_cover
-
-**Optional clothing:**
-- head_cover, tops, bottoms, shoes, socks, gloves, rain_gear
-
-Example:
-date,temperature,feels_like,tops,bottoms,gloves
-2024-01-15,45,42,long sleeve,tights,light
-2024-01-20,28,22,base layer + jacket,tights,heavy`
-  },
-  {
-    question: "Can I add my own clothing options?",
-    answer: `Yes! When selecting clothing:
-
-1. Tap any clothing item
-2. Scroll to the bottom of the picker
+1. A picker appears with common options
+2. Scroll to the bottom
 3. Tap "Add custom option..."
-4. Type your custom item and tap "Add"
+4. Type your item (like "my lucky socks") and tap Add
 
-Your custom options are saved and will appear in future selections with a "(custom)" label.`
+Your custom items are saved and will show up with a "(custom)" label whenever you use the app.`
   },
   {
-    question: "Why should I give feedback after runs?",
-    answer: `Feedback is how the app learns YOUR preferences:
+    question: "What does the feedback actually do?",
+    answer: `Your feedback is gold! Here's what happens:
 
-- **"Too Cold"**: Next time, it'll recommend warmer clothing for similar weather
-- **"Just Right"**: Your clothing choice gets saved and prioritized
-- **"Too Hot"**: Next time, it'll recommend lighter clothing
+**"Too Cold" 🥶**
+Next time in similar weather, the app suggests warmer layers.
 
-The more feedback you provide, the more personalized recommendations become. Recent feedback (last 7 days) takes highest priority!`
+**"Just Right" 👍**
+Your clothing choice gets remembered and prioritized for similar conditions.
+
+**"Too Hot" 🥵**
+Next time, the app suggests lighter clothing.
+
+The app weighs recent feedback more heavily than older feedback, so it adapts as your preferences change (or as you get fitter!).`
   },
   {
-    question: "How do I install this on my iPhone?",
-    answer: `This is a Progressive Web App (PWA) that works like a native app:
+    question: "How do I install this on my phone?",
+    answer: `This app works like a regular app on your phone:
 
-1. Open the app URL in **Safari** (must be Safari, not Chrome)
-2. Tap the **Share** button (square with arrow)
-3. Scroll down and tap **"Add to Home Screen"**
-4. Give it a name and tap **"Add"**
+**iPhone (Safari only)**
+1. Open the app in Safari (not Chrome)
+2. Tap the Share button (square with arrow)
+3. Scroll down and tap "Add to Home Screen"
+4. Tap "Add"
 
-The app will appear on your home screen and work offline!`
+**Android (Chrome)**
+1. Open the app in Chrome
+2. Tap the menu (three dots)
+3. Tap "Add to Home Screen" or "Install App"
+
+Once installed, the app appears on your home screen and opens in full screen - just like a regular app!`
   },
   {
-    question: "What weather factors affect recommendations?",
-    answer: `The app considers these factors (in order of importance):
-
-| Factor | Weight | Why it matters |
-|--------|--------|----------------|
-| Temperature | Highest | Primary factor for clothing |
-| Feels Like | High | Accounts for wind chill/heat index |
-| Precipitation | High | Rain gear decisions |
-| Wind Speed | Medium | Affects perceived temperature |
-| Humidity | Medium | Comfort and sweat management |
-| Cloud Cover | Low | Sun exposure |
-| UV Index | Low | Hat/cap decisions |
-
-Temperature and feels-like combined account for ~50% of the similarity score.`
+    question: "Can I switch between Celsius and Fahrenheit?",
+    answer: `Yes! Go to Settings and tap °C or °F. Your preference is saved automatically and all temperatures will display in your chosen unit.`
   },
   {
-    question: "Why isn't my clothing selection being saved?",
-    answer: `Make sure you complete the full flow:
+    question: "What if I haven't used the app before?",
+    answer: `The app works great right from the start! Without any history, it uses common-sense defaults:
 
-1. Edit your clothing selections ✓
-2. Tap "Start Your Run!" ✓
-3. Tap "End Run" when finished ✓
-4. **Submit feedback** (Too Cold/Just Right/Too Hot) ← Required!
+• **Below 40°F (4°C)**: Warm layers, beanie, heavy gloves
+• **40-55°F (4-13°C)**: Long sleeves, tights, light gloves  
+• **55-65°F (13-18°C)**: T-shirt, shorts or capris
+• **Above 65°F (18°C)**: Light and breezy!
 
-Your clothing is only saved when you submit feedback. This ensures we know whether that choice worked for you.`
+These are just starting points. As you use the app and give feedback, recommendations become tailored to YOU.`
   },
   {
-    question: "Can I use Celsius instead of Fahrenheit?",
-    answer: `Yes! Go to **Settings** and tap the **°C** button to switch to Celsius. Your preference is saved automatically.
+    question: "How do I move my data to a new phone?",
+    answer: `Your history can be exported and imported:
 
-Note: The CSV data and internal calculations still use Fahrenheit, but all displays will show Celsius.`
+**To Export (from your current device)**
+1. Go to the History tab
+2. Tap "Export CSV" at the top
+3. Save the file (email it to yourself, save to Files, etc.)
+
+**To Import (on your new device)**
+1. Go to the Upload tab
+2. Select your exported file
+3. Your history is restored!
+
+This is the only way to transfer data since everything is stored on your device, not in the cloud.`
   },
   {
-    question: "What if I don't have any running history?",
-    answer: `No problem! The app provides sensible defaults based on general running guidelines:
+    question: "Does the app work offline?",
+    answer: `Partially:
 
-- **Below 40°F**: Beanie, jacket + base layer, tights, heavy gloves
-- **40-55°F**: Long sleeve, tights, light gloves
-- **55-65°F**: T-shirt, shorts or capris
-- **65-75°F**: T-shirt, shorts
-- **Above 75°F**: Singlet, short shorts, cap for sun
+**Works Offline**
+• Viewing your history
+• Seeing past recommendations
+• The app itself loads
 
-As you run and provide feedback, recommendations become personalized to YOU.`
+**Needs Internet**
+• Getting current weather (the app needs to check what the weather is right now)
+• Getting sunrise/sunset times
+
+If you're offline, you'll see a message that weather can't be loaded. Once you're back online, just tap Refresh.`
+  },
+  {
+    question: "What activities does the app support?",
+    answer: `Currently six outdoor activities:
+
+🏃 **Running** - Standard running gear
+🏔️ **Trail Running** - Plus hydration vests and poles
+🥾 **Hiking** - Layering system with packs
+🚴 **Cycling** - Jerseys, bibs, helmets
+❄️ **Snowshoeing** - Full winter gear
+⛷️ **XC Skiing** - Nordic-specific clothing
+
+Each activity has its own clothing categories and your history is tracked separately. Switch activities using the dropdown at the top of the screen.`
   }
 ];
 
@@ -159,37 +148,74 @@ export function Help() {
 
   return (
     <div className="animate-fade-in">
+      {/* Beta Notice */}
+      <div className="glass-card p-6 mb-6 border-2 border-yellow-500/50 bg-[rgba(251,191,36,0.1)]">
+        <h2 className="text-xl font-semibold mb-3 flex items-center gap-2 text-yellow-300">
+          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+          </svg>
+          Beta Version
+        </h2>
+        <p className="text-sm text-[var(--color-text-muted)] mb-4">
+          Thanks for trying Outdoor Wardrobe! This is a beta version, which means we're still improving it. Here's what you should know:
+        </p>
+        <div className="space-y-3 text-sm">
+          <LimitationItem 
+            icon="📱" 
+            title="Data stays on your device"
+            description="Your history and preferences are stored locally on this device only. If you use a different phone or tablet, you'll need to export and import your data."
+          />
+          <LimitationItem 
+            icon="🌐" 
+            title="Weather needs internet"
+            description="The app needs an internet connection to check current weather conditions. Offline, you can view your history but won't get new recommendations."
+          />
+          <LimitationItem 
+            icon="📍" 
+            title="Location permission required"
+            description="The app needs to know where you are to get local weather. Without location access, it can't make recommendations."
+          />
+          <LimitationItem 
+            icon="🔄" 
+            title="No automatic sync"
+            description="There's no cloud backup or sync between devices. Use Export/Import in the History tab to move your data."
+          />
+          <LimitationItem 
+            icon="🌡️" 
+            title="Weather accuracy varies"
+            description="Weather data comes from OpenWeatherMap. Conditions at your exact location may differ from what the app shows."
+          />
+        </div>
+      </div>
+
       {/* Getting Started */}
       <div className="glass-card p-6 mb-6">
         <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
           <svg className="w-6 h-6 text-[var(--color-accent)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
           </svg>
-          Quick Start Guide
+          Quick Start
         </h2>
 
         <div className="space-y-4">
-          <Step number={1} title="Set Up API Key">
-            Go to Settings and enter your OpenWeatherMap API key. Get a free key at{' '}
-            <a href="https://openweathermap.org/api" target="_blank" rel="noopener noreferrer" className="text-[var(--color-accent)] underline">
-              openweathermap.org/api
-            </a>
+          <Step number={1} title="Choose Your Activity">
+            Tap the activity dropdown at the top (Running, Hiking, Cycling, etc.)
           </Step>
 
-          <Step number={2} title="Upload Running History (Optional)">
-            Upload a CSV file with your past runs to get personalized recommendations right away.
+          <Step number={2} title="Allow Location">
+            The app needs your location to get local weather. Tap "Allow" when asked.
           </Step>
 
-          <Step number={3} title="Get Recommendations">
-            Allow location access to see current weather and clothing suggestions.
+          <Step number={3} title="Check Recommendations">
+            See what the app suggests based on current weather. Tap any item to change it.
           </Step>
 
-          <Step number={4} title="Customize & Run">
-            Tap any clothing item to change it. Click "Start Your Run!" when ready.
+          <Step number={4} title="Start Your Activity">
+            Tap the Start button when you head out. This saves what you're actually wearing.
           </Step>
 
           <Step number={5} title="Give Feedback">
-            After your run, tell us how you felt. This teaches the app your preferences!
+            When you're done, tap End and tell the app how you felt. This helps it learn!
           </Step>
         </div>
       </div>
@@ -200,35 +226,35 @@ export function Help() {
           <svg className="w-6 h-6 text-[var(--color-accent)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
           </svg>
-          How Recommendations Work
+          How It Works
         </h2>
 
         <div className="space-y-4 text-sm">
           <div className="p-4 bg-[rgba(255,255,255,0.05)] rounded-lg">
-            <h3 className="font-semibold text-[var(--color-accent)] mb-2">1. Recent Feedback First</h3>
+            <h3 className="font-semibold text-[var(--color-accent)] mb-2">🎯 Personalized to You</h3>
             <p className="text-[var(--color-text-muted)]">
-              If you ran in similar weather in the last 7 days, your clothing choice is used directly.
+              The app learns from YOUR experiences. What you wore, how you felt, in what weather. Everyone's different - some run hot, some run cold - and the app adapts to you.
             </p>
           </div>
 
           <div className="p-4 bg-[rgba(255,255,255,0.05)] rounded-lg">
-            <h3 className="font-semibold text-[var(--color-accent)] mb-2">2. Historical Analysis</h3>
+            <h3 className="font-semibold text-[var(--color-accent)] mb-2">📊 Weather Matching</h3>
             <p className="text-[var(--color-text-muted)]">
-              Compares current weather to your history. Temperature is weighted most heavily, followed by feels-like, precipitation, and wind.
+              When you head out, the app looks at today's weather and finds similar days from your history. Temperature matters most, but it also considers wind, rain, humidity, and more.
             </p>
           </div>
 
           <div className="p-4 bg-[rgba(255,255,255,0.05)] rounded-lg">
-            <h3 className="font-semibold text-[var(--color-accent)] mb-2">3. Smart Voting</h3>
+            <h3 className="font-semibold text-[var(--color-accent)] mb-2">🧠 Always Learning</h3>
             <p className="text-[var(--color-text-muted)]">
-              Similar runs "vote" for clothing items. Your feedback counts 2x more than imported CSV data.
+              Every time you give feedback, the app gets smarter. Recent feedback counts more than old feedback, so the app stays current with your preferences.
             </p>
           </div>
 
           <div className="p-4 bg-[rgba(255,255,255,0.05)] rounded-lg">
-            <h3 className="font-semibold text-[var(--color-accent)] mb-2">4. Comfort Learning</h3>
+            <h3 className="font-semibold text-[var(--color-accent)] mb-2">🛡️ Safety Nets</h3>
             <p className="text-[var(--color-text-muted)]">
-              If you consistently report "too cold", recommendations shift warmer. "Too hot" shifts lighter.
+              Even if your history says otherwise, the app won't let you go out underdressed. It automatically suggests rain gear when it's raining, warm layers when it's freezing, and sunglasses when it's sunny.
             </p>
           </div>
         </div>
@@ -240,7 +266,7 @@ export function Help() {
           <svg className="w-6 h-6 text-[var(--color-accent)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
-          Frequently Asked Questions
+          Questions & Answers
         </h2>
 
         <div className="space-y-2">
@@ -254,6 +280,30 @@ export function Help() {
             />
           ))}
         </div>
+      </div>
+
+      {/* Feedback */}
+      <div className="mt-6 text-center text-sm text-[var(--color-text-muted)]">
+        <p>Have questions or suggestions?</p>
+        <p className="mt-1">This app is in active development and your feedback helps make it better!</p>
+      </div>
+    </div>
+  );
+}
+
+interface LimitationItemProps {
+  icon: string;
+  title: string;
+  description: string;
+}
+
+function LimitationItem({ icon, title, description }: LimitationItemProps) {
+  return (
+    <div className="flex gap-3">
+      <span className="text-lg flex-shrink-0">{icon}</span>
+      <div>
+        <span className="font-medium text-yellow-200">{title}</span>
+        <p className="text-[var(--color-text-muted)] mt-0.5">{description}</p>
       </div>
     </div>
   );
@@ -313,4 +363,3 @@ function FAQAccordion({ question, answer, isExpanded, onToggle }: FAQAccordionPr
     </div>
   );
 }
-
