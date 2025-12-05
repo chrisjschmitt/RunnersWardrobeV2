@@ -633,7 +633,7 @@ export function getFallbackRecommendation(
     applyIfExists(clothing, categories, 'baseLayer', 'Heavy merino');
     applyIfExists(clothing, categories, 'midLayer', 'Heavy puffy');
     applyFirstValid(clothing, categories, 'outerLayer', ['Insulated jacket', 'Down jacket', 'Winter coat']);
-    applyFirstValid(clothing, categories, 'bottoms', ['Tights', 'Sweatpants', 'Insulated pants']);
+    applyFirstValid(clothing, categories, 'bottoms', ['Insulated pants', 'Tights', 'Fleece-lined leggings', 'Softshell pants', 'Jeans']);
     applyFirstValid(clothing, categories, 'gloves', ['Heavy gloves', 'Warm gloves', 'Mittens']);
     applyFirstValid(clothing, categories, 'socks', ['Wool', 'Heavy wool', 'Thick']);
   } else if (temp < 40) {
@@ -643,7 +643,7 @@ export function getFallbackRecommendation(
     applyIfExists(clothing, categories, 'baseLayer', 'Merino base');
     applyIfExists(clothing, categories, 'midLayer', 'Fleece');
     applyFirstValid(clothing, categories, 'outerLayer', ['Light jacket', 'Winter coat']);
-    applyFirstValid(clothing, categories, 'bottoms', ['Tights', 'Sweatpants', 'Jeans', 'Casual pants']);
+    applyFirstValid(clothing, categories, 'bottoms', ['Fleece-lined leggings', 'Tights', 'Jeans', 'Leggings', 'Casual pants']);
     applyIfExists(clothing, categories, 'gloves', 'Light gloves');
     applyFirstValid(clothing, categories, 'socks', ['Wool', 'Thick']);
   } else if (temp < 55) {

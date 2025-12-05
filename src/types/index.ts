@@ -124,7 +124,7 @@ export const ACTIVITY_CONFIGS: Record<ActivityType, ActivityInfo> = {
       { key: 'headCover', label: 'Head', defaultValue: 'None', options: ['None', 'Sun hat', 'Cap', 'Beanie', 'Ear warmers'] },
       { key: 'tops', label: 'Top', defaultValue: 'T-shirt', options: ['T-shirt', 'Long sleeve', 'Sweater', 'Fleece', 'Light jacket'] },
       { key: 'outerLayer', label: 'Jacket', defaultValue: 'None', options: ['None', 'Light jacket', 'Rain jacket', 'Winter coat', 'Down jacket'] },
-      { key: 'bottoms', label: 'Pants', defaultValue: 'Casual pants', options: ['Shorts', 'Capris', 'Casual pants', 'Jeans', 'Leggings', 'Sweatpants'] },
+      { key: 'bottoms', label: 'Pants', defaultValue: 'Casual pants', options: ['Shorts', 'Capris', 'Casual pants', 'Jeans', 'Leggings', 'Fleece-lined leggings', 'Sweatpants', 'Insulated pants'] },
       { key: 'shoes', label: 'Shoes', defaultValue: 'Sneakers', options: ['Sandals', 'Sneakers', 'Walking shoes', 'Boots', 'Waterproof shoes'] },
       { key: 'socks', label: 'Socks', defaultValue: 'Regular', options: ['No-show', 'Regular', 'Wool', 'Thick'] },
       { key: 'gloves', label: 'Gloves', defaultValue: 'None', options: ['None', 'Light gloves', 'Warm gloves', 'Mittens'] },
