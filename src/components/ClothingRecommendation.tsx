@@ -2,6 +2,8 @@ import { useState } from 'react';
 import type { ClothingRecommendation as ClothingRec, ClothingItems, ActivityType } from '../types';
 import { getClothingCategories } from '../types';
 import { ClothingPicker } from './ClothingPicker';
+import { ClothingInfoModal } from './ClothingInfoModal';
+import { getClothingInfo, type ClothingInfo } from '../data/clothingInfo';
 
 // Icons for different clothing categories
 const CATEGORY_ICONS: Record<string, string> = {
@@ -46,6 +48,7 @@ export function ClothingRecommendation({
   activity = 'running'
 }: ClothingRecommendationProps) {
   const [editingCategory, setEditingCategory] = useState<string | null>(null);
+  const [showingInfo, setShowingInfo] = useState<ClothingInfo | null>(null);
   
   // Get categories for this activity
   const categories = getClothingCategories(activity);
@@ -96,8 +99,23 @@ export function ClothingRecommendation({
     return current !== base;
   };
 
+  const handleShowInfo = (categoryKey: string, itemName: string) => {
+    const info = getClothingInfo(categoryKey, itemName);
+    if (info) {
+      setShowingInfo(info);
+    }
+  };
+
   return (
     <div className="animate-slide-up delay-200">
+      {/* Clothing Info Modal */}
+      {showingInfo && (
+        <ClothingInfoModal 
+          info={showingInfo} 
+          onClose={() => setShowingInfo(null)} 
+        />
+      )}
+
       {/* Clothing Picker Modal */}
       {editingCategory && (
         <ClothingPicker
@@ -153,6 +171,7 @@ export function ClothingRecommendation({
           {categories.map((cat) => (
             <ClothingItem 
               key={cat.key}
+              categoryKey={cat.key}
               icon={CATEGORY_ICONS[cat.key] || '👔'} 
               label={cat.label} 
               value={clothing[cat.key] || cat.defaultValue}
@@ -160,6 +179,7 @@ export function ClothingRecommendation({
               editable={editable}
               edited={isEdited(cat.key)}
               onClick={() => handleItemClick(cat.key)}
+              onInfoClick={(itemName) => handleShowInfo(cat.key, itemName)}
             />
           ))}
         </div>
@@ -169,6 +189,7 @@ export function ClothingRecommendation({
 }
 
 interface ClothingItemProps {
+  categoryKey: string;
   icon: string;
   label: string;
   value: string;
@@ -176,10 +197,17 @@ interface ClothingItemProps {
   editable?: boolean;
   edited?: boolean;
   onClick?: () => void;
+  onInfoClick?: (itemName: string) => void;
 }
 
-function ClothingItem({ icon, label, value, highlight, editable, edited, onClick }: ClothingItemProps) {
+function ClothingItem({ categoryKey, icon, label, value, highlight, editable, edited, onClick, onInfoClick }: ClothingItemProps) {
   const isNone = value.toLowerCase() === 'none';
+  const hasInfo = !isNone && getClothingInfo(categoryKey, value) !== null;
+  
+  const handleInfoClick = (e: React.MouseEvent) => {
+    e.stopPropagation(); // Don't trigger the main onClick
+    onInfoClick?.(value);
+  };
   
   return (
     <div 
@@ -196,8 +224,19 @@ function ClothingItem({ icon, label, value, highlight, editable, edited, onClick
             <span className="text-[var(--color-accent)] normal-case">(edited)</span>
           )}
         </div>
-        <div className={`font-medium ${isNone ? 'text-[var(--color-text-muted)]' : ''}`}>
+        <div className={`font-medium flex items-center gap-2 ${isNone ? 'text-[var(--color-text-muted)]' : ''}`}>
           {value}
+          {hasInfo && (
+            <button
+              onClick={handleInfoClick}
+              className="p-1 rounded-full hover:bg-[rgba(255,255,255,0.2)] text-[var(--color-accent)] transition-colors"
+              title="Learn more about this item"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </button>
+          )}
         </div>
       </div>
       {editable ? (
