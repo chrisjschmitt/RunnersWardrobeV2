@@ -376,14 +376,24 @@ export function getClothingRecommendation(
   }
 
   // Apply smart overrides
-  const isRaining = currentWeather.precipitation > 0 || 
-    currentWeather.description.toLowerCase().includes('rain') ||
-    currentWeather.description.toLowerCase().includes('drizzle') ||
-    currentWeather.description.toLowerCase().includes('shower');
-  
   const adjustedTemp = currentWeather.temperature - comfortAdjustment.temperatureOffset;
+  const description = currentWeather.description.toLowerCase();
+  
+  // Check if it's snowing (below freezing OR snow in description)
+  const isSnowing = description.includes('snow') || 
+    description.includes('flurr') ||
+    description.includes('sleet') ||
+    (currentWeather.temperature < 32 && currentWeather.precipitation > 0);
+  
+  // Only consider it rain if it's NOT snowing
+  const isRaining = !isSnowing && (
+    currentWeather.precipitation > 0 || 
+    description.includes('rain') ||
+    description.includes('drizzle') ||
+    description.includes('shower')
+  );
 
-  // Rain gear override
+  // Rain gear override - only for actual rain, not snow
   const rainKey = categories.find(c => c.key === 'rainGear' || c.key === 'outerLayer');
   if (rainKey && isRaining && clothing[rainKey.key]?.toLowerCase() === 'none') {
     clothing[rainKey.key] = adjustedTemp < 50 ? 'Waterproof jacket' : 'Light rain jacket';
@@ -449,8 +459,17 @@ export function getFallbackRecommendation(
   
   const comfortAdjustment = calculateComfortAdjustment(weather, feedbackHistory);
   const temp = weather.temperature - comfortAdjustment.temperatureOffset;
-  const hasRain = weather.precipitation > 0;
+  const description = weather.description.toLowerCase();
   const isWindy = weather.windSpeed > 10;
+  
+  // Check if it's snowing (below freezing OR snow in description)
+  const isSnowing = description.includes('snow') || 
+    description.includes('flurr') ||
+    description.includes('sleet') ||
+    (weather.temperature < 32 && weather.precipitation > 0);
+  
+  // Only consider it rain if it's NOT snowing  
+  const hasRain = !isSnowing && weather.precipitation > 0;
 
   // Apply temperature-based adjustments
   if (temp < 25) {
