@@ -195,8 +195,17 @@ export async function fetchWeather(
 }
 
 // Analyze forecast to detect upcoming weather changes
-export function getWeatherAlerts(weather: WeatherData): WeatherAlert[] {
+export function getWeatherAlerts(weather: WeatherData, temperatureUnit: 'fahrenheit' | 'celsius' = 'fahrenheit'): WeatherAlert[] {
   const alerts: WeatherAlert[] = [];
+  
+  // Helper to format temperature difference for display
+  const formatTempDiff = (diffF: number): string => {
+    if (temperatureUnit === 'celsius') {
+      const diffC = Math.round(diffF * 5 / 9);
+      return `${Math.abs(diffC)}°C`;
+    }
+    return `${Math.abs(Math.round(diffF))}°F`;
+  };
   
   if (!weather.forecast || weather.forecast.length === 0) {
     return alerts;
@@ -217,7 +226,7 @@ export function getWeatherAlerts(weather: WeatherData): WeatherAlert[] {
     if (tempDiff <= -5) {
       alerts.push({
         type: 'temperature_drop',
-        message: `Temperature dropping ${Math.abs(tempDiff)}°F ${timeframe}`,
+        message: `Temperature dropping ${formatTempDiff(tempDiff)} ${timeframe}`,
         severity: tempDiff <= -10 ? 'warning' : 'info',
         timeframe
       });
@@ -228,7 +237,7 @@ export function getWeatherAlerts(weather: WeatherData): WeatherAlert[] {
     if (tempDiff >= 5) {
       alerts.push({
         type: 'temperature_rise',
-        message: `Temperature rising ${tempDiff}°F ${timeframe}`,
+        message: `Temperature rising ${formatTempDiff(tempDiff)} ${timeframe}`,
         severity: 'info',
         timeframe
       });

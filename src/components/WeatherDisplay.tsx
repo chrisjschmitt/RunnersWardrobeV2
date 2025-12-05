@@ -9,7 +9,7 @@ interface WeatherDisplayProps {
 }
 
 export function WeatherDisplay({ weather, unit, compact = false }: WeatherDisplayProps) {
-  const alerts = getWeatherAlerts(weather);
+  const alerts = getWeatherAlerts(weather, unit);
 
   if (compact) {
     return (
