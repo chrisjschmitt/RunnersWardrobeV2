@@ -444,31 +444,41 @@ export function getClothingRecommendation(
   // Footwear override for cold/wet weather
   const shoesKey = categories.find(c => c.key === 'shoes' || c.key === 'boots');
   if (shoesKey) {
+    const shoeCategory = categories.find(c => c.key === shoesKey.key);
+    const shoeOptions = shoeCategory?.options || [];
     const currentShoes = clothing[shoesKey.key]?.toLowerCase() || '';
     const isTooLight = currentShoes.includes('sandal') || 
                        currentShoes.includes('sneaker') || 
                        currentShoes.includes('flat') ||
-                       currentShoes.includes('running shoes');
+                       currentShoes === 'running shoes';
+    
+    // Helper to find first valid shoe option
+    const findValidShoe = (preferences: string[]): string | null => {
+      for (const pref of preferences) {
+        const match = shoeOptions.find(opt => opt.toLowerCase() === pref.toLowerCase());
+        if (match) return match;
+      }
+      return null;
+    };
     
     // In freezing temps, recommend boots/warmer footwear
     if (adjustedTemp < 32 && isTooLight) {
-      // Different recommendations based on activity
-      if (activity === 'walking') {
-        clothing[shoesKey.key] = adjustedTemp < 20 ? 'Waterproof boots' : 'Boots';
-      } else if (activity === 'hiking') {
-        clothing[shoesKey.key] = adjustedTemp < 20 ? 'Waterproof boots' : 'Hiking boots';
-      } else if (activity === 'running' || activity === 'trail_running') {
-        // Runners typically stick to running shoes, but suggest trail shoes in cold
-        clothing[shoesKey.key] = activity === 'trail_running' ? 'Trail shoes' : 'Running shoes';
+      const coldShoe = findValidShoe([
+        'Waterproof boots', 'Waterproof shoes', 'Boots', 'Winter boots', 
+        'Hiking boots', 'Walking shoes'
+      ]);
+      if (coldShoe) {
+        clothing[shoesKey.key] = coldShoe;
       }
     }
     
     // If it's wet/snowy, recommend waterproof options
-    if (isSnowing || isRaining) {
-      if (activity === 'walking' && isTooLight) {
-        clothing[shoesKey.key] = 'Waterproof shoes';
-      } else if (activity === 'hiking' && !currentShoes.includes('waterproof')) {
-        clothing[shoesKey.key] = 'Waterproof boots';
+    if ((isSnowing || isRaining) && isTooLight) {
+      const wetShoe = findValidShoe([
+        'Waterproof shoes', 'Waterproof boots', 'Boots', 'Winter boots'
+      ]);
+      if (wetShoe) {
+        clothing[shoesKey.key] = wetShoe;
       }
     }
   }
