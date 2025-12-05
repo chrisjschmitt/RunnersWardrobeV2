@@ -36,6 +36,52 @@ export function StartRun({ apiKey, hasApiKey, temperatureUnit, onNeedApiKey, tes
   const [hasUserEdits, setHasUserEdits] = useState(false); // Track if user has made edits
   const [feedbackCount, setFeedbackCount] = useState(0);
   const [comfortAdjustment, setComfortAdjustment] = useState<number>(0);
+  const [updateAvailable, setUpdateAvailable] = useState(false);
+  const [isUpdating, setIsUpdating] = useState(false);
+
+  // Check for service worker updates
+  const checkForUpdates = async () => {
+    if ('serviceWorker' in navigator) {
+      try {
+        const registration = await navigator.serviceWorker.getRegistration();
+        if (registration) {
+          await registration.update();
+          // Check if there's a waiting service worker (new version available)
+          if (registration.waiting) {
+            setUpdateAvailable(true);
+          }
+        }
+      } catch (err) {
+        console.log('Update check failed:', err);
+      }
+    }
+  };
+
+  // Apply update by clearing cache and reloading
+  const applyUpdate = async () => {
+    setIsUpdating(true);
+    try {
+      // Unregister service workers
+      if ('serviceWorker' in navigator) {
+        const registrations = await navigator.serviceWorker.getRegistrations();
+        for (const registration of registrations) {
+          await registration.unregister();
+        }
+      }
+      // Clear caches
+      if ('caches' in window) {
+        const cacheNames = await caches.keys();
+        for (const cacheName of cacheNames) {
+          await caches.delete(cacheName);
+        }
+      }
+      // Reload
+      window.location.reload();
+    } catch (err) {
+      console.error('Update failed:', err);
+      setIsUpdating(false);
+    }
+  };
 
   const loadWeatherAndRecommendations = async (forceRefresh = false) => {
     if (!hasApiKey && !testMode) {
@@ -274,7 +320,10 @@ export function StartRun({ apiKey, hasApiKey, temperatureUnit, onNeedApiKey, tes
           )}
         </div>
         <button
-          onClick={() => loadWeatherAndRecommendations(true)}
+          onClick={() => {
+            loadWeatherAndRecommendations(true);
+            checkForUpdates();
+          }}
           disabled={isLoadingWeather}
           className="btn-secondary flex items-center gap-2"
         >
@@ -289,6 +338,27 @@ export function StartRun({ apiKey, hasApiKey, temperatureUnit, onNeedApiKey, tes
           Refresh
         </button>
       </div>
+
+      {/* Update available banner */}
+      {updateAvailable && (
+        <div className="p-3 bg-[rgba(59,130,246,0.2)] border border-blue-500/50 rounded-lg animate-slide-up">
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex items-center gap-2">
+              <svg className="w-5 h-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+              </svg>
+              <span className="text-sm text-blue-300">New version available!</span>
+            </div>
+            <button
+              onClick={applyUpdate}
+              disabled={isUpdating}
+              className="px-3 py-1 text-sm bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors disabled:opacity-50"
+            >
+              {isUpdating ? 'Updating...' : 'Update Now'}
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Personalization badge */}
       {feedbackCount > 0 && (
