@@ -53,6 +53,8 @@ export function Settings({
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [localTestWeather, setLocalTestWeather] = useState<TestWeatherData>(testWeather || defaultTestWeather);
+  const [isCheckingUpdates, setIsCheckingUpdates] = useState(false);
+  const [updateMessage, setUpdateMessage] = useState<string | null>(null);
   
   const proxyMode = isProxyMode();
 
@@ -75,6 +77,41 @@ export function Settings({
       }
     } catch (err) {
       console.error('Failed to load settings:', err);
+    }
+  };
+
+  const handleCheckForUpdates = async () => {
+    setIsCheckingUpdates(true);
+    setUpdateMessage(null);
+    
+    try {
+      // Unregister all service workers
+      if ('serviceWorker' in navigator) {
+        const registrations = await navigator.serviceWorker.getRegistrations();
+        for (const registration of registrations) {
+          await registration.unregister();
+        }
+      }
+      
+      // Clear all caches
+      if ('caches' in window) {
+        const cacheNames = await caches.keys();
+        for (const cacheName of cacheNames) {
+          await caches.delete(cacheName);
+        }
+      }
+      
+      setUpdateMessage('✓ Cache cleared! Reloading with latest version...');
+      
+      // Reload after a brief delay to show the message
+      setTimeout(() => {
+        window.location.reload();
+      }, 1500);
+      
+    } catch (err) {
+      console.error('Failed to check for updates:', err);
+      setUpdateMessage('Update check failed. Try a manual refresh (Cmd+Shift+R)');
+      setIsCheckingUpdates(false);
     }
   };
 
@@ -472,11 +509,38 @@ export function Settings({
         </button>
       )}
 
-      {/* Version info */}
-      <div className="mt-6 text-center">
-        <p className="text-xs text-[var(--color-text-muted)]">
-          Outdoor Wardrobe v{version}
-        </p>
+      {/* Version info and update check */}
+      <div className="mt-6 glass-card p-4">
+        <div className="flex items-center justify-between mb-3">
+          <div>
+            <p className="font-medium">Outdoor Wardrobe</p>
+            <p className="text-sm text-[var(--color-text-muted)]">Version {version}</p>
+          </div>
+          <button
+            onClick={handleCheckForUpdates}
+            disabled={isCheckingUpdates}
+            className="btn-secondary text-sm flex items-center gap-2"
+          >
+            {isCheckingUpdates ? (
+              <>
+                <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin"></div>
+                Updating...
+              </>
+            ) : (
+              <>
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                </svg>
+                Check for Updates
+              </>
+            )}
+          </button>
+        </div>
+        {updateMessage && (
+          <p className={`text-sm ${updateMessage.includes('latest') ? 'text-[var(--color-success)]' : 'text-[var(--color-accent)]'}`}>
+            {updateMessage}
+          </p>
+        )}
       </div>
     </div>
   );
