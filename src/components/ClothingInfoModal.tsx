@@ -7,12 +7,12 @@ interface ClothingInfoModalProps {
 
 export function ClothingInfoModal({ info, onClose }: ClothingInfoModalProps) {
   return (
-    <div className="fixed inset-0 z-50 flex items-start justify-center bg-black/60 backdrop-blur-sm animate-fade-in pt-16">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm animate-fade-in p-4">
       <div 
         className="absolute inset-0" 
         onClick={onClose}
       />
-      <div className="relative w-full max-w-lg mx-4 bg-[var(--color-surface)] rounded-2xl animate-fade-in shadow-2xl max-h-[80vh] overflow-hidden">
+      <div className="relative w-full max-w-lg bg-[var(--color-surface)] rounded-2xl animate-fade-in shadow-2xl max-h-[85vh] overflow-hidden">
         {/* Header */}
         <div className="p-4 border-b border-[rgba(255,255,255,0.1)] flex items-center justify-between">
           <h3 className="text-lg font-semibold">{info.name}</h3>
@@ -27,7 +27,7 @@ export function ClothingInfoModal({ info, onClose }: ClothingInfoModalProps) {
         </div>
 
         {/* Content */}
-        <div className="p-4 overflow-y-auto max-h-[calc(80vh-60px)] space-y-4">
+        <div className="p-4 overflow-y-auto max-h-[calc(85vh-60px)] space-y-4">
           {/* Description */}
           <div>
             <p className="text-[var(--color-text-muted)]">{info.description}</p>
