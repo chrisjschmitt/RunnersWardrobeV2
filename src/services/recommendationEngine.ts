@@ -522,6 +522,47 @@ export function getClothingRecommendation(
     if (headCover) clothing[headKey.key] = headCover;
   }
 
+  // Bottoms override for cold - prevent shorts in freezing weather
+  const bottomsKey = categories.find(c => c.key === 'bottoms' || c.key === 'bibs');
+  if (bottomsKey) {
+    const currentBottoms = clothing[bottomsKey.key]?.toLowerCase() || '';
+    const isTooLight = currentBottoms.includes('shorts') || 
+                       currentBottoms.includes('short') ||
+                       currentBottoms.includes('capri');
+    
+    // Comprehensive preference lists for cold weather bottoms
+    const VERY_COLD_BOTTOMS = [
+      // Athletic
+      'Insulated pants', 'Tights', 'Fleece-lined leggings', 'Softshell pants', 
+      'Hardshell pants', 'Bibs', 'Bib tights',
+      // Casual
+      'Jeans', 'Casual pants', 'Leggings',
+      // Cycling
+      'Bib tights', 'Tights over bibs',
+      // XC Skiing
+      'XC pants', 'Softshell pants'
+    ];
+    
+    const COLD_BOTTOMS = [
+      // Athletic
+      'Tights', 'Fleece-lined leggings', 'Hiking pants',
+      // Casual
+      'Casual pants', 'Leggings', 'Jeans',
+      // Cycling
+      'Bib tights', '3/4 bibs'
+    ];
+    
+    if (adjustedTemp < 25 && isTooLight) {
+      // Very cold: need insulated pants or tights
+      const warmBottoms = findValidOption(bottomsKey.key, VERY_COLD_BOTTOMS);
+      if (warmBottoms) clothing[bottomsKey.key] = warmBottoms;
+    } else if (adjustedTemp < 45 && isTooLight) {
+      // Cold: at least need tights or pants
+      const coldBottoms = findValidOption(bottomsKey.key, COLD_BOTTOMS);
+      if (coldBottoms) clothing[bottomsKey.key] = coldBottoms;
+    }
+  }
+
   // Footwear override for cold/wet weather
   const shoesKey = categories.find(c => c.key === 'shoes' || c.key === 'boots');
   if (shoesKey) {

@@ -209,9 +209,10 @@ Similar activities "vote" for clothing items. Your feedback votes count **2x** m
 If you consistently report "too cold", recommendations shift warmer. "Too hot" shifts lighter.
 
 ### 5. Smart Overrides
-Even if voting says "None", the app will recommend:
+Even if voting says "None" or historical data suggests otherwise, the app will recommend:
 - Rain gear when precipitation detected (rain only, not snow)
 - Base layers appropriate for temperature (no T-shirts below 40°F)
+- Long pants/tights when temperature < 45°F (no shorts in cold weather)
 - Gloves when temperature < 35°F
 - Hats when temperature < 40°F
 - Sunglasses when sunny (cloud cover < 30% or UV > 3)
@@ -288,6 +289,7 @@ All tips are stored in `src/data/clothingInfo.ts`. See `ClothingInfoGuide.html` 
 
 ## Version History
 
+- **v3.4.2**: Fix shorts being recommended in freezing weather (added bottoms safety override)
 - **v3.4.1**: Added 9 missing clothing info entries (wool socks, sandals, XC ski tops, base layers)
 - **v3.4.0**: Clothing help feature - tap ⓘ for beginner-friendly tips on 167 items
 - **v3.3.7**: ClothingPicker modal positioning improvements for Safari iOS
