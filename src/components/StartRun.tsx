@@ -7,6 +7,7 @@ import { getAllRuns, getAllFeedback, addFeedback } from '../services/database';
 import { WeatherDisplay } from './WeatherDisplay';
 import { ClothingRecommendation } from './ClothingRecommendation';
 import { FeedbackModal } from './FeedbackModal';
+import { SimilarSessionsModal } from './SimilarSessionsModal';
 import type { TemperatureUnit } from '../services/temperatureUtils';
 
 type RunState = 'idle' | 'running' | 'feedback';
@@ -39,6 +40,7 @@ export function StartRun({ apiKey, hasApiKey, temperatureUnit, onNeedApiKey, tes
   const [updateAvailable, setUpdateAvailable] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
   const [isCheckingUpdate, setIsCheckingUpdate] = useState(false);
+  const [showSimilarSessions, setShowSimilarSessions] = useState(false);
 
   // Check for service worker updates
   const checkForUpdates = async () => {
@@ -351,6 +353,17 @@ export function StartRun({ apiKey, hasApiKey, temperatureUnit, onNeedApiKey, tes
         />
       )}
 
+      {/* Similar sessions modal */}
+      {showSimilarSessions && weather && (
+        <SimilarSessionsModal
+          sessions={recommendation?.similarConditions || []}
+          currentTemp={weather.temperature}
+          temperatureUnit={temperatureUnit}
+          activityName={activityConfig.name}
+          onClose={() => setShowSimilarSessions(false)}
+        />
+      )}
+
       {/* Header with refresh */}
       <div className="flex items-center justify-between">
         <div>
@@ -414,24 +427,30 @@ export function StartRun({ apiKey, hasApiKey, temperatureUnit, onNeedApiKey, tes
         </div>
       )}
 
-      {/* Personalization badge */}
+      {/* Personalization badge - tappable to show similar sessions */}
       {feedbackCount > 0 && (
-        <div className="flex items-center gap-2 text-sm">
+        <button 
+          onClick={() => setShowSimilarSessions(true)}
+          className="flex items-center gap-2 text-sm w-full text-left hover:bg-[rgba(255,255,255,0.05)] p-2 -m-2 rounded-lg transition-colors"
+        >
           <span className="px-2 py-1 bg-[rgba(34,197,94,0.2)] text-[var(--color-success)] rounded-full flex items-center gap-1">
             <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
               <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
             </svg>
             Personalized
           </span>
-          <span className="text-[var(--color-text-muted)]">
-            Based on {feedbackCount} {feedbackCount === 1 ? 'run' : 'runs'} of feedback
+          <span className="text-[var(--color-text-muted)] flex-1">
+            Based on {feedbackCount} {feedbackCount === 1 ? activityConfig.name.toLowerCase() : `${activityConfig.name.toLowerCase()}s`}
             {comfortAdjustment !== 0 && (
               <span className="ml-1">
                 ({comfortAdjustment > 0 ? 'you run cold' : 'you run hot'})
               </span>
             )}
           </span>
-        </div>
+          <svg className="w-4 h-4 text-[var(--color-text-muted)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+          </svg>
+        </button>
       )}
 
       {/* Error message */}
