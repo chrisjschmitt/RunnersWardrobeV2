@@ -289,6 +289,7 @@ All tips are stored in `src/data/clothingInfo.ts`. See `ClothingInfoGuide.html` 
 
 ## Version History
 
+- **v3.4.3**: Restore delete button for custom clothing items
 - **v3.4.2**: Fix shorts being recommended in freezing weather (added bottoms safety override)
 - **v3.4.1**: Added 9 missing clothing info entries (wool socks, sandals, XC ski tops, base layers)
 - **v3.4.0**: Clothing help feature - tap ⓘ for beginner-friendly tips on 167 items

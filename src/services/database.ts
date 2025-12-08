@@ -165,6 +165,20 @@ export async function addCustomClothingOption(category: string, option: string, 
   }
 }
 
+export async function deleteCustomClothingOption(category: string, option: string, activity?: ActivityType): Promise<void> {
+  const key = activity ? `${activity}:${category}` : category;
+  const existing = await db.customClothing.where('category').equals(key).first();
+  if (existing) {
+    const options = existing.options.filter(opt => opt !== option);
+    if (options.length > 0) {
+      await db.customClothing.update(existing.id!, { options });
+    } else {
+      // No options left, delete the record
+      await db.customClothing.delete(existing.id!);
+    }
+  }
+}
+
 export async function getAllCustomClothingOptions(): Promise<Record<string, string[]>> {
   const all = await db.customClothing.toArray();
   const result: Record<string, string[]> = {};
