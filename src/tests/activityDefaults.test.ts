@@ -433,6 +433,36 @@ describe('Fallback Recommendation Integration', () => {
   });
 });
 
+describe('Cycling Shoes and Socks Integration', () => {
+  it('should apply shoe covers in freezing weather for cycling', () => {
+    const weather = createWeatherData(5); // freezing
+    const recommendation = getFallbackRecommendation(weather, [], 'cycling');
+    expect(recommendation.shoes).toBe('Shoe covers');
+    expect(recommendation.socks).toBe('Thermal socks');
+  });
+
+  it('should apply wool socks in cold weather for cycling', () => {
+    const weather = createWeatherData(32); // cold
+    const recommendation = getFallbackRecommendation(weather, [], 'cycling');
+    expect(recommendation.shoes).toBe('Road shoes');
+    expect(recommendation.socks).toBe('Wool socks');
+  });
+
+  it('should apply cycling socks in mild weather for cycling', () => {
+    const weather = createWeatherData(60); // mild
+    const recommendation = getFallbackRecommendation(weather, [], 'cycling');
+    expect(recommendation.shoes).toBe('Road shoes');
+    expect(recommendation.socks).toBe('Cycling socks');
+  });
+
+  it('should apply no-show socks in hot weather for cycling', () => {
+    const weather = createWeatherData(85); // hot
+    const recommendation = getFallbackRecommendation(weather, [], 'cycling');
+    expect(recommendation.shoes).toBe('Road shoes');
+    expect(recommendation.socks).toBe('No-show');
+  });
+});
+
 describe('Edge Cases', () => {
   it('should handle extremely cold temperatures', () => {
     const weather = createWeatherData(-40);
