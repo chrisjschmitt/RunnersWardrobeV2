@@ -368,8 +368,9 @@ function SimilarSessionCard({ session, temperatureUnit }: SimilarSessionCardProp
     return items.join(', ') || 'No data';
   };
 
-  // Check if this is feedback data (has comfort field)
+  // Check if this is feedback data (has comfort and comments fields)
   const comfort = (session as { comfort?: string }).comfort;
+  const comments = (session as { comments?: string }).comments;
 
   return (
     <div className="p-3 bg-[rgba(255,255,255,0.05)] rounded-lg border border-[rgba(255,255,255,0.1)]">
@@ -390,6 +391,9 @@ function SimilarSessionCard({ session, temperatureUnit }: SimilarSessionCardProp
           </div>
           <div className="text-xs text-[var(--color-text-muted)] mt-1">
             {formatDate(session.date)}
+            {session.time && (
+              <span className="ml-1">at {session.time}</span>
+            )}
             {session.location && session.location !== 'Unknown' && session.location !== 'From feedback' && (
               <span className="ml-1">• {session.location.split(',')[0]}</span>
             )}
@@ -397,6 +401,11 @@ function SimilarSessionCard({ session, temperatureUnit }: SimilarSessionCardProp
           <div className="text-sm mt-1 text-[var(--color-text-muted)] truncate">
             <span className="text-[rgba(255,255,255,0.5)]">Wore:</span> {getClothingSummary(session.clothing)}
           </div>
+          {comments && (
+            <div className="text-xs mt-2 p-2 bg-[rgba(255,255,255,0.05)] rounded border-l-2 border-[var(--color-accent)] italic text-[var(--color-text-muted)]">
+              📝 "{comments}"
+            </div>
+          )}
         </div>
       </div>
     </div>
