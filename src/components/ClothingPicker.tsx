@@ -92,12 +92,12 @@ export function ClothingPicker({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm animate-fade-in">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm animate-fade-in p-4">
       <div 
         className="absolute inset-0" 
         onClick={onClose}
       />
-      <div className="relative w-full max-w-lg mx-4 bg-[var(--color-surface)] rounded-2xl animate-fade-in shadow-2xl max-h-[85vh] overflow-hidden flex flex-col">
+      <div className="relative w-full max-w-lg bg-[var(--color-surface)] rounded-2xl animate-fade-in shadow-2xl max-h-[80vh] overflow-hidden flex flex-col">
         <div className="p-4 border-b border-[rgba(255,255,255,0.1)] flex-shrink-0">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
