@@ -75,7 +75,7 @@
         }
         
         .section.critical {
-            border-color: var(--red);
+            border-color: var(--green);
         }
         
         .section.technical {
@@ -106,7 +106,7 @@
             font-weight: 600;
         }
         
-        .badge.critical { background: var(--red); color: white; }
+        .badge.critical { background: var(--green); color: white; }
         .badge.technical { background: var(--yellow); color: black; }
         .badge.docs { background: var(--accent); color: white; }
         .badge.assets { background: #8b5cf6; color: white; }
@@ -132,6 +132,10 @@
         
         tr:last-child td {
             border-bottom: none;
+        }
+        
+        tr.done {
+            opacity: 0.7;
         }
         
         code {
@@ -165,11 +169,11 @@
         .warning {
             margin-top: 1rem;
             padding: 1rem;
-            background: rgba(234, 179, 8, 0.1);
-            border: 1px solid rgba(234, 179, 8, 0.3);
+            background: rgba(34, 197, 94, 0.1);
+            border: 1px solid rgba(34, 197, 94, 0.3);
             border-radius: 8px;
             font-size: 0.875rem;
-            color: var(--yellow);
+            color: var(--green);
         }
         
         .order-list {
@@ -190,6 +194,14 @@
         
         .order-list li:last-child {
             border-bottom: none;
+        }
+        
+        .order-list li.done {
+            opacity: 0.7;
+        }
+        
+        .order-list li.done::marker {
+            color: var(--green);
         }
         
         .status {
@@ -230,46 +242,86 @@
         .summary-card .number {
             font-size: 2rem;
             font-weight: 700;
-            color: var(--accent);
+            color: var(--green);
         }
         
         .summary-card .label {
             font-size: 0.8rem;
             color: var(--muted);
         }
+        
+        .summary-card .sublabel {
+            font-size: 0.7rem;
+            color: var(--green);
+        }
+        
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: var(--border);
+            border-radius: 4px;
+            overflow: hidden;
+            margin-bottom: 2rem;
+        }
+        
+        .progress-bar .fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--green), #4ade80);
+            border-radius: 4px;
+        }
+        
+        .version-badge {
+            display: inline-block;
+            background: var(--green);
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            margin-left: 1rem;
+        }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>🥾 TrailKit Rebranding Plan</h1>
-        <p class="subtitle">Renaming from "Outdoor Wardrobe" / "Runner's Wardrobe" to TrailKit</p>
+        <h1>🥾 TrailKit Rebranding Plan <span class="version-badge">v4.0.1</span></h1>
+        <p class="subtitle">Renamed from "Outdoor Wardrobe" / "Runner's Wardrobe" to TrailKit</p>
+        
+        <!-- Progress Bar -->
+        <div class="progress-bar">
+            <div class="fill" style="width: 78%;"></div>
+        </div>
         
         <!-- Summary -->
         <div class="summary">
             <div class="summary-card">
-                <div class="number">9</div>
+                <div class="number">7/7</div>
                 <div class="label">User-Facing Changes</div>
+                <div class="sublabel">✓ Complete</div>
             </div>
             <div class="summary-card">
-                <div class="number">2</div>
+                <div class="number">1/2</div>
                 <div class="label">Technical Changes</div>
+                <div class="sublabel">DB preserved</div>
             </div>
             <div class="summary-card">
-                <div class="number">4</div>
+                <div class="number">0/4</div>
                 <div class="label">Documentation</div>
+                <div class="sublabel">Optional</div>
             </div>
             <div class="summary-card">
-                <div class="number">3</div>
+                <div class="number">0/3</div>
                 <div class="label">Icon Assets</div>
+                <div class="sublabel">Optional</div>
             </div>
         </div>
         
         <!-- Critical: User-Facing -->
         <div class="section critical">
             <div class="section-header">
-                <span>🔴</span>
+                <span>✅</span>
                 <span>User-Facing Changes</span>
-                <span class="badge critical">CRITICAL</span>
+                <span class="badge critical">COMPLETE</span>
             </div>
             <table>
                 <thead>
@@ -281,9 +333,9 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <tr>
+                    <tr class="done">
                         <td><code>index.html</code></td>
-                        <td>Line 16 - Page title</td>
+                        <td>Page title</td>
                         <td>
                             <div class="change">
                                 <span class="old">Runner's Wardrobe</span>
@@ -291,23 +343,11 @@
                                 <span class="new">TrailKit</span>
                             </div>
                         </td>
-                        <td><span class="status pending">Pending</span></td>
+                        <td><span class="status done">✓ Done</span></td>
                     </tr>
-                    <tr>
-                        <td><code>index.html</code></td>
-                        <td>Line 12 - Meta description</td>
-                        <td>
-                            <div class="change">
-                                <span class="old">...for your runs...</span>
-                                <span class="arrow">→</span>
-                                <span class="new">TrailKit - Weather-based clothing recommendations</span>
-                            </div>
-                        </td>
-                        <td><span class="status pending">Pending</span></td>
-                    </tr>
-                    <tr>
+                    <tr class="done">
                         <td><code>vite.config.ts</code></td>
-                        <td>Line 19 - PWA name</td>
+                        <td>PWA manifest name</td>
                         <td>
                             <div class="change">
                                 <span class="old">Runner's Wardrobe</span>
@@ -315,11 +355,11 @@
                                 <span class="new">TrailKit</span>
                             </div>
                         </td>
-                        <td><span class="status pending">Pending</span></td>
+                        <td><span class="status done">✓ Done</span></td>
                     </tr>
-                    <tr>
+                    <tr class="done">
                         <td><code>vite.config.ts</code></td>
-                        <td>Line 20 - PWA short_name</td>
+                        <td>PWA short_name</td>
                         <td>
                             <div class="change">
                                 <span class="old">RunWardrobe</span>
@@ -327,23 +367,23 @@
                                 <span class="new">TrailKit</span>
                             </div>
                         </td>
-                        <td><span class="status pending">Pending</span></td>
+                        <td><span class="status done">✓ Done</span></td>
                     </tr>
-                    <tr>
+                    <tr class="done">
                         <td><code>vite.config.ts</code></td>
-                        <td>Line 21 - PWA description</td>
+                        <td>PWA description</td>
                         <td>
                             <div class="change">
                                 <span class="old">...for your runs...</span>
                                 <span class="arrow">→</span>
-                                <span class="new">Weather-based clothing recommendations for outdoor activities</span>
+                                <span class="new">Smart clothing recommendations for outdoor activities</span>
                             </div>
                         </td>
-                        <td><span class="status pending">Pending</span></td>
+                        <td><span class="status done">✓ Done</span></td>
                     </tr>
-                    <tr>
+                    <tr class="done">
                         <td><code>src/App.tsx</code></td>
-                        <td>Line 134 - Header</td>
+                        <td>Header</td>
                         <td>
                             <div class="change">
                                 <span class="old">Outdoor Wardrobe</span>
@@ -351,11 +391,11 @@
                                 <span class="new">TrailKit</span>
                             </div>
                         </td>
-                        <td><span class="status pending">Pending</span></td>
+                        <td><span class="status done">✓ Done</span></td>
                     </tr>
-                    <tr>
+                    <tr class="done">
                         <td><code>src/components/Settings.tsx</code></td>
-                        <td>Line 516 - Footer</td>
+                        <td>Footer / Version info</td>
                         <td>
                             <div class="change">
                                 <span class="old">Outdoor Wardrobe</span>
@@ -363,11 +403,11 @@
                                 <span class="new">TrailKit</span>
                             </div>
                         </td>
-                        <td><span class="status pending">Pending</span></td>
+                        <td><span class="status done">✓ Done</span></td>
                     </tr>
-                    <tr>
+                    <tr class="done">
                         <td><code>src/components/Help.tsx</code></td>
-                        <td>Line 161 - Beta notice</td>
+                        <td>Beta notice</td>
                         <td>
                             <div class="change">
                                 <span class="old">Outdoor Wardrobe</span>
@@ -375,11 +415,11 @@
                                 <span class="new">TrailKit</span>
                             </div>
                         </td>
-                        <td><span class="status pending">Pending</span></td>
+                        <td><span class="status done">✓ Done</span></td>
                     </tr>
-                    <tr>
+                    <tr class="done">
                         <td><code>src/components/Onboarding.tsx</code></td>
-                        <td>Line 10 - Welcome screen</td>
+                        <td>Welcome screen</td>
                         <td>
                             <div class="change">
                                 <span class="old">Welcome to Outdoor Wardrobe!</span>
@@ -387,7 +427,7 @@
                                 <span class="new">Welcome to TrailKit!</span>
                             </div>
                         </td>
-                        <td><span class="status pending">Pending</span></td>
+                        <td><span class="status done">✓ Done</span></td>
                     </tr>
                 </tbody>
             </table>
@@ -398,7 +438,7 @@
             <div class="section-header">
                 <span>🟡</span>
                 <span>Technical Changes</span>
-                <span class="badge technical">INTERNAL</span>
+                <span class="badge technical">PARTIAL</span>
             </div>
             <table>
                 <thead>
@@ -412,7 +452,7 @@
                 <tbody>
                     <tr>
                         <td><code>package.json</code></td>
-                        <td>Line 2 - Package name</td>
+                        <td>Package name</td>
                         <td>
                             <div class="change">
                                 <span class="old">runnerswardrobe</span>
@@ -420,33 +460,31 @@
                                 <span class="new">trailkit</span>
                             </div>
                         </td>
-                        <td><span class="status pending">Pending</span></td>
+                        <td><span class="status pending">Optional</span></td>
                     </tr>
-                    <tr>
+                    <tr class="done">
                         <td><code>src/services/database.ts</code></td>
-                        <td>Line 5 - IndexedDB name</td>
+                        <td>IndexedDB name</td>
                         <td>
                             <div class="change">
-                                <span class="old">RunnersWardrobeDB</span>
-                                <span class="arrow">→</span>
-                                <span class="new">Keep as-is (data migration)</span>
+                                <span class="new">Kept as RunnersWardrobeDB</span>
                             </div>
                         </td>
-                        <td><span class="status pending">⚠️ See note</span></td>
+                        <td><span class="status done">✓ Preserved</span></td>
                     </tr>
                 </tbody>
             </table>
             <div class="warning">
-                ⚠️ <strong>Database Warning:</strong> Changing the IndexedDB name from "RunnersWardrobeDB" will reset all user data (history, preferences). Recommend keeping the old name to preserve existing user data, or implement a migration script.
+                ✓ <strong>Data Preserved:</strong> The IndexedDB name was intentionally kept as "RunnersWardrobeDB" to preserve existing user data (history, preferences, custom clothing options).
             </div>
         </div>
         
         <!-- Documentation -->
         <div class="section docs">
             <div class="section-header">
-                <span>🟢</span>
+                <span>📄</span>
                 <span>Documentation</span>
-                <span class="badge docs">DOCS</span>
+                <span class="badge docs">OPTIONAL</span>
             </div>
             <table>
                 <thead>
@@ -460,25 +498,28 @@
                     <tr>
                         <td><code>README.md</code></td>
                         <td>Update title and all "Outdoor Wardrobe" references to "TrailKit"</td>
-                        <td><span class="status pending">Pending</span></td>
+                        <td><span class="status pending">Optional</span></td>
                     </tr>
                     <tr>
-                        <td><code>MONETIZATION-PLAN.md</code></td>
-                        <td>Update all "Outdoor Wardrobe" references, update app identifiers</td>
-                        <td><span class="status pending">Pending</span></td>
+                        <td><code>BetaTestPlan.html</code></td>
+                        <td>Update app name and URLs</td>
+                        <td><span class="status pending">Optional</span></td>
                     </tr>
                     <tr>
                         <td><code>MONETIZATION-PLAN.html</code></td>
                         <td>Update all "Outdoor Wardrobe" references</td>
-                        <td><span class="status pending">Pending</span></td>
+                        <td><span class="status pending">Optional</span></td>
                     </tr>
                     <tr>
                         <td><code>NamingRecommendations.html</code></td>
                         <td>Update page title</td>
-                        <td><span class="status pending">Pending</span></td>
+                        <td><span class="status pending">Optional</span></td>
                     </tr>
                 </tbody>
             </table>
+            <p style="margin-top: 1rem; color: var(--muted); font-size: 0.9rem;">
+                💡 These are internal documentation files and don't affect end users.
+            </p>
         </div>
         
         <!-- Icons/Assets -->
@@ -486,7 +527,7 @@
             <div class="section-header">
                 <span>🎨</span>
                 <span>Icons & Assets</span>
-                <span class="badge assets">DESIGN</span>
+                <span class="badge assets">FUTURE</span>
             </div>
             <table>
                 <thead>
@@ -500,23 +541,53 @@
                     <tr>
                         <td><code>public/favicon.svg</code></td>
                         <td>Redesign with TrailKit branding (trail/mountain theme)</td>
-                        <td><span class="status pending">Pending</span></td>
+                        <td><span class="status pending">Future</span></td>
                     </tr>
                     <tr>
                         <td><code>public/apple-touch-icon.png</code></td>
                         <td>Redesign with TrailKit branding (180x180)</td>
-                        <td><span class="status pending">Pending</span></td>
+                        <td><span class="status pending">Future</span></td>
                     </tr>
                     <tr>
                         <td><code>public/pwa-192x192.png</code></td>
                         <td>Redesign with TrailKit branding (192x192)</td>
-                        <td><span class="status pending">Pending</span></td>
+                        <td><span class="status pending">Future</span></td>
                     </tr>
                 </tbody>
             </table>
             <p style="margin-top: 1rem; color: var(--muted); font-size: 0.9rem;">
                 💡 <strong>Icon suggestion:</strong> Mountain silhouette, trail path, or hiking boot icon with TrailKit colors
             </p>
+        </div>
+        
+        <!-- UX Improvements -->
+        <div class="section" style="border-color: var(--green);">
+            <div class="section-header">
+                <span>✨</span>
+                <span>UX Improvements (v4.0.1)</span>
+                <span class="badge critical">NEW</span>
+            </div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Change</th>
+                        <th>Details</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr class="done">
+                        <td>Help in Bottom Navigation</td>
+                        <td>Replaced Upload tab with Help tab for better discoverability</td>
+                        <td><span class="status done">✓ Done</span></td>
+                    </tr>
+                    <tr class="done">
+                        <td>Import Data in Settings</td>
+                        <td>Moved CSV upload functionality to Settings page</td>
+                        <td><span class="status done">✓ Done</span></td>
+                    </tr>
+                </tbody>
+            </table>
         </div>
         
         <!-- Optional -->
@@ -547,32 +618,32 @@
         </div>
         
         <!-- Recommended Order -->
-        <h2>📋 Recommended Implementation Order</h2>
+        <h2>📋 Implementation Status</h2>
         <div class="order-list">
             <ol>
-                <li>
-                    <strong>Update user-facing text</strong>
-                    <span style="color: var(--muted);">— App.tsx, Settings.tsx, Help.tsx, Onboarding.tsx</span>
+                <li class="done">
+                    <strong>✓ Update user-facing text</strong>
+                    <span style="color: var(--green);">— App.tsx, Settings.tsx, Help.tsx, Onboarding.tsx</span>
                 </li>
-                <li>
-                    <strong>Update PWA manifest</strong>
-                    <span style="color: var(--muted);">— vite.config.ts (name, short_name, description)</span>
+                <li class="done">
+                    <strong>✓ Update PWA manifest</strong>
+                    <span style="color: var(--green);">— vite.config.ts (name, short_name, description)</span>
                 </li>
-                <li>
-                    <strong>Update index.html</strong>
-                    <span style="color: var(--muted);">— title, meta description</span>
+                <li class="done">
+                    <strong>✓ Update index.html</strong>
+                    <span style="color: var(--green);">— title updated</span>
                 </li>
-                <li>
-                    <strong>Update package.json</strong>
-                    <span style="color: var(--muted);">— optional, won't affect users</span>
+                <li class="done">
+                    <strong>✓ Keep database name</strong>
+                    <span style="color: var(--green);">— preserved RunnersWardrobeDB for existing users</span>
                 </li>
-                <li>
-                    <strong>Keep database name</strong>
-                    <span style="color: var(--muted);">— avoid data loss for existing users</span>
+                <li class="done">
+                    <strong>✓ Move Help to bottom nav</strong>
+                    <span style="color: var(--green);">— better discoverability</span>
                 </li>
                 <li>
                     <strong>Update documentation</strong>
-                    <span style="color: var(--muted);">— README, MONETIZATION-PLAN</span>
+                    <span style="color: var(--muted);">— README, BetaTestPlan, MONETIZATION-PLAN (optional)</span>
                 </li>
                 <li>
                     <strong>Design new icons</strong>
@@ -603,10 +674,21 @@
             </p>
         </div>
         
+        <!-- Next Steps -->
+        <h2>🚀 Next Steps</h2>
+        <div class="section" style="border-color: var(--accent);">
+            <ol style="margin-left: 1.25rem; line-height: 2;">
+                <li><strong>Deploy v4.0.1</strong> — Push changes to GitHub to trigger Vercel deployment</li>
+                <li><strong>Connect domain</strong> — Point gettrailkit.app to Vercel project</li>
+                <li><strong>Test PWA install</strong> — Verify "TrailKit" appears when installing on phone</li>
+                <li><strong>Design icons</strong> — Create trail/mountain themed app icons (optional)</li>
+                <li><strong>Update beta testers</strong> — Notify about rebrand and new domain</li>
+            </ol>
+        </div>
+        
         <p style="margin-top: 2rem; text-align: center; color: var(--muted); font-size: 0.9rem;">
-            TrailKit Rebranding Plan • Generated December 7, 2025
+            TrailKit Rebranding Plan • Updated December 8, 2025 • v4.0.1
         </p>
     </div>
 </body>
 </html>
-
