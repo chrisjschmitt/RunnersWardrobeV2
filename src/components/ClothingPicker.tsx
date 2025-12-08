@@ -97,8 +97,8 @@ export function ClothingPicker({
         className="absolute inset-0" 
         onClick={onClose}
       />
-      <div className="relative w-full max-w-lg mx-4 bg-[var(--color-surface)] rounded-2xl animate-fade-in shadow-2xl">
-        <div className="p-4 border-b border-[rgba(255,255,255,0.1)]">
+      <div className="relative w-full max-w-lg mx-4 bg-[var(--color-surface)] rounded-2xl animate-fade-in shadow-2xl max-h-[85vh] overflow-hidden flex flex-col">
+        <div className="p-4 border-b border-[rgba(255,255,255,0.1)] flex-shrink-0">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <span className="text-2xl">{icon}</span>
@@ -115,7 +115,7 @@ export function ClothingPicker({
           </div>
         </div>
 
-        <div className="p-4 max-h-[70vh] overflow-y-auto">
+        <div className="p-4 flex-1 overflow-y-auto">
           {isLoading ? (
             <div className="flex items-center justify-center py-8">
               <div className="spinner animate-spin"></div>
