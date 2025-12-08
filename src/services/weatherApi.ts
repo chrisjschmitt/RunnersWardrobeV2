@@ -1,4 +1,5 @@
 import type { WeatherData, GeoPosition, WeatherForecast, WeatherAlert } from '../types';
+import { formatWindSpeed } from './temperatureUtils';
 
 const OPENWEATHERMAP_BASE_URL = 'https://api.openweathermap.org/data/2.5';
 
@@ -277,7 +278,7 @@ export function getWeatherAlerts(weather: WeatherData, temperatureUnit: 'fahrenh
     if (windDiff >= 5) {
       alerts.push({
         type: 'wind_increase',
-        message: `Wind increasing to ${forecast.windSpeed} mph ${timeframe}`,
+        message: `Wind increasing to ${formatWindSpeed(forecast.windSpeed, temperatureUnit)} ${timeframe}`,
         severity: windDiff >= 10 ? 'warning' : 'info',
         timeframe
       });

@@ -383,3 +383,5 @@ export function getClothingInfo(category: string, itemName: string): ClothingInf
   return null;
 }
 
+
+

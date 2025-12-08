@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Outdoor Wardrobe - Naming Recommendations</title>
+    <style>
+        :root {
+            --bg: #0f172a;
+            --surface: #1e293b;
+            --border: #334155;
+            --text: #f1f5f9;
+            --muted: #94a3b8;
+            --accent: #3b82f6;
+            --green: #22c55e;
+            --yellow: #eab308;
+            --red: #ef4444;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+            padding: 2rem;
+        }
+        
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        
+        h1 {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(135deg, var(--accent), #8b5cf6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .subtitle {
+            color: var(--muted);
+            margin-bottom: 2rem;
+        }
+        
+        h2 {
+            font-size: 1.25rem;
+            margin: 2rem 0 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .category-icon {
+            font-size: 1.5rem;
+        }
+        
+        .names-grid {
+            display: grid;
+            gap: 1rem;
+        }
+        
+        .name-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1.25rem;
+        }
+        
+        .name-card.favorite {
+            border-color: var(--accent);
+            box-shadow: 0 0 20px rgba(59, 130, 246, 0.15);
+        }
+        
+        .name-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 0.75rem;
+        }
+        
+        .name-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+        }
+        
+        .favorite-badge {
+            background: linear-gradient(135deg, var(--accent), #8b5cf6);
+            color: white;
+            font-size: 0.7rem;
+            padding: 0.25rem 0.5rem;
+            border-radius: 9999px;
+            font-weight: 600;
+        }
+        
+        .domains {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+        
+        .domain {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            font-size: 0.875rem;
+            padding: 0.35rem 0.75rem;
+            border-radius: 6px;
+            background: rgba(255,255,255,0.05);
+        }
+        
+        .domain.available {
+            background: rgba(34, 197, 94, 0.15);
+            color: var(--green);
+        }
+        
+        .domain.taken {
+            background: rgba(239, 68, 68, 0.15);
+            color: var(--red);
+        }
+        
+        .domain.premium {
+            background: rgba(234, 179, 8, 0.15);
+            color: var(--yellow);
+        }
+        
+        .domain.unknown {
+            background: rgba(148, 163, 184, 0.15);
+            color: var(--muted);
+        }
+        
+        .status-icon {
+            font-size: 0.75rem;
+        }
+        
+        .note {
+            margin-top: 0.75rem;
+            font-size: 0.8rem;
+            color: var(--muted);
+            font-style: italic;
+        }
+        
+        .legend {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin-top: 2rem;
+            padding: 1rem;
+            background: var(--surface);
+            border-radius: 8px;
+            font-size: 0.875rem;
+        }
+        
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .legend-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+        
+        .legend-dot.green { background: var(--green); }
+        .legend-dot.yellow { background: var(--yellow); }
+        .legend-dot.red { background: var(--red); }
+        .legend-dot.gray { background: var(--muted); }
+        
+        .disclaimer {
+            margin-top: 2rem;
+            padding: 1rem;
+            background: rgba(234, 179, 8, 0.1);
+            border: 1px solid rgba(234, 179, 8, 0.3);
+            border-radius: 8px;
+            font-size: 0.875rem;
+            color: var(--yellow);
+        }
+        
+        .recommendation {
+            margin-top: 2rem;
+            padding: 1.5rem;
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(139, 92, 246, 0.1));
+            border: 1px solid var(--accent);
+            border-radius: 12px;
+        }
+        
+        .recommendation h3 {
+            color: var(--accent);
+            margin-bottom: 0.75rem;
+        }
+        
+        .recommendation ul {
+            margin-left: 1.25rem;
+            color: var(--muted);
+        }
+        
+        .recommendation li {
+            margin-bottom: 0.5rem;
+        }
+        
+        .recommendation strong {
+            color: var(--text);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🏃 Outdoor Wardrobe</h1>
+        <p class="subtitle">App Naming Recommendations & Domain Availability</p>
+        
+        <!-- Top Picks -->
+        <h2><span class="category-icon">⭐</span> Top Picks</h2>
+        <div class="names-grid">
+            <div class="name-card favorite">
+                <div class="name-header">
+                    <span class="name-title">WearCast</span>
+                    <span class="favorite-badge">FAVORITE</span>
+                </div>
+                <div class="domains">
+                    <span class="domain premium"><span class="status-icon">💰</span> wearcast.com ($4,666)</span>
+                    <span class="domain taken"><span class="status-icon">✗</span> wearcast.app (in use)</span>
+                </div>
+                <p class="note">Similar app already exists at wearcast.app - may cause confusion</p>
+            </div>
+            
+            <div class="name-card favorite">
+                <div class="name-header">
+                    <span class="name-title">LayerUp</span>
+                    <span class="favorite-badge">FAVORITE</span>
+                </div>
+                <div class="domains">
+                    <span class="domain taken"><span class="status-icon">✗</span> layerup.app (in use)</span>
+                    <span class="domain taken"><span class="status-icon">✗</span> getlayerup.com (in use)</span>
+                </div>
+                <p class="note">Great name but domains are taken by other companies</p>
+            </div>
+            
+            <div class="name-card">
+                <div class="name-header">
+                    <span class="name-title">KitCast</span>
+                </div>
+                <div class="domains">
+                    <span class="domain taken"><span class="status-icon">✗</span> kitcast.com (digital signage company)</span>
+                    <span class="domain unknown"><span class="status-icon">?</span> kitcast.app (check availability)</span>
+                </div>
+            </div>
+            
+            <div class="name-card">
+                <div class="name-header">
+                    <span class="name-title">GearCast</span>
+                </div>
+                <div class="domains">
+                    <span class="domain unknown"><span class="status-icon">?</span> gearcast.com (check availability)</span>
+                    <span class="domain unknown"><span class="status-icon">?</span> gearcast.app (check availability)</span>
+                </div>
+            </div>
+            
+            <div class="name-card">
+                <div class="name-header">
+                    <span class="name-title">OutfitIQ</span>
+                </div>
+                <div class="domains">
+                    <span class="domain unknown"><span class="status-icon">?</span> outfitiq.com (check availability)</span>
+                    <span class="domain unknown"><span class="status-icon">?</span> outfitiq.app (check availability)</span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Super Short -->
+        <h2><span class="category-icon">⚡</span> Super Short (5 letters or less)</h2>
+        <div class="names-grid">
+            <div class="name-card">
+                <div class="name-header">
+                    <span class="name-title">Kitr</span>
+                </div>
+                <div class="domains">
+                    <span class="domain available"><span class="status-icon">✓</span> kitr.app (available)</span>
+                    <span class="domain available"><span class="status-icon">✓</span> kitr.ca (available)</span>
+                    <span class="domain premium"><span class="status-icon">💰</span> kitr.com ($26,000)</span>
+                </div>
+                <p class="note">⚠️ SEO concern: "Kitr" is commonly associated with an easter egg cat in the game ULTRAKILL - may cause brand confusion</p>
+            </div>
+            
+            <div class="name-card">
+                <div class="name-header">
+                    <span class="name-title">Layr</span>
+                </div>
+                <div class="domains">
+                    <span class="domain unknown"><span class="status-icon">?</span> layr.com (check availability)</span>
+                    <span class="domain unknown"><span class="status-icon">?</span> layr.app (check availability)</span>
+                </div>
+            </div>
+            
+            <div class="name-card">
+                <div class="name-header">
+                    <span class="name-title">Gearo</span>
+                </div>
+                <div class="domains">
+                    <span class="domain unknown"><span class="status-icon">?</span> gearo.com (check availability)</span>
+                    <span class="domain unknown"><span class="status-icon">?</span> gearo.app (check availability)</span>
+                </div>
+            </div>
+            
+            <div class="name-card">
+                <div class="name-header">
+                    <span class="name-title">Dressr</span>
+                </div>
+                <div class="domains">
+                    <span class="domain unknown"><span class="status-icon">?</span> dressr.com (check availability)</span>
+                    <span class="domain unknown"><span class="status-icon">?</span> dressr.app (check availability)</span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Activity-Focused -->
+        <h2><span class="category-icon">🥾</span> Activity-Focused</h2>
+        <div class="names-grid">
+            <div class="name-card favorite">
+                <div class="name-header">
+                    <span class="name-title">TrailKit</span>
+                    <span class="favorite-badge">⭐ TOP PICK</span>
+                </div>
+                <div class="domains">
+                    <span class="domain available"><span class="status-icon">✓</span> gettrailkit.app (available)</span>
+                    <span class="domain available"><span class="status-icon">✓</span> trailkit.ca (available)</span>
+                    <span class="domain taken"><span class="status-icon">✗</span> trailkit.app (taken)</span>
+                    <span class="domain unknown"><span class="status-icon">?</span> trailkit.com (check availability)</span>
+                </div>
+                <p class="note" style="color: var(--green);">✓ Great SEO: "Trail Kit" searches return relevant outdoor gear content for running, hiking, and other activities - perfect brand alignment!</p>
+            </div>
+            
+            <div class="name-card">
+                <div class="name-header">
+                    <span class="name-title">OutReady</span>
+                </div>
+                <div class="domains">
+                    <span class="domain unknown"><span class="status-icon">?</span> outready.com (check availability)</span>
+                    <span class="domain unknown"><span class="status-icon">?</span> outready.app (check availability)</span>
+                </div>
+            </div>
+            
+            <div class="name-card">
+                <div class="name-header">
+                    <span class="name-title">GearReady</span>
+                </div>
+                <div class="domains">
+                    <span class="domain unknown"><span class="status-icon">?</span> gearready.com (check availability)</span>
+                    <span class="domain unknown"><span class="status-icon">?</span> gearready.app (check availability)</span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Weather-Themed -->
+        <h2><span class="category-icon">🌤️</span> Weather-Themed</h2>
+        <div class="names-grid">
+            <div class="name-card">
+                <div class="name-header">
+                    <span class="name-title">WeatherWear</span>
+                </div>
+                <div class="domains">
+                    <span class="domain unknown"><span class="status-icon">?</span> weatherwear.com (check availability)</span>
+                    <span class="domain unknown"><span class="status-icon">?</span> weatherwear.app (check availability)</span>
+                </div>
+            </div>
+            
+            <div class="name-card">
+                <div class="name-header">
+                    <span class="name-title">DressWeather</span>
+                </div>
+                <div class="domains">
+                    <span class="domain unknown"><span class="status-icon">?</span> dressweather.com (check availability)</span>
+                    <span class="domain unknown"><span class="status-icon">?</span> dressweather.app (check availability)</span>
+                </div>
+            </div>
+            
+            <div class="name-card">
+                <div class="name-header">
+                    <span class="name-title">WearWeather</span>
+                </div>
+                <div class="domains">
+                    <span class="domain unknown"><span class="status-icon">?</span> wearweather.com (check availability)</span>
+                    <span class="domain unknown"><span class="status-icon">?</span> wearweather.app (check availability)</span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Legend -->
+        <div class="legend">
+            <div class="legend-item">
+                <span class="legend-dot green"></span>
+                <span>Available</span>
+            </div>
+            <div class="legend-item">
+                <span class="legend-dot yellow"></span>
+                <span>Premium ($$)</span>
+            </div>
+            <div class="legend-item">
+                <span class="legend-dot red"></span>
+                <span>Taken</span>
+            </div>
+            <div class="legend-item">
+                <span class="legend-dot gray"></span>
+                <span>Unknown - verify at registrar</span>
+            </div>
+        </div>
+        
+        <!-- Recommendation -->
+        <div class="recommendation">
+            <h3>🏆 Top Recommendation: TrailKit</h3>
+            <p><strong style="font-size: 1.1rem;">gettrailkit.app</strong> or <strong style="font-size: 1.1rem;">trailkit.ca</strong></p>
+            <ul style="margin-top: 1rem;">
+                <li>✅ <strong>Great SEO</strong> - "Trail Kit" searches show outdoor gear content for running, hiking, etc.</li>
+                <li>✅ <strong>Perfect brand fit</strong> - naturally evokes outdoor activity preparation</li>
+                <li>✅ <strong>Domains available</strong> - both gettrailkit.app and trailkit.ca</li>
+                <li>✅ <strong>Works for all activities</strong> - not just trails, but any outdoor kit</li>
+            </ul>
+            <p style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--border);">
+                <strong>Alternatives:</strong> GearCast, OutfitIQ (verify domains at <a href="https://namecheap.com" style="color: var(--accent);">Namecheap</a>)
+            </p>
+            <p style="margin-top: 0.5rem; color: var(--muted); font-size: 0.9rem;">
+                ⚠️ Avoid "Kitr" - associated with ULTRAKILL game character, poor SEO differentiation
+            </p>
+        </div>
+        
+        <!-- Disclaimer -->
+        <div class="disclaimer">
+            ⚠️ <strong>Note:</strong> Domain availability changes rapidly. This information was gathered on December 7, 2025 and should be verified before making a decision.
+        </div>
+        
+        <!-- Pre-Registration Checklist -->
+        <h2 style="margin-top: 3rem;"><span class="category-icon">📋</span> Pre-Registration Checklist</h2>
+        
+        <div class="name-card" style="border-color: var(--yellow); margin-bottom: 1rem;">
+            <div class="name-header">
+                <span class="name-title" style="color: var(--yellow);">⚠️ Potential Conflict Found</span>
+            </div>
+            <p style="margin-bottom: 0.75rem;"><strong>TrailKit Supply</strong> (trailkitsupply.com) - An outdoor gear retailer specializing in trail/mountain adventures.</p>
+            <p style="color: var(--muted); font-size: 0.9rem;">This is in a similar space (outdoor gear) which could cause brand confusion or potential trademark disputes.</p>
+            <p style="margin-top: 0.75rem;"><strong>Action:</strong> Visit <a href="https://trailkitsupply.com" style="color: var(--accent);">trailkitsupply.com</a> to assess how similar their brand/market is to your app.</p>
+        </div>
+        
+        <div class="name-card">
+            <table style="width: 100%; border-collapse: collapse; font-size: 0.9rem;">
+                <thead>
+                    <tr style="border-bottom: 1px solid var(--border);">
+                        <th style="text-align: left; padding: 0.75rem 0.5rem;">Check</th>
+                        <th style="text-align: left; padding: 0.75rem 0.5rem;">Status</th>
+                        <th style="text-align: left; padding: 0.75rem 0.5rem;">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                        <td style="padding: 0.75rem 0.5rem;"><strong>Trademark (USPTO)</strong></td>
+                        <td style="padding: 0.75rem 0.5rem; color: var(--green);">✅ Clear - "TrailKit" not registered</td>
+                        <td style="padding: 0.75rem 0.5rem;">No conflict</td>
+                    </tr>
+                    <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                        <td style="padding: 0.75rem 0.5rem;"><strong>"Trail Kit" (two words)</strong></td>
+                        <td style="padding: 0.75rem 0.5rem; color: var(--green);">✅ Clear - Class 019 (training kit, not software)</td>
+                        <td style="padding: 0.75rem 0.5rem;">Different class, no conflict</td>
+                    </tr>
+                    <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                        <td style="padding: 0.75rem 0.5rem;"><strong>Trademark (CIPO - Canada)</strong></td>
+                        <td style="padding: 0.75rem 0.5rem; color: var(--green);">✅ Clear - TrailKit, Trail Kit, Trail-kit not registered</td>
+                        <td style="padding: 0.75rem 0.5rem;">No conflict</td>
+                    </tr>
+                    <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                        <td style="padding: 0.75rem 0.5rem;"><strong>Existing business conflict</strong></td>
+                        <td style="padding: 0.75rem 0.5rem; color: var(--yellow);">⚠️ TrailKitSupply.com exists</td>
+                        <td style="padding: 0.75rem 0.5rem;">Review their business scope</td>
+                    </tr>
+                    <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                        <td style="padding: 0.75rem 0.5rem;"><strong>Instagram @gettrailkit</strong></td>
+                        <td style="padding: 0.75rem 0.5rem; color: var(--green);">✅ Available</td>
+                        <td style="padding: 0.75rem 0.5rem;">Register now!</td>
+                    </tr>
+                    <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                        <td style="padding: 0.75rem 0.5rem;"><strong>Twitter/X @gettrailkit</strong></td>
+                        <td style="padding: 0.75rem 0.5rem; color: var(--green);">✅ Available</td>
+                        <td style="padding: 0.75rem 0.5rem;">Register now!</td>
+                    </tr>
+                    <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                        <td style="padding: 0.75rem 0.5rem;"><strong>TikTok @trailkit</strong></td>
+                        <td style="padding: 0.75rem 0.5rem; color: var(--green);">✅ Available</td>
+                        <td style="padding: 0.75rem 0.5rem;">Register now!</td>
+                    </tr>
+                    <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                        <td style="padding: 0.75rem 0.5rem;"><strong>#TrailKit hashtag</strong></td>
+                        <td style="padding: 0.75rem 0.5rem; color: var(--green);">✅ Already used for running/trail gear!</td>
+                        <td style="padding: 0.75rem 0.5rem;">Perfect brand alignment</td>
+                    </tr>
+                    <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                        <td style="padding: 0.75rem 0.5rem;"><strong>Apple App Store</strong></td>
+                        <td style="padding: 0.75rem 0.5rem; color: var(--green);">✅ "TrailKit" available</td>
+                        <td style="padding: 0.75rem 0.5rem;">Name is yours!</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 0.75rem 0.5rem;"><strong>Google Play Store</strong></td>
+                        <td style="padding: 0.75rem 0.5rem; color: var(--green);">✅ "TrailKit" available</td>
+                        <td style="padding: 0.75rem 0.5rem;">Name is yours!</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        
+        <h3 style="margin-top: 1.5rem; margin-bottom: 1rem;">📱 Social Media Status</h3>
+        <div class="names-grid" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));">
+            <div class="name-card" style="text-align: center; padding: 1rem; border-color: var(--accent); background: rgba(59, 130, 246, 0.1);">
+                <span style="font-size: 1.5rem;">📧</span>
+                <p style="margin-top: 0.5rem;">Gmail</p>
+                <p style="font-size: 0.8rem; color: var(--accent);">gettrailkit@gmail.com</p>
+                <p style="font-size: 0.75rem; color: var(--green); margin-top: 0.25rem;">✓ SECURED</p>
+            </div>
+            <div class="name-card" style="text-align: center; padding: 1rem; border-color: var(--accent); background: rgba(59, 130, 246, 0.1);">
+                <span style="font-size: 1.5rem;">🎵</span>
+                <p style="margin-top: 0.5rem;">TikTok</p>
+                <p style="font-size: 0.8rem; color: var(--accent);">@trailkit</p>
+                <p style="font-size: 0.75rem; color: var(--green); margin-top: 0.25rem;">✓ SECURED</p>
+            </div>
+            <div class="name-card" style="text-align: center; padding: 1rem; border-color: var(--green);">
+                <span style="font-size: 1.5rem;">📸</span>
+                <p style="margin-top: 0.5rem;">Instagram</p>
+                <p style="font-size: 0.8rem; color: var(--green);">@gettrailkit available</p>
+                <p style="font-size: 0.75rem; color: var(--muted); margin-top: 0.25rem;">Register now</p>
+            </div>
+            <div class="name-card" style="text-align: center; padding: 1rem; border-color: var(--green);">
+                <span style="font-size: 1.5rem;">𝕏</span>
+                <p style="margin-top: 0.5rem;">Twitter/X</p>
+                <p style="font-size: 0.8rem; color: var(--green);">@gettrailkit available</p>
+                <p style="font-size: 0.75rem; color: var(--muted); margin-top: 0.25rem;">Register now</p>
+            </div>
+            <div class="name-card" style="text-align: center; padding: 1rem; border-color: var(--accent); background: rgba(59, 130, 246, 0.1);">
+                <span style="font-size: 1.5rem;">🌐</span>
+                <p style="margin-top: 0.5rem;">Domains</p>
+                <p style="font-size: 0.8rem; color: var(--accent);">gettrailkit.app + trailkit.ca</p>
+                <p style="font-size: 0.75rem; color: var(--green); margin-top: 0.25rem;">✓ SECURED</p>
+            </div>
+        </div>
+        
+        <div class="recommendation" style="margin-top: 1.5rem; border-color: var(--green);">
+            <h3 style="color: var(--green);">🎉 ALL CLEAR - Ready to Register!</h3>
+            <ul style="margin-top: 0.75rem;">
+                <li>✅ <strong>USPTO & CIPO</strong> - Trademarks clear in US & Canada</li>
+                <li>✅ <strong>App Stores</strong> - Available on both Apple & Google Play</li>
+                <li>✅ <strong>Domains</strong> - gettrailkit.app & trailkit.ca available</li>
+                <li>✅ <strong>Social Media</strong> - @trailkit (TikTok), @gettrailkit (Instagram, Twitter)</li>
+                <li>✅ <strong>#TrailKit</strong> - Already used for running/trail gear content = perfect SEO!</li>
+            </ul>
+            <div style="margin-top: 1rem; padding: 1rem; background: rgba(59, 130, 246, 0.1); border-radius: 8px; border: 1px solid var(--accent);">
+                <p style="font-size: 1.1rem; margin-bottom: 0.75rem;"><strong>✓ SECURED:</strong></p>
+                <ul style="margin-left: 1.25rem; line-height: 1.8; list-style: none;">
+                    <li>🌐 <strong>gettrailkit.app</strong> ✓</li>
+                    <li>🍁 <strong>trailkit.ca</strong> ✓</li>
+                    <li>📧 <strong>gettrailkit@gmail.com</strong> ✓</li>
+                    <li>🎵 <strong>@trailkit</strong> on TikTok ✓</li>
+                </ul>
+            </div>
+            <div style="margin-top: 1rem; padding: 1rem; background: rgba(34, 197, 94, 0.1); border-radius: 8px;">
+                <p style="font-size: 1.1rem; margin-bottom: 0.75rem;"><strong>🚀 Still to Register:</strong></p>
+                <ol style="margin-left: 1.25rem; line-height: 1.8;">
+                    <li>📸 <strong>@gettrailkit</strong> on Instagram</li>
+                    <li>𝕏 <strong>@gettrailkit</strong> on Twitter/X</li>
+                </ol>
+            </div>
+            <p style="margin-top: 1rem; color: var(--muted); font-size: 0.9rem;">
+                Minor note: TrailKit Supply (trailkitsupply.com) exists as a small retailer but has no trademark. Your weather-based clothing app is a different product category.
+            </p>
+        </div>
+    </div>
+</body>
+</html>
+

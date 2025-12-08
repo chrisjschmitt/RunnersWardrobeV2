@@ -1,6 +1,6 @@
 import type { WeatherData, WeatherAlert } from '../types';
 import { getWeatherIconUrl, getWeatherAlerts } from '../services/weatherApi';
-import { formatTemperature, getUnitSymbol, type TemperatureUnit } from '../services/temperatureUtils';
+import { formatTemperature, getUnitSymbol, formatWindSpeed, type TemperatureUnit } from '../services/temperatureUtils';
 
 interface WeatherDisplayProps {
   weather: WeatherData;
@@ -71,7 +71,7 @@ export function WeatherDisplay({ weather, unit, compact = false }: WeatherDispla
           <WeatherStat 
             icon={<WindIcon />}
             label="Wind"
-            value={`${weather.windSpeed} mph`}
+            value={formatWindSpeed(weather.windSpeed, unit)}
           />
           <WeatherStat 
             icon={<CloudIcon />}

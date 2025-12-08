@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { getSettings, saveSettings } from '../services/database';
 import { isValidApiKeyFormat, isProxyMode } from '../services/weatherApi';
-import type { TemperatureUnit } from '../services/temperatureUtils';
+import { formatWindSpeed, type TemperatureUnit } from '../services/temperatureUtils';
 import type { TestWeatherData } from '../types';
 import { version } from '../../package.json';
 
@@ -385,7 +385,7 @@ export function Settings({
             {/* Wind Speed */}
             <div>
               <label className="block text-sm font-medium mb-2">
-                Wind Speed: {localTestWeather.windSpeed} mph
+                Wind Speed: {formatWindSpeed(localTestWeather.windSpeed, temperatureUnit)}
               </label>
               <input
                 type="range"

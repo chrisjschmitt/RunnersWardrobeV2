@@ -1,0 +1,612 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TrailKit - Rebranding Plan</title>
+    <style>
+        :root {
+            --bg: #0f172a;
+            --surface: #1e293b;
+            --border: #334155;
+            --text: #f1f5f9;
+            --muted: #94a3b8;
+            --accent: #3b82f6;
+            --green: #22c55e;
+            --yellow: #eab308;
+            --red: #ef4444;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+            padding: 2rem;
+        }
+        
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+        
+        h1 {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(135deg, var(--accent), #8b5cf6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .subtitle {
+            color: var(--muted);
+            margin-bottom: 2rem;
+        }
+        
+        h2 {
+            font-size: 1.25rem;
+            margin: 2rem 0 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        h3 {
+            font-size: 1rem;
+            margin: 1.5rem 0 0.75rem;
+            color: var(--muted);
+        }
+        
+        .section {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .section.critical {
+            border-color: var(--red);
+        }
+        
+        .section.technical {
+            border-color: var(--yellow);
+        }
+        
+        .section.docs {
+            border-color: var(--accent);
+        }
+        
+        .section.assets {
+            border-color: #8b5cf6;
+        }
+        
+        .section-header {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+        
+        .badge {
+            font-size: 0.7rem;
+            padding: 0.25rem 0.5rem;
+            border-radius: 9999px;
+            font-weight: 600;
+        }
+        
+        .badge.critical { background: var(--red); color: white; }
+        .badge.technical { background: var(--yellow); color: black; }
+        .badge.docs { background: var(--accent); color: white; }
+        .badge.assets { background: #8b5cf6; color: white; }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+        }
+        
+        th {
+            text-align: left;
+            padding: 0.75rem 0.5rem;
+            border-bottom: 1px solid var(--border);
+            color: var(--muted);
+            font-weight: 500;
+        }
+        
+        td {
+            padding: 0.75rem 0.5rem;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+        
+        tr:last-child td {
+            border-bottom: none;
+        }
+        
+        code {
+            background: rgba(255,255,255,0.1);
+            padding: 0.15rem 0.4rem;
+            border-radius: 4px;
+            font-family: 'SF Mono', Monaco, monospace;
+            font-size: 0.85rem;
+        }
+        
+        .change {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .old {
+            color: var(--red);
+            text-decoration: line-through;
+        }
+        
+        .arrow {
+            color: var(--muted);
+        }
+        
+        .new {
+            color: var(--green);
+            font-weight: 500;
+        }
+        
+        .warning {
+            margin-top: 1rem;
+            padding: 1rem;
+            background: rgba(234, 179, 8, 0.1);
+            border: 1px solid rgba(234, 179, 8, 0.3);
+            border-radius: 8px;
+            font-size: 0.875rem;
+            color: var(--yellow);
+        }
+        
+        .order-list {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1.5rem;
+        }
+        
+        .order-list ol {
+            margin-left: 1.25rem;
+        }
+        
+        .order-list li {
+            padding: 0.5rem 0;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+        
+        .order-list li:last-child {
+            border-bottom: none;
+        }
+        
+        .status {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+            font-size: 0.75rem;
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            margin-left: 0.5rem;
+        }
+        
+        .status.pending {
+            background: rgba(148, 163, 184, 0.2);
+            color: var(--muted);
+        }
+        
+        .status.done {
+            background: rgba(34, 197, 94, 0.2);
+            color: var(--green);
+        }
+        
+        .summary {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        
+        .summary-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 1rem;
+            text-align: center;
+        }
+        
+        .summary-card .number {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--accent);
+        }
+        
+        .summary-card .label {
+            font-size: 0.8rem;
+            color: var(--muted);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🥾 TrailKit Rebranding Plan</h1>
+        <p class="subtitle">Renaming from "Outdoor Wardrobe" / "Runner's Wardrobe" to TrailKit</p>
+        
+        <!-- Summary -->
+        <div class="summary">
+            <div class="summary-card">
+                <div class="number">9</div>
+                <div class="label">User-Facing Changes</div>
+            </div>
+            <div class="summary-card">
+                <div class="number">2</div>
+                <div class="label">Technical Changes</div>
+            </div>
+            <div class="summary-card">
+                <div class="number">4</div>
+                <div class="label">Documentation</div>
+            </div>
+            <div class="summary-card">
+                <div class="number">3</div>
+                <div class="label">Icon Assets</div>
+            </div>
+        </div>
+        
+        <!-- Critical: User-Facing -->
+        <div class="section critical">
+            <div class="section-header">
+                <span>🔴</span>
+                <span>User-Facing Changes</span>
+                <span class="badge critical">CRITICAL</span>
+            </div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>File</th>
+                        <th>Location</th>
+                        <th>Change</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><code>index.html</code></td>
+                        <td>Line 16 - Page title</td>
+                        <td>
+                            <div class="change">
+                                <span class="old">Runner's Wardrobe</span>
+                                <span class="arrow">→</span>
+                                <span class="new">TrailKit</span>
+                            </div>
+                        </td>
+                        <td><span class="status pending">Pending</span></td>
+                    </tr>
+                    <tr>
+                        <td><code>index.html</code></td>
+                        <td>Line 12 - Meta description</td>
+                        <td>
+                            <div class="change">
+                                <span class="old">...for your runs...</span>
+                                <span class="arrow">→</span>
+                                <span class="new">TrailKit - Weather-based clothing recommendations</span>
+                            </div>
+                        </td>
+                        <td><span class="status pending">Pending</span></td>
+                    </tr>
+                    <tr>
+                        <td><code>vite.config.ts</code></td>
+                        <td>Line 19 - PWA name</td>
+                        <td>
+                            <div class="change">
+                                <span class="old">Runner's Wardrobe</span>
+                                <span class="arrow">→</span>
+                                <span class="new">TrailKit</span>
+                            </div>
+                        </td>
+                        <td><span class="status pending">Pending</span></td>
+                    </tr>
+                    <tr>
+                        <td><code>vite.config.ts</code></td>
+                        <td>Line 20 - PWA short_name</td>
+                        <td>
+                            <div class="change">
+                                <span class="old">RunWardrobe</span>
+                                <span class="arrow">→</span>
+                                <span class="new">TrailKit</span>
+                            </div>
+                        </td>
+                        <td><span class="status pending">Pending</span></td>
+                    </tr>
+                    <tr>
+                        <td><code>vite.config.ts</code></td>
+                        <td>Line 21 - PWA description</td>
+                        <td>
+                            <div class="change">
+                                <span class="old">...for your runs...</span>
+                                <span class="arrow">→</span>
+                                <span class="new">Weather-based clothing recommendations for outdoor activities</span>
+                            </div>
+                        </td>
+                        <td><span class="status pending">Pending</span></td>
+                    </tr>
+                    <tr>
+                        <td><code>src/App.tsx</code></td>
+                        <td>Line 134 - Header</td>
+                        <td>
+                            <div class="change">
+                                <span class="old">Outdoor Wardrobe</span>
+                                <span class="arrow">→</span>
+                                <span class="new">TrailKit</span>
+                            </div>
+                        </td>
+                        <td><span class="status pending">Pending</span></td>
+                    </tr>
+                    <tr>
+                        <td><code>src/components/Settings.tsx</code></td>
+                        <td>Line 516 - Footer</td>
+                        <td>
+                            <div class="change">
+                                <span class="old">Outdoor Wardrobe</span>
+                                <span class="arrow">→</span>
+                                <span class="new">TrailKit</span>
+                            </div>
+                        </td>
+                        <td><span class="status pending">Pending</span></td>
+                    </tr>
+                    <tr>
+                        <td><code>src/components/Help.tsx</code></td>
+                        <td>Line 161 - Beta notice</td>
+                        <td>
+                            <div class="change">
+                                <span class="old">Outdoor Wardrobe</span>
+                                <span class="arrow">→</span>
+                                <span class="new">TrailKit</span>
+                            </div>
+                        </td>
+                        <td><span class="status pending">Pending</span></td>
+                    </tr>
+                    <tr>
+                        <td><code>src/components/Onboarding.tsx</code></td>
+                        <td>Line 10 - Welcome screen</td>
+                        <td>
+                            <div class="change">
+                                <span class="old">Welcome to Outdoor Wardrobe!</span>
+                                <span class="arrow">→</span>
+                                <span class="new">Welcome to TrailKit!</span>
+                            </div>
+                        </td>
+                        <td><span class="status pending">Pending</span></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        
+        <!-- Technical -->
+        <div class="section technical">
+            <div class="section-header">
+                <span>🟡</span>
+                <span>Technical Changes</span>
+                <span class="badge technical">INTERNAL</span>
+            </div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>File</th>
+                        <th>Location</th>
+                        <th>Change</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><code>package.json</code></td>
+                        <td>Line 2 - Package name</td>
+                        <td>
+                            <div class="change">
+                                <span class="old">runnerswardrobe</span>
+                                <span class="arrow">→</span>
+                                <span class="new">trailkit</span>
+                            </div>
+                        </td>
+                        <td><span class="status pending">Pending</span></td>
+                    </tr>
+                    <tr>
+                        <td><code>src/services/database.ts</code></td>
+                        <td>Line 5 - IndexedDB name</td>
+                        <td>
+                            <div class="change">
+                                <span class="old">RunnersWardrobeDB</span>
+                                <span class="arrow">→</span>
+                                <span class="new">Keep as-is (data migration)</span>
+                            </div>
+                        </td>
+                        <td><span class="status pending">⚠️ See note</span></td>
+                    </tr>
+                </tbody>
+            </table>
+            <div class="warning">
+                ⚠️ <strong>Database Warning:</strong> Changing the IndexedDB name from "RunnersWardrobeDB" will reset all user data (history, preferences). Recommend keeping the old name to preserve existing user data, or implement a migration script.
+            </div>
+        </div>
+        
+        <!-- Documentation -->
+        <div class="section docs">
+            <div class="section-header">
+                <span>🟢</span>
+                <span>Documentation</span>
+                <span class="badge docs">DOCS</span>
+            </div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>File</th>
+                        <th>Action</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><code>README.md</code></td>
+                        <td>Update title and all "Outdoor Wardrobe" references to "TrailKit"</td>
+                        <td><span class="status pending">Pending</span></td>
+                    </tr>
+                    <tr>
+                        <td><code>MONETIZATION-PLAN.md</code></td>
+                        <td>Update all "Outdoor Wardrobe" references, update app identifiers</td>
+                        <td><span class="status pending">Pending</span></td>
+                    </tr>
+                    <tr>
+                        <td><code>MONETIZATION-PLAN.html</code></td>
+                        <td>Update all "Outdoor Wardrobe" references</td>
+                        <td><span class="status pending">Pending</span></td>
+                    </tr>
+                    <tr>
+                        <td><code>NamingRecommendations.html</code></td>
+                        <td>Update page title</td>
+                        <td><span class="status pending">Pending</span></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        
+        <!-- Icons/Assets -->
+        <div class="section assets">
+            <div class="section-header">
+                <span>🎨</span>
+                <span>Icons & Assets</span>
+                <span class="badge assets">DESIGN</span>
+            </div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>File</th>
+                        <th>Action</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><code>public/favicon.svg</code></td>
+                        <td>Redesign with TrailKit branding (trail/mountain theme)</td>
+                        <td><span class="status pending">Pending</span></td>
+                    </tr>
+                    <tr>
+                        <td><code>public/apple-touch-icon.png</code></td>
+                        <td>Redesign with TrailKit branding (180x180)</td>
+                        <td><span class="status pending">Pending</span></td>
+                    </tr>
+                    <tr>
+                        <td><code>public/pwa-192x192.png</code></td>
+                        <td>Redesign with TrailKit branding (192x192)</td>
+                        <td><span class="status pending">Pending</span></td>
+                    </tr>
+                </tbody>
+            </table>
+            <p style="margin-top: 1rem; color: var(--muted); font-size: 0.9rem;">
+                💡 <strong>Icon suggestion:</strong> Mountain silhouette, trail path, or hiking boot icon with TrailKit colors
+            </p>
+        </div>
+        
+        <!-- Optional -->
+        <div class="section">
+            <div class="section-header">
+                <span>📁</span>
+                <span>Optional: Rename Project Folder</span>
+            </div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Current</th>
+                        <th></th>
+                        <th>New</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><code>RunnersWardrobe/</code></td>
+                        <td style="color: var(--muted);">→</td>
+                        <td><code>TrailKit/</code></td>
+                    </tr>
+                </tbody>
+            </table>
+            <p style="margin-top: 1rem; color: var(--muted); font-size: 0.9rem;">
+                This would require updating your Git remote and Vercel project settings.
+            </p>
+        </div>
+        
+        <!-- Recommended Order -->
+        <h2>📋 Recommended Implementation Order</h2>
+        <div class="order-list">
+            <ol>
+                <li>
+                    <strong>Update user-facing text</strong>
+                    <span style="color: var(--muted);">— App.tsx, Settings.tsx, Help.tsx, Onboarding.tsx</span>
+                </li>
+                <li>
+                    <strong>Update PWA manifest</strong>
+                    <span style="color: var(--muted);">— vite.config.ts (name, short_name, description)</span>
+                </li>
+                <li>
+                    <strong>Update index.html</strong>
+                    <span style="color: var(--muted);">— title, meta description</span>
+                </li>
+                <li>
+                    <strong>Update package.json</strong>
+                    <span style="color: var(--muted);">— optional, won't affect users</span>
+                </li>
+                <li>
+                    <strong>Keep database name</strong>
+                    <span style="color: var(--muted);">— avoid data loss for existing users</span>
+                </li>
+                <li>
+                    <strong>Update documentation</strong>
+                    <span style="color: var(--muted);">— README, MONETIZATION-PLAN</span>
+                </li>
+                <li>
+                    <strong>Design new icons</strong>
+                    <span style="color: var(--muted);">— can be done later</span>
+                </li>
+                <li>
+                    <strong>Update Vercel domain</strong>
+                    <span style="color: var(--muted);">— point gettrailkit.app to your project</span>
+                </li>
+            </ol>
+        </div>
+        
+        <!-- Domain Info -->
+        <h2>🌐 Domain Configuration</h2>
+        <div class="section" style="border-color: var(--green);">
+            <div class="section-header">
+                <span style="color: var(--green);">✓</span>
+                <span>Secured Assets</span>
+            </div>
+            <ul style="margin-left: 1.25rem; line-height: 2;">
+                <li>🌐 <strong>gettrailkit.app</strong> — Primary domain</li>
+                <li>🍁 <strong>trailkit.ca</strong> — Canadian domain</li>
+                <li>📧 <strong>gettrailkit@gmail.com</strong> — Official email</li>
+                <li>🎵 <strong>@trailkit</strong> on TikTok</li>
+            </ul>
+            <p style="margin-top: 1rem; color: var(--muted); font-size: 0.9rem;">
+                Still to register: @gettrailkit on Instagram and Twitter/X
+            </p>
+        </div>
+        
+        <p style="margin-top: 2rem; text-align: center; color: var(--muted); font-size: 0.9rem;">
+            TrailKit Rebranding Plan • Generated December 7, 2025
+        </p>
+    </div>
+</body>
+</html>
+

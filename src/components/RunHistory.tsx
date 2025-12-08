@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import type { RunRecord, RunFeedback, ActivityType } from '../types';
 import { ACTIVITY_CONFIGS } from '../types';
 import { getAllRuns, clearAllRuns, getAllFeedback, clearAllFeedback, deleteRun, deleteFeedback, exportHistoryAsCSV } from '../services/database';
-import { formatTemperature, type TemperatureUnit } from '../services/temperatureUtils';
+import { formatTemperature, formatWindSpeed, type TemperatureUnit } from '../services/temperatureUtils';
 
 // Extended type to track source
 interface DisplayRun extends RunRecord {
@@ -398,7 +398,7 @@ function RunCard({ run, index, temperatureUnit, onDelete, activityName }: RunCar
               <span className="text-[var(--color-text-muted)]">Humidity:</span> {run.humidity}%
             </div>
             <div>
-              <span className="text-[var(--color-text-muted)]">Wind:</span> {run.windSpeed} mph
+              <span className="text-[var(--color-text-muted)]">Wind:</span> {formatWindSpeed(run.windSpeed, temperatureUnit)}
             </div>
             <div>
               <span className="text-[var(--color-text-muted)]">UV:</span> {run.uvIndex}
