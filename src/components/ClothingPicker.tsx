@@ -46,6 +46,27 @@ export function ClothingPicker({
   const [customOptions, setCustomOptions] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   
+  // Lock body scroll and fix Safari iOS viewport issues
+  useEffect(() => {
+    // Save current scroll position and body styles
+    const scrollY = window.scrollY;
+    const originalStyle = document.body.style.cssText;
+    
+    // Lock body scroll - this prevents Safari viewport jumping
+    document.body.style.position = 'fixed';
+    document.body.style.top = `-${scrollY}px`;
+    document.body.style.left = '0';
+    document.body.style.right = '0';
+    document.body.style.overflow = 'hidden';
+    
+    return () => {
+      // Restore body styles
+      document.body.style.cssText = originalStyle;
+      // Restore scroll position
+      window.scrollTo(0, scrollY);
+    };
+  }, []);
+  
   // Get category info from activity config
   const categories = getClothingCategories(activity);
   const categoryConfig = categories.find(c => c.key === category);
