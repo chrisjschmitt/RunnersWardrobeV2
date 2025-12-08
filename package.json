@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "npx vitest run && npx tsc -b && npx vite build",
+    "build": "vitest run && ./node_modules/.bin/tsc -b && vite build",
     "build:skip-tests": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview",
