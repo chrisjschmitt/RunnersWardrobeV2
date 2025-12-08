@@ -1,9 +1,11 @@
 import { useState } from 'react';
-import type { ClothingRecommendation as ClothingRec, ClothingItems, ActivityType } from '../types';
+import type { ClothingRecommendation as ClothingRec, ClothingItems, ActivityType, RunRecord } from '../types';
 import { getClothingCategories } from '../types';
 import { ClothingPicker } from './ClothingPicker';
 import { ClothingInfoModal } from './ClothingInfoModal';
 import { getClothingInfo, type ClothingInfo } from '../data/clothingInfo';
+import { formatTemperature } from '../services/temperatureUtils';
+import type { TemperatureUnit } from '../services/temperatureUtils';
 
 // Icons for different clothing categories
 const CATEGORY_ICONS: Record<string, string> = {
@@ -36,6 +38,7 @@ interface ClothingRecommendationProps {
   editable?: boolean;
   onClothingChange?: (clothing: ClothingItems) => void;
   activity?: ActivityType;
+  temperatureUnit?: TemperatureUnit;
 }
 
 export function ClothingRecommendation({ 
@@ -45,10 +48,12 @@ export function ClothingRecommendation({
   isLoading,
   editable = false,
   onClothingChange,
-  activity = 'running'
+  activity = 'running',
+  temperatureUnit = 'fahrenheit'
 }: ClothingRecommendationProps) {
   const [editingCategory, setEditingCategory] = useState<string | null>(null);
   const [showingInfo, setShowingInfo] = useState<ClothingInfo | null>(null);
+  const [showSimilarSessions, setShowSimilarSessions] = useState(false);
   
   // Get categories for this activity
   const categories = getClothingCategories(activity);
@@ -149,10 +154,38 @@ export function ClothingRecommendation({
         )}
 
         {hasHistory && recommendation && (
-          <div className="mb-4 p-3 bg-[rgba(34,197,94,0.15)] border border-[var(--color-success)] rounded-lg">
-            <p className="text-sm text-[var(--color-success)]">
-              Based on <strong>{recommendation.matchingRuns}</strong> similar sessions from your history
-            </p>
+          <div className="mb-4">
+            <button
+              onClick={() => setShowSimilarSessions(!showSimilarSessions)}
+              className="w-full p-3 bg-[rgba(34,197,94,0.15)] border border-[var(--color-success)] rounded-lg text-left hover:bg-[rgba(34,197,94,0.25)] transition-colors"
+            >
+              <div className="flex items-center justify-between">
+                <p className="text-sm text-[var(--color-success)]">
+                  Based on <strong>{recommendation.matchingRuns}</strong> similar session{recommendation.matchingRuns !== 1 ? 's' : ''} from your history
+                </p>
+                <svg 
+                  className={`w-4 h-4 text-[var(--color-success)] transition-transform ${showSimilarSessions ? 'rotate-180' : ''}`}
+                  fill="none" 
+                  stroke="currentColor" 
+                  viewBox="0 0 24 24"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </div>
+            </button>
+            
+            {/* Expandable similar sessions */}
+            {showSimilarSessions && recommendation.similarConditions.length > 0 && (
+              <div className="mt-2 space-y-2 animate-fade-in">
+                {recommendation.similarConditions.map((session, index) => (
+                  <SimilarSessionCard 
+                    key={index}
+                    session={session}
+                    temperatureUnit={temperatureUnit}
+                  />
+                ))}
+              </div>
+            )}
           </div>
         )}
 
@@ -280,6 +313,91 @@ function ConfidenceBadge({ confidence }: ConfidenceBadgeProps) {
         <span className="bg-[var(--color-surface)] rounded-full w-7 h-7 flex items-center justify-center">
           {confidence}
         </span>
+      </div>
+    </div>
+  );
+}
+
+// Similar session card for the expandable list
+interface SimilarSessionCardProps {
+  session: RunRecord;
+  temperatureUnit: TemperatureUnit;
+}
+
+function SimilarSessionCard({ session, temperatureUnit }: SimilarSessionCardProps) {
+  const formatDate = (dateStr: string) => {
+    try {
+      const parts = dateStr.split('-');
+      if (parts.length === 3) {
+        const date = new Date(
+          parseInt(parts[0]),
+          parseInt(parts[1]) - 1,
+          parseInt(parts[2])
+        );
+        return date.toLocaleDateString('en-US', { 
+          weekday: 'short', 
+          month: 'short', 
+          day: 'numeric'
+        });
+      }
+      return dateStr;
+    } catch {
+      return dateStr;
+    }
+  };
+
+  const getComfortEmoji = (comfort?: string) => {
+    switch (comfort) {
+      case 'too_cold': return '🥶';
+      case 'just_right': return '👍';
+      case 'too_hot': return '🥵';
+      default: return null;
+    }
+  };
+
+  const getClothingSummary = (clothing: ClothingItems): string => {
+    const items: string[] = [];
+    // Check common clothing categories
+    const keysToCheck = ['tops', 'jersey', 'baseLayer', 'bottoms', 'outerLayer', 'midLayer'];
+    for (const key of keysToCheck) {
+      if (clothing[key] && clothing[key] !== 'None') {
+        items.push(clothing[key]);
+        if (items.length >= 3) break;
+      }
+    }
+    return items.join(', ') || 'No data';
+  };
+
+  // Check if this is feedback data (has comfort field)
+  const comfort = (session as { comfort?: string }).comfort;
+
+  return (
+    <div className="p-3 bg-[rgba(255,255,255,0.05)] rounded-lg border border-[rgba(255,255,255,0.1)]">
+      <div className="flex items-start justify-between gap-3">
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="text-lg font-bold text-[var(--color-accent)]">
+              {formatTemperature(session.temperature, temperatureUnit)}
+            </span>
+            <span className="text-xs text-[var(--color-text-muted)]">
+              feels like {formatTemperature(session.feelsLike, temperatureUnit)}
+            </span>
+            {comfort && (
+              <span className="text-sm" title={comfort}>
+                {getComfortEmoji(comfort)}
+              </span>
+            )}
+          </div>
+          <div className="text-xs text-[var(--color-text-muted)] mt-1">
+            {formatDate(session.date)}
+            {session.location && session.location !== 'Unknown' && session.location !== 'From feedback' && (
+              <span className="ml-1">• {session.location.split(',')[0]}</span>
+            )}
+          </div>
+          <div className="text-sm mt-1 text-[var(--color-text-muted)] truncate">
+            <span className="text-[rgba(255,255,255,0.5)]">Wore:</span> {getClothingSummary(session.clothing)}
+          </div>
+        </div>
       </div>
     </div>
   );
