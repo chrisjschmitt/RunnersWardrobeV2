@@ -302,10 +302,9 @@ function applyAccessoryLogic(
     const currentAccessory = result.accessories?.toLowerCase() || 'none';
     
     // Only override if current is "none" or empty
+    // Note: needsSunglasses and needsHeadlamp are mutually exclusive (can't be sunny when dark)
     if (currentAccessory === 'none' || currentAccessory === '') {
-      if (needsSunglasses && needsHeadlamp) {
-        result.accessories = 'Sunglasses + headlamp';
-      } else if (needsSunglasses) {
+      if (needsSunglasses) {
         result.accessories = 'Sunglasses';
       } else if (needsHeadlamp) {
         result.accessories = 'Headlamp';
