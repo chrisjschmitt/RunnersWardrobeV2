@@ -30,7 +30,7 @@ Switch between 7 different outdoor activities, each with tailored clothing categ
 - **Learning System**: Recommendations improve based on your feedback
 - **Editable Clothing**: Tap any item to change it before your activity
 - **Custom Clothing Options**: Add your own items (saved per activity)
-- **Temperature Unit Toggle**: Switch between Celsius and Fahrenheit
+- **Unit Preferences**: Switch between Celsius/Fahrenheit and km/h/mph
 
 ### Smart Features
 - **Automatic Accessories**: Recommends sunglasses when sunny, headlamp when dark
@@ -263,6 +263,9 @@ With no history, sensible defaults based on temperature and activity type.
 
 ## Version History
 
+- **v3.3.7**: ClothingPicker modal positioning improvements for Safari iOS
+- **v3.3.2**: Wind speed displays in km/h when Celsius is selected (metric consistency)
+- **v3.2.0**: Walking activity added with casual clothing options
 - **v3.1.7**: Check for app updates on Refresh button tap
 - **v3.1.6**: Smart cold weather overrides (prevents T-shirt in freezing weather)
 - **v3.1.5**: Fix rain gear recommendation in snowy conditions
