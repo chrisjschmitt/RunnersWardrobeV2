@@ -1,0 +1,644 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Outdoor Wardrobe - Beta Test Plan</title>
+    <style>
+        :root {
+            --bg-dark: #0f172a;
+            --bg-card: #1e293b;
+            --text-primary: #f1f5f9;
+            --text-muted: #94a3b8;
+            --accent: #f97316;
+            --success: #22c55e;
+            --warning: #eab308;
+            --error: #ef4444;
+            --blue: #3b82f6;
+        }
+        
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg-dark);
+            color: var(--text-primary);
+            line-height: 1.6;
+            padding: 2rem;
+        }
+        
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 3rem;
+            padding: 2rem;
+            background: linear-gradient(135deg, var(--accent), #ea580c);
+            border-radius: 16px;
+        }
+        
+        header h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+        
+        header p {
+            opacity: 0.9;
+            font-size: 1.1rem;
+        }
+        
+        .version-badge {
+            display: inline-block;
+            background: rgba(255,255,255,0.2);
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            margin-top: 0.5rem;
+        }
+        
+        section {
+            background: var(--bg-card);
+            border-radius: 16px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+        
+        h2 {
+            font-size: 1.5rem;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            border-bottom: 2px solid var(--accent);
+            padding-bottom: 0.5rem;
+        }
+        
+        h3 {
+            font-size: 1.2rem;
+            margin: 1.5rem 0 1rem;
+            color: var(--accent);
+        }
+        
+        p {
+            margin-bottom: 1rem;
+            color: var(--text-muted);
+        }
+        
+        ul, ol {
+            margin-left: 1.5rem;
+            margin-bottom: 1rem;
+            color: var(--text-muted);
+        }
+        
+        li {
+            margin-bottom: 0.5rem;
+        }
+        
+        .highlight {
+            background: rgba(249,115,22,0.15);
+            border-left: 4px solid var(--accent);
+            padding: 1rem;
+            border-radius: 0 8px 8px 0;
+            margin: 1rem 0;
+        }
+        
+        .highlight strong {
+            color: var(--accent);
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1rem 0;
+        }
+        
+        th, td {
+            padding: 0.75rem;
+            text-align: left;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        th {
+            background: rgba(255,255,255,0.05);
+            color: var(--text-primary);
+            font-weight: 600;
+        }
+        
+        td {
+            color: var(--text-muted);
+        }
+        
+        .phase {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+        
+        .phase-1 { background: var(--blue); color: white; }
+        .phase-2 { background: var(--warning); color: #1e293b; }
+        .phase-3 { background: var(--success); color: white; }
+        
+        .checklist {
+            list-style: none;
+            margin-left: 0;
+        }
+        
+        .checklist li {
+            padding: 0.5rem 0;
+            padding-left: 2rem;
+            position: relative;
+        }
+        
+        .checklist li::before {
+            content: "☐";
+            position: absolute;
+            left: 0;
+            color: var(--accent);
+        }
+        
+        .metric-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin: 1rem 0;
+        }
+        
+        .metric-card {
+            background: rgba(255,255,255,0.05);
+            border-radius: 12px;
+            padding: 1.25rem;
+            text-align: center;
+        }
+        
+        .metric-card h4 {
+            font-size: 2rem;
+            color: var(--accent);
+            margin-bottom: 0.25rem;
+        }
+        
+        .metric-card p {
+            font-size: 0.9rem;
+            margin: 0;
+        }
+        
+        .template {
+            background: #0d1117;
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 8px;
+            padding: 1rem;
+            font-family: monospace;
+            font-size: 0.9rem;
+            overflow-x: auto;
+            white-space: pre-wrap;
+            color: var(--text-muted);
+        }
+        
+        .cta-box {
+            background: linear-gradient(135deg, var(--blue), #2563eb);
+            border-radius: 12px;
+            padding: 1.5rem;
+            text-align: center;
+            margin: 2rem 0;
+        }
+        
+        .cta-box h3 {
+            color: white;
+            margin: 0 0 0.5rem 0;
+        }
+        
+        .cta-box p {
+            color: rgba(255,255,255,0.8);
+            margin: 0;
+        }
+        
+        @media (max-width: 768px) {
+            body {
+                padding: 1rem;
+            }
+            
+            header h1 {
+                font-size: 1.75rem;
+            }
+            
+            section {
+                padding: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🧪 Beta Test Plan</h1>
+            <p>Outdoor Wardrobe - Clothing Recommendation App</p>
+            <div class="version-badge">Version 3.5.3</div>
+        </header>
+
+        <!-- Overview -->
+        <section>
+            <h2>📋 Overview</h2>
+            <p>This beta test plan outlines the strategy for testing the Outdoor Wardrobe app with real users before public launch. The goal is to validate the recommendation engine, identify bugs, and gather feedback on user experience.</p>
+            
+            <div class="metric-grid">
+                <div class="metric-card">
+                    <h4>10-20</h4>
+                    <p>Target Beta Testers</p>
+                </div>
+                <div class="metric-card">
+                    <h4>4 weeks</h4>
+                    <p>Test Duration</p>
+                </div>
+                <div class="metric-card">
+                    <h4>7</h4>
+                    <p>Activities Supported</p>
+                </div>
+                <div class="metric-card">
+                    <h4>110+</h4>
+                    <p>Automated Tests</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Timeline -->
+        <section>
+            <h2>📅 Timeline</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Phase</th>
+                        <th>Duration</th>
+                        <th>Focus</th>
+                        <th>Testers</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><span class="phase phase-1">Phase 1</span></td>
+                        <td>Week 1</td>
+                        <td>Core functionality, installation, basic flows</td>
+                        <td>3-5 close friends/family</td>
+                    </tr>
+                    <tr>
+                        <td><span class="phase phase-2">Phase 2</span></td>
+                        <td>Week 2-3</td>
+                        <td>Extended use, recommendation accuracy, edge cases</td>
+                        <td>10-15 enthusiast users</td>
+                    </tr>
+                    <tr>
+                        <td><span class="phase phase-3">Phase 3</span></td>
+                        <td>Week 4</td>
+                        <td>Final polish, performance, preparation for launch</td>
+                        <td>All beta testers</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+
+        <!-- Recruiting Testers -->
+        <section>
+            <h2>👥 Recruiting Beta Testers</h2>
+            
+            <h3>Ideal Tester Profile</h3>
+            <ul>
+                <li><strong>Active outdoors:</strong> Runs, hikes, cycles, or does winter activities regularly</li>
+                <li><strong>iPhone or Android user:</strong> Can install PWA on their phone</li>
+                <li><strong>Willing to give feedback:</strong> Will respond to surveys and report issues</li>
+                <li><strong>Variety of locations:</strong> Different climates and weather patterns</li>
+            </ul>
+            
+            <h3>Where to Find Testers</h3>
+            <ol>
+                <li><strong>Personal network:</strong> Friends and family who are runners/hikers</li>
+                <li><strong>Running clubs:</strong> Local running groups, Strava clubs</li>
+                <li><strong>Reddit:</strong> r/running, r/trailrunning, r/hiking, r/cycling</li>
+                <li><strong>Social media:</strong> Instagram running community, Twitter</li>
+                <li><strong>Work colleagues:</strong> Anyone who exercises outdoors</li>
+            </ol>
+            
+            <h3>Recruitment Message Template</h3>
+            <div class="template">Hey [Name]!
+
+I'm building a free app called Outdoor Wardrobe that recommends what to wear for outdoor activities based on weather. It learns from your feedback to give personalized suggestions.
+
+Looking for beta testers to try it out for a few weeks. Would you be interested?
+
+What's involved:
+• Install the app on your phone (takes 2 minutes)
+• Use it before your runs/hikes/rides
+• Give quick feedback after activities
+• Share any bugs or suggestions
+
+In return, you'll get early access and help shape the app!
+
+Let me know if you're in! 🏃‍♂️</div>
+        </section>
+
+        <!-- What to Test -->
+        <section>
+            <h2>🔬 What to Test</h2>
+            
+            <h3>Core Features</h3>
+            <ul class="checklist">
+                <li>App installation (Add to Home Screen)</li>
+                <li>Weather fetching and display</li>
+                <li>Clothing recommendations accuracy</li>
+                <li>Feedback submission (too cold/just right/too hot)</li>
+                <li>Comments/notes on feedback</li>
+                <li>History viewing and management</li>
+                <li>Similar sessions display</li>
+                <li>Clothing info tooltips (ⓘ icons)</li>
+                <li>Unit switching (°C/°F, km/h/mph)</li>
+                <li>Activity switching (all 7 activities)</li>
+            </ul>
+            
+            <h3>Activities to Cover</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Activity</th>
+                        <th>Priority</th>
+                        <th>Notes</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>🏃 Running</td>
+                        <td>High</td>
+                        <td>Most common use case</td>
+                    </tr>
+                    <tr>
+                        <td>🥾 Hiking</td>
+                        <td>High</td>
+                        <td>Layering system test</td>
+                    </tr>
+                    <tr>
+                        <td>🚴 Cycling</td>
+                        <td>High</td>
+                        <td>Unique gear (bibs, jersey)</td>
+                    </tr>
+                    <tr>
+                        <td>🚶 Walking</td>
+                        <td>Medium</td>
+                        <td>Casual clothing options</td>
+                    </tr>
+                    <tr>
+                        <td>🌲 Trail Running</td>
+                        <td>Medium</td>
+                        <td>Hydration recommendations</td>
+                    </tr>
+                    <tr>
+                        <td>❄️ Snowshoeing</td>
+                        <td>Low (seasonal)</td>
+                        <td>Winter-specific gear</td>
+                    </tr>
+                    <tr>
+                        <td>⛷️ XC Skiing</td>
+                        <td>Low (seasonal)</td>
+                        <td>XC-specific terminology</td>
+                    </tr>
+                </tbody>
+            </table>
+            
+            <h3>Edge Cases</h3>
+            <ul>
+                <li>Extreme temperatures (below -20°C, above 35°C)</li>
+                <li>Rain/snow conditions</li>
+                <li>High wind scenarios</li>
+                <li>Dawn/dusk activities (headlamp logic)</li>
+                <li>Location permission denied</li>
+                <li>Offline usage</li>
+                <li>First-time use (no history)</li>
+            </ul>
+        </section>
+
+        <!-- Collecting Feedback -->
+        <section>
+            <h2>📝 Collecting Feedback</h2>
+            
+            <h3>In-App Feedback</h3>
+            <p>Users provide feedback naturally through:</p>
+            <ul>
+                <li><strong>Comfort rating:</strong> Too cold / Just right / Too hot</li>
+                <li><strong>Comments:</strong> Optional notes like "gloves were too heavy"</li>
+                <li><strong>Clothing edits:</strong> What they actually wore vs. recommended</li>
+            </ul>
+            
+            <h3>Weekly Check-In Survey</h3>
+            <p>Send a quick survey each week covering:</p>
+            <ol>
+                <li>How many times did you use the app this week?</li>
+                <li>Were the recommendations accurate? (1-5 scale)</li>
+                <li>Any bugs or issues encountered?</li>
+                <li>Any feature requests?</li>
+                <li>Would you recommend this app to a friend? (NPS)</li>
+            </ol>
+            
+            <div class="highlight">
+                <strong>💡 Tip:</strong> Use a simple Google Form or Typeform for surveys. Keep them under 2 minutes to maximize response rate.
+            </div>
+            
+            <h3>Bug Reporting</h3>
+            <p>Ask testers to report bugs via:</p>
+            <ul>
+                <li><strong>Email:</strong> GetTrailKit@gmail.com</li>
+                <li><strong>Screenshot:</strong> Encourage screenshots of issues</li>
+                <li><strong>Device info:</strong> iPhone/Android, browser, OS version</li>
+            </ul>
+            
+            <h3>Bug Report Template</h3>
+            <div class="template">Subject: [Bug] Brief description
+
+Device: iPhone 14 / Android Pixel 7
+Browser: Safari / Chrome
+App Version: 3.5.3
+
+What happened:
+[Describe the issue]
+
+What I expected:
+[What should have happened]
+
+Steps to reproduce:
+1. 
+2. 
+3. 
+
+Screenshot attached: Yes/No</div>
+        </section>
+
+        <!-- Success Metrics -->
+        <section>
+            <h2>📊 Success Metrics</h2>
+            
+            <div class="metric-grid">
+                <div class="metric-card">
+                    <h4>80%</h4>
+                    <p>Recommendation accuracy<br>(target: "just right" feedback)</p>
+                </div>
+                <div class="metric-card">
+                    <h4>70%</h4>
+                    <p>Weekly active users<br>(testers who use app 2+ times/week)</p>
+                </div>
+                <div class="metric-card">
+                    <h4>8+</h4>
+                    <p>Net Promoter Score<br>(would recommend to friends)</p>
+                </div>
+                <div class="metric-card">
+                    <h4>&lt;5</h4>
+                    <p>Critical bugs<br>(blocking or data loss)</p>
+                </div>
+            </div>
+            
+            <h3>Key Questions to Answer</h3>
+            <ol>
+                <li>Do recommendations improve with more feedback?</li>
+                <li>Are temperature-based defaults reasonable for beginners?</li>
+                <li>Is the UI intuitive without explanation?</li>
+                <li>Does the app work reliably across devices?</li>
+                <li>What features are most/least used?</li>
+            </ol>
+        </section>
+
+        <!-- Communication Plan -->
+        <section>
+            <h2>📣 Communication Plan</h2>
+            
+            <table>
+                <thead>
+                    <tr>
+                        <th>When</th>
+                        <th>What</th>
+                        <th>Channel</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Day 1</td>
+                        <td>Welcome email with install instructions</td>
+                        <td>Email</td>
+                    </tr>
+                    <tr>
+                        <td>Day 3</td>
+                        <td>Check-in: "How's it going?"</td>
+                        <td>Text/Email</td>
+                    </tr>
+                    <tr>
+                        <td>Weekly</td>
+                        <td>Survey + any new features announcement</td>
+                        <td>Email</td>
+                    </tr>
+                    <tr>
+                        <td>As needed</td>
+                        <td>Bug fix notifications</td>
+                        <td>Email</td>
+                    </tr>
+                    <tr>
+                        <td>End of beta</td>
+                        <td>Thank you + final survey + launch announcement</td>
+                        <td>Email</td>
+                    </tr>
+                </tbody>
+            </table>
+            
+            <div class="cta-box">
+                <h3>🎁 Beta Tester Perks</h3>
+                <p>Consider offering: Early access to premium features, mention in app credits, exclusive badge, small gift card for top contributors</p>
+            </div>
+        </section>
+
+        <!-- Onboarding Checklist -->
+        <section>
+            <h2>✅ Tester Onboarding Checklist</h2>
+            
+            <h3>Before Inviting</h3>
+            <ul class="checklist">
+                <li>App is deployed and stable</li>
+                <li>Test mode works for demos</li>
+                <li>Welcome email template ready</li>
+                <li>Bug report process established</li>
+                <li>Survey created</li>
+            </ul>
+            
+            <h3>Send to Each Tester</h3>
+            <ul class="checklist">
+                <li>App URL (https://outdoor-wardrobe.vercel.app)</li>
+                <li>Install instructions (Safari → Share → Add to Home Screen)</li>
+                <li>Brief feature overview</li>
+                <li>How to report bugs</li>
+                <li>Expected time commitment (5-10 min per activity)</li>
+            </ul>
+            
+            <h3>After First Week</h3>
+            <ul class="checklist">
+                <li>Send first survey</li>
+                <li>Review any reported bugs</li>
+                <li>Check in with inactive testers</li>
+                <li>Deploy any critical fixes</li>
+            </ul>
+        </section>
+
+        <!-- Post-Beta Actions -->
+        <section>
+            <h2>🚀 Post-Beta Actions</h2>
+            
+            <ol>
+                <li><strong>Analyze feedback:</strong> Compile all survey responses and bug reports</li>
+                <li><strong>Prioritize fixes:</strong> Address critical bugs first, then UX improvements</li>
+                <li><strong>Update recommendations:</strong> Tune defaults based on "too cold/too hot" patterns</li>
+                <li><strong>Thank testers:</strong> Personal thank you + any promised perks</li>
+                <li><strong>Plan launch:</strong> Marketing, app store submission (if applicable)</li>
+                <li><strong>Write changelog:</strong> Document what changed based on beta feedback</li>
+            </ol>
+            
+            <div class="highlight">
+                <strong>📌 Remember:</strong> Beta testers are your first advocates. Treat them well and they'll spread the word!
+            </div>
+        </section>
+
+        <!-- Quick Reference -->
+        <section>
+            <h2>📎 Quick Reference</h2>
+            
+            <table>
+                <tbody>
+                    <tr>
+                        <td><strong>App URL</strong></td>
+                        <td>https://outdoor-wardrobe.vercel.app</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Current Version</strong></td>
+                        <td>3.5.3</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Support Email</strong></td>
+                        <td>GetTrailKit@gmail.com</td>
+                    </tr>
+                    <tr>
+                        <td><strong>GitHub Repo</strong></td>
+                        <td>github.com/chrisjschmitt/RunnersWardrobeV2</td>
+                    </tr>
+                    <tr>
+                        <td><strong>TikTok</strong></td>
+                        <td>@trailkit</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+
+        <footer style="text-align: center; padding: 2rem; color: var(--text-muted); font-size: 0.9rem;">
+            <p>Outdoor Wardrobe Beta Test Plan • Version 3.5.3 • December 2024</p>
+        </footer>
+    </div>
+</body>
+</html>
+

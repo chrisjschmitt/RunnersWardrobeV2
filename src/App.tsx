@@ -131,7 +131,7 @@ function App() {
               <div className="w-8 h-8 bg-gradient-to-br from-[var(--color-accent)] to-[var(--color-accent-light)] rounded-lg flex items-center justify-center text-lg">
                 {activityConfig.icon}
               </div>
-              <span className="font-semibold text-lg">Outdoor Wardrobe</span>
+              <span className="font-semibold text-lg">TrailKit</span>
             </div>
             
             {/* Activity Selector */}

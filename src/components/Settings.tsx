@@ -513,7 +513,7 @@ export function Settings({
       <div className="mt-6 glass-card p-4">
         <div className="flex items-center justify-between mb-3">
           <div>
-            <p className="font-medium">Outdoor Wardrobe</p>
+            <p className="font-medium">TrailKit</p>
             <p className="text-sm text-[var(--color-text-muted)]">Version {version}</p>
           </div>
           <button

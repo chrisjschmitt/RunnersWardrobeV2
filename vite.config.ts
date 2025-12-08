@@ -16,9 +16,9 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'mask-icon.svg'],
       manifest: {
-        name: "Runner's Wardrobe",
-        short_name: 'RunWardrobe',
-        description: 'Get clothing recommendations for your runs based on weather',
+        name: "TrailKit",
+        short_name: 'TrailKit',
+        description: 'Smart clothing recommendations for outdoor activities based on weather',
         theme_color: '#1e3a5f',
         background_color: '#0f172a',
         display: 'standalone',

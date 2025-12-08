@@ -11,13 +11,23 @@ const faqs: FAQItem[] = [
     answer: `The app learns from your activities over time:
 
 **Your Recent Choices Matter Most**
-If you did the same activity in similar weather recently, the app remembers what you wore and how you felt.
+If you did the same activity in similar weather recently, the app remembers what you wore and how you felt. Tap the green "Based on X similar sessions" banner to see which past activities influenced the recommendation.
 
 **It Learns Your Preferences**
 Every time you give feedback ("too cold", "just right", "too hot"), the app adjusts. If you tend to run cold, it'll suggest warmer clothes. If you run hot, it'll suggest lighter options.
 
 **Starting Fresh?**
-No worries! The app has sensible defaults based on temperature. As you use it and provide feedback, it gets smarter about YOUR preferences.`
+No worries! The app has sensible defaults based on temperature for each activity. As you use it and provide feedback, it gets smarter about YOUR preferences.`
+  },
+  {
+    question: "What is the 'Based on similar sessions' banner?",
+    answer: `When the app finds past activities in similar weather conditions, it shows a green banner like "Based on 3 similar sessions".
+
+**Tap to see details!**
+The banner expands to show you which past activities influenced the recommendation - including the date, time, location, and what you wore.
+
+**Why it's helpful**
+This lets you understand why the app made its recommendation and reminds you of how you felt in similar conditions before.`
   },
   {
     question: "Why do I need to tap Start and End?",
@@ -27,7 +37,7 @@ No worries! The app has sensible defaults based on temperature. As you use it an
 You can change any clothing item to match what you're actually wearing. The app saves your actual choice, not just what it recommended.
 
 **After You Finish**
-The app asks how you felt - too cold, just right, or too hot. This feedback, combined with the weather and what you wore, teaches the app your preferences.
+The app asks how you felt - too cold, just right, or too hot. You can also add optional notes like "gloves were too heavy" or "perfect outfit!"
 
 **Building Your History**
 Each session creates a record that helps future recommendations. The more you use it, the smarter it gets!
@@ -36,15 +46,34 @@ Each session creates a record that helps future recommendations. The more you us
 You can absolutely just check the recommendation and head out without tapping Start. But then the app won't learn from that experience.`
   },
   {
-    question: "How do I add my own clothing options?",
-    answer: `Easy! When you tap on any clothing item:
-
-1. A picker appears with common options
-2. Scroll to the bottom
+    question: "How do I add or delete custom clothing options?",
+    answer: `**To Add:**
+1. Tap on any clothing item
+2. Scroll to the bottom of the picker
 3. Tap "Add custom option..."
 4. Type your item (like "my lucky socks") and tap Add
 
+**To Delete:**
+1. Tap on a clothing item with a custom option
+2. Find the custom item (marked with "(custom)")
+3. Tap the red trash icon next to it
+4. Confirm deletion
+
 Your custom items are saved and will show up with a "(custom)" label whenever you use the app.`
+  },
+  {
+    question: "What do the ⓘ info icons do?",
+    answer: `Tap the ⓘ icon next to any clothing item to learn more about it!
+
+**What you'll see:**
+• **Description** - What the item is
+• **When to wear** - Ideal conditions for this item
+• **What to look for** - Key features when buying
+• **Examples** - Popular brands and products
+• **Budget tip** - How to save money
+• **What to avoid** - Common mistakes (like cotton in cold weather)
+
+This is especially helpful if you're new to an activity and want to understand why certain items are recommended.`
   },
   {
     question: "What does the feedback actually do?",
@@ -58,6 +87,9 @@ Your clothing choice gets remembered and prioritized for similar conditions.
 
 **"Too Hot" 🥵**
 Next time, the app suggests lighter clothing.
+
+**Notes (Optional)**
+Add comments like "should have worn heavier gloves" - these are saved with your history and shown in similar sessions.
 
 The app weighs recent feedback more heavily than older feedback, so it adapts as your preferences change (or as you get fitter!).`
   },
@@ -80,18 +112,41 @@ Once installed, the app appears on your home screen and opens in full screen - j
   },
   {
     question: "Can I switch between Celsius and Fahrenheit?",
-    answer: `Yes! Go to Settings and tap °C or °F. Your preference is saved automatically and all temperatures will display in your chosen unit.`
+    answer: `Yes! Go to Settings and tap °C or °F. Your preference is saved automatically.
+
+**What changes:**
+• All temperatures display in your chosen unit
+• Wind speed switches too: mph for Fahrenheit, km/h for Celsius
+• Weather alerts show differences in the correct unit`
+  },
+  {
+    question: "How do sunglasses and headlamp suggestions work?",
+    answer: `The app automatically suggests these based on conditions:
+
+**Sunglasses ☀️**
+Suggested when it's sunny and daytime. If it's cloudy, raining, or dark outside, they won't be recommended.
+
+**Headlamp 🔦**
+Suggested when it's dark or getting dark. The app uses actual sunrise/sunset times for your location and starts recommending a headlamp about an hour before sunset.
+
+**Smart logic**
+These are mutually exclusive - you won't see both sunglasses and headlamp suggested at the same time!`
   },
   {
     question: "What if I haven't used the app before?",
-    answer: `The app works great right from the start! Without any history, it uses common-sense defaults:
+    answer: `The app works great right from the start! Without any history, it uses activity-specific defaults based on temperature:
 
-• **Below 40°F (4°C)**: Warm layers, beanie, heavy gloves
-• **40-55°F (4-13°C)**: Long sleeves, tights, light gloves  
-• **55-65°F (13-18°C)**: T-shirt, shorts or capris
-• **Above 65°F (18°C)**: Light and breezy!
+**Example (Running):**
+• **Below 25°F (-4°C)**: Base layer + fleece, tights, beanie, heavy gloves
+• **25-40°F (-4 to 4°C)**: Long sleeve, tights, light gloves
+• **40-55°F (4-13°C)**: Long sleeve or T-shirt, shorts or tights
+• **55-65°F (13-18°C)**: T-shirt, shorts
+• **Above 75°F (24°C)**: Tank top, short shorts
 
-These are just starting points. As you use the app and give feedback, recommendations become tailored to YOU.`
+**Every activity has its own defaults!**
+Cycling suggests jerseys and bibs. Hiking suggests layers and boots. XC Skiing suggests Nordic-specific gear. The app picks appropriate items for YOUR activity.
+
+As you use the app and give feedback, recommendations become tailored to YOU.`
   },
   {
     question: "How do I move my data to a new phone?",
@@ -158,7 +213,7 @@ export function Help() {
           Beta Version
         </h2>
         <p className="text-sm text-[var(--color-text-muted)] mb-4">
-          Thanks for trying Outdoor Wardrobe! This is a beta version, which means we're still improving it. Here's what you should know:
+          Thanks for trying TrailKit! This is a beta version, which means we're still improving it. Here's what you should know:
         </p>
         <div className="space-y-3 text-sm">
           <LimitationItem 
@@ -255,8 +310,15 @@ export function Help() {
           <div className="p-4 bg-[rgba(255,255,255,0.05)] rounded-lg">
             <h3 className="font-semibold text-[var(--color-accent)] mb-2">🛡️ Safety Nets</h3>
             <p className="text-[var(--color-text-muted)]">
-              Even if your history says otherwise, the app won't let you go out underdressed. It automatically suggests rain gear when it's raining, warm layers when it's freezing, and sunglasses when it's sunny.
+              Even if your history says otherwise, the app won't let you go out underdressed. It automatically:
             </p>
+            <ul className="text-[var(--color-text-muted)] mt-2 ml-4 list-disc space-y-1 text-sm">
+              <li>Suggests warm layers, no shorts, and insulated gear in freezing weather</li>
+              <li>Recommends rain gear when precipitation is detected</li>
+              <li>Shows sunglasses when sunny (daytime only)</li>
+              <li>Suggests headlamp starting 1 hour before sunset</li>
+              <li>Picks appropriate footwear for the temperature</li>
+            </ul>
           </div>
         </div>
       </div>
@@ -283,10 +345,32 @@ export function Help() {
         </div>
       </div>
 
+      {/* Updates & Feedback */}
+      <div className="glass-card p-6 mt-6">
+        <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
+          <svg className="w-6 h-6 text-[var(--color-accent)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+          </svg>
+          Staying Updated
+        </h2>
+        <div className="space-y-3 text-sm text-[var(--color-text-muted)]">
+          <p>
+            <strong className="text-[var(--color-text-primary)]">Check for Updates:</strong> Go to Settings and tap "Check for Updates" to get the latest version.
+          </p>
+          <p>
+            <strong className="text-[var(--color-text-primary)]">Automatic Updates:</strong> When an update is available, you'll see a banner on the Home screen. Tap "Update Now" to refresh.
+          </p>
+          <p>
+            <strong className="text-[var(--color-text-primary)]">Your Data is Safe:</strong> Updates don't affect your history or preferences - everything stays on your device.
+          </p>
+        </div>
+      </div>
+
       {/* Feedback */}
       <div className="mt-6 text-center text-sm text-[var(--color-text-muted)]">
         <p>Have questions or suggestions?</p>
-        <p className="mt-1">This app is in active development and your feedback helps make it better!</p>
+        <p className="mt-1">Email us at <span className="text-[var(--color-accent)]">GetTrailKit@gmail.com</span></p>
+        <p className="mt-1 opacity-75">This app is in active development and your feedback helps make it better!</p>
       </div>
     </div>
   );

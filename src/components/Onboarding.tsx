@@ -7,33 +7,39 @@ interface OnboardingProps {
 
 const steps = [
   {
-    title: "Welcome to Outdoor Wardrobe!",
+    title: "Welcome to TrailKit!",
     icon: "🎒",
-    content: "Your personal clothing advisor for outdoor activities. Get smart recommendations based on weather and your preferences.",
+    content: "Your personal clothing advisor for outdoor activities. Get smart recommendations based on real-time weather and your preferences.",
     highlight: null
   },
   {
-    title: "Multiple Activities",
-    icon: "🏃🥾🚴⛷️",
-    content: "Switch between Running, Trail Running, Hiking, Cycling, Snowshoeing, and XC Skiing. Each has tailored clothing categories.",
+    title: "7 Activities Supported",
+    icon: "🏃🥾🚴",
+    content: "Running, Trail Running, Hiking, Walking, Cycling, Snowshoeing, and XC Skiing. Each has tailored clothing options designed for that activity.",
     highlight: "activity"
   },
   {
-    title: "Smart Recommendations",
+    title: "Weather-Smart Suggestions",
     icon: "🌤️",
-    content: "We check the weather and suggest what to wear. Tap any item to customize your outfit before heading out.",
+    content: "We check current weather including sunrise/sunset times. Tap any item to customize, or tap ⓘ to learn more about it.",
     highlight: "weather"
   },
   {
-    title: "Learn Your Preferences",
+    title: "Learns Your Preferences",
     icon: "📊",
-    content: "After each activity, tell us if you were too hot, too cold, or just right. We'll learn and improve recommendations over time!",
+    content: "After each activity, rate your comfort and add optional notes. We'll learn what works for YOU and improve over time!",
     highlight: "feedback"
   },
   {
-    title: "You're All Set!",
+    title: "Smart Safety Features",
+    icon: "🛡️",
+    content: "Automatic sunglasses when sunny, headlamp before sunset, warm layers in freezing temps. We've got you covered!",
+    highlight: "safety"
+  },
+  {
+    title: "You're Ready!",
     icon: "✨",
-    content: "Start by selecting your activity and allowing location access. Upload past data via CSV for instant personalization!",
+    content: "Select your activity, allow location access, and get your first recommendation. The more you use it, the smarter it gets!",
     highlight: null
   }
 ];
@@ -123,41 +129,82 @@ export function Onboarding({ onComplete }: OnboardingProps) {
 
         {/* Weather preview on step 3 */}
         {step.highlight === 'weather' && (
-          <div className="glass-card p-4 mb-8 animate-fade-in w-full max-w-xs">
-            <div className="flex items-center justify-between mb-3">
-              <span className="text-4xl">☀️</span>
-              <div className="text-right">
-                <div className="text-2xl font-bold">18°C</div>
-                <div className="text-xs text-[var(--color-text-muted)]">Feels like 16°C</div>
+          <div className="mb-8 animate-fade-in w-full max-w-xs">
+            <div className="glass-card p-4 mb-3">
+              <div className="flex items-center justify-between mb-3">
+                <span className="text-4xl">☀️</span>
+                <div className="text-right">
+                  <div className="text-2xl font-bold">18°C</div>
+                  <div className="text-xs text-[var(--color-text-muted)]">Feels like 16°C</div>
+                </div>
+              </div>
+              <div className="space-y-2 text-sm">
+                <div className="flex justify-between items-center">
+                  <span className="text-[var(--color-text-muted)]">👕 Top</span>
+                  <div className="flex items-center gap-2">
+                    <span>Long sleeve</span>
+                    <span className="text-[var(--color-accent)] text-xs">ⓘ</span>
+                  </div>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-[var(--color-text-muted)]">🩳 Bottom</span>
+                  <div className="flex items-center gap-2">
+                    <span>Tights</span>
+                    <span className="text-[var(--color-accent)] text-xs">ⓘ</span>
+                  </div>
+                </div>
               </div>
             </div>
-            <div className="space-y-2 text-sm">
-              <div className="flex justify-between">
-                <span className="text-[var(--color-text-muted)]">👕 Top</span>
-                <span>Long sleeve</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-[var(--color-text-muted)]">🩳 Bottom</span>
-                <span>Tights</span>
-              </div>
+            <div className="text-xs text-center py-2 px-3 bg-green-500/20 border border-green-500/40 rounded-lg text-green-300">
+              ✓ Based on 3 similar sessions
             </div>
           </div>
         )}
 
         {/* Feedback preview on step 4 */}
         {step.highlight === 'feedback' && (
-          <div className="flex gap-4 mb-8 animate-fade-in">
-            <div className="px-6 py-3 bg-blue-500/20 border border-blue-500/50 rounded-xl text-center">
-              <div className="text-2xl mb-1">🥶</div>
-              <div className="text-xs">Too Cold</div>
+          <div className="mb-8 animate-fade-in">
+            <div className="flex gap-4 mb-4">
+              <div className="px-6 py-3 bg-blue-500/20 border border-blue-500/50 rounded-xl text-center">
+                <div className="text-2xl mb-1">🥶</div>
+                <div className="text-xs">Too Cold</div>
+              </div>
+              <div className="px-6 py-3 bg-green-500/20 border border-green-500/50 rounded-xl text-center scale-110">
+                <div className="text-2xl mb-1">👍</div>
+                <div className="text-xs">Just Right</div>
+              </div>
+              <div className="px-6 py-3 bg-red-500/20 border border-red-500/50 rounded-xl text-center">
+                <div className="text-2xl mb-1">🥵</div>
+                <div className="text-xs">Too Hot</div>
+              </div>
             </div>
-            <div className="px-6 py-3 bg-green-500/20 border border-green-500/50 rounded-xl text-center scale-110">
-              <div className="text-2xl mb-1">👍</div>
-              <div className="text-xs">Just Right</div>
+            <div className="glass-card p-3 max-w-xs mx-auto">
+              <div className="flex items-center gap-2 text-sm text-[var(--color-text-muted)]">
+                <span>📝</span>
+                <span className="italic">"Gloves were perfect!"</span>
+              </div>
             </div>
-            <div className="px-6 py-3 bg-red-500/20 border border-red-500/50 rounded-xl text-center">
-              <div className="text-2xl mb-1">🥵</div>
-              <div className="text-xs">Too Hot</div>
+          </div>
+        )}
+
+        {/* Safety features preview on step 5 */}
+        {step.highlight === 'safety' && (
+          <div className="grid grid-cols-2 gap-3 mb-8 animate-fade-in max-w-xs">
+            <div className="glass-card p-3 text-center">
+              <div className="text-2xl mb-1">☀️</div>
+              <div className="text-xs text-[var(--color-text-muted)]">Sunny? Sunglasses</div>
+            </div>
+            <div className="glass-card p-3 text-center">
+              <div className="text-2xl mb-1">🌙</div>
+              <div className="text-xs text-[var(--color-text-muted)]">Dusk? Headlamp</div>
+            </div>
+            <div className="glass-card p-3 text-center">
+              <div className="text-2xl mb-1">🌧️</div>
+              <div className="text-xs text-[var(--color-text-muted)]">Rain? Rain gear</div>
+            </div>
+            <div className="glass-card p-3 text-center">
+              <div className="text-2xl mb-1">❄️</div>
+              <div className="text-xs text-[var(--color-text-muted)]">Freezing? Layers</div>
             </div>
           </div>
         )}
