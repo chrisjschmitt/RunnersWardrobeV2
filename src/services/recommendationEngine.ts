@@ -376,6 +376,8 @@ export function getClothingRecommendation(
   }
 
   // Apply smart overrides
+  // TODO: Consider consolidating weather detection logic with getFallbackRecommendation
+  // and getWeatherOverrides() in activityDefaults.ts to reduce duplication
   const adjustedTemp = currentWeather.temperature - comfortAdjustment.temperatureOffset;
   const description = currentWeather.description.toLowerCase();
   
@@ -394,6 +396,7 @@ export function getClothingRecommendation(
   );
 
   // Rain gear override - only for actual rain, not snow
+  // TODO: This duplicates logic in getWeatherOverrides() - consider using that instead
   const rainKey = categories.find(c => c.key === 'rainGear' || c.key === 'outerLayer');
   if (rainKey && isRaining && clothing[rainKey.key]?.toLowerCase() === 'none') {
     clothing[rainKey.key] = adjustedTemp < 50 ? 'Waterproof jacket' : 'Light rain jacket';
@@ -672,6 +675,8 @@ export function getFallbackRecommendation(
   }
   
   // Calculate weather modifiers
+  // TODO: This logic is duplicated in getClothingRecommendation - consider extracting
+  // to a shared utility function like detectWeatherConditions(weather)
   const description = weather.description.toLowerCase();
   const isSnowing = description.includes('snow') || 
     description.includes('flurr') ||

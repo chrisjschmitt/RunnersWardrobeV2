@@ -343,22 +343,28 @@ export function isDarkOutside(weather?: WeatherData): boolean {
     
     // Validate the dates are actually valid
     if (!isNaN(sunrise.getTime()) && !isNaN(sunset.getTime())) {
-      // Add 30-minute buffer before sunrise and after sunset
-      const bufferMs = 30 * 60 * 1000; // 30 minutes
-      const sunriseWithBuffer = new Date(sunrise.getTime() - bufferMs);
-      const sunsetWithBuffer = new Date(sunset.getTime() + bufferMs);
+      // Buffer times for safety:
+      // - 30 minutes before sunrise (still dark)
+      // - 60 minutes BEFORE sunset (recommend headlamp for activities that might extend into dark)
+      const preBufferMs = 30 * 60 * 1000; // 30 minutes before sunrise
+      const sunsetBufferMs = 60 * 60 * 1000; // 60 minutes before sunset
       
-      // It's dark if before sunrise (with buffer) or after sunset (with buffer)
-      return now < sunriseWithBuffer || now > sunsetWithBuffer;
+      const sunriseWithBuffer = new Date(sunrise.getTime() - preBufferMs);
+      const sunsetWithBuffer = new Date(sunset.getTime() - sunsetBufferMs); // Note: BEFORE sunset now
+      
+      // It's "dark" (need headlamp) if:
+      // - Before sunrise + buffer, OR
+      // - Within 60 minutes of sunset or after
+      return now < sunriseWithBuffer || now >= sunsetWithBuffer;
     }
   }
   
-  // Fallback: use conservative hour-based logic (only truly dark hours)
-  // Before 5:30 AM or after 8:30 PM - covers most seasons
+  // Fallback: use conservative hour-based logic
+  // Before 5:30 AM or after 7:30 PM (earlier to account for dusk)
   const hour = now.getHours();
   const minutes = now.getMinutes();
   const timeValue = hour + minutes / 60;
-  return timeValue < 5.5 || timeValue >= 20.5;
+  return timeValue < 5.5 || timeValue >= 19.5;
 }
 
 // Helper to check if sunny (for sunglasses recommendations)
