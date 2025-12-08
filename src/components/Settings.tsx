@@ -9,7 +9,7 @@ interface SettingsProps {
   onSettingsSaved: () => void;
   initialApiKey?: string;
   initialUnit?: TemperatureUnit;
-  onHelpClick?: () => void;
+  onUploadClick?: () => void;
   testMode?: boolean;
   onTestModeChange?: (enabled: boolean) => void;
   testWeather?: TestWeatherData | null;
@@ -41,7 +41,7 @@ export function Settings({
   onSettingsSaved, 
   initialApiKey = '', 
   initialUnit = 'celsius', 
-  onHelpClick,
+  onUploadClick,
   testMode = false,
   onTestModeChange,
   testWeather,
@@ -488,19 +488,19 @@ export function Settings({
         </div>
       )}
 
-      {/* Help button */}
-      {onHelpClick && (
+      {/* Import Data button */}
+      {onUploadClick && (
         <button
-          onClick={onHelpClick}
+          onClick={onUploadClick}
           className="w-full mt-6 glass-card p-4 flex items-center justify-between hover:bg-[rgba(255,255,255,0.08)] transition-colors"
         >
           <div className="flex items-center gap-3">
             <svg className="w-6 h-6 text-[var(--color-accent)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
             </svg>
             <div className="text-left">
-              <div className="font-medium">Help & FAQ</div>
-              <div className="text-sm text-[var(--color-text-muted)]">Learn how the app works</div>
+              <div className="font-medium">Import Data</div>
+              <div className="text-sm text-[var(--color-text-muted)]">Upload activity history from CSV</div>
             </div>
           </div>
           <svg className="w-5 h-5 text-[var(--color-text-muted)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
