@@ -187,10 +187,16 @@ function findRecentSimilarFeedback(
 }
 
 // Convert feedback records to run records for clothing recommendations
-function feedbackToRunRecord(feedback: RunFeedback): RunRecord {
+// Extends RunRecord with feedback-specific fields for display
+function feedbackToRunRecord(feedback: RunFeedback): RunRecord & { comfort?: string; comments?: string } {
+  // Extract time from timestamp
+  const time = feedback.timestamp 
+    ? new Date(feedback.timestamp).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })
+    : '';
+  
   return {
     date: feedback.date,
-    time: '',
+    time,
     location: 'From feedback',
     temperature: feedback.temperature,
     feelsLike: feedback.feelsLike,
@@ -201,7 +207,10 @@ function feedbackToRunRecord(feedback: RunFeedback): RunRecord {
     windSpeed: feedback.windSpeed,
     cloudCover: feedback.cloudCover,
     clothing: feedback.clothing,
-    activity: feedback.activity
+    activity: feedback.activity,
+    // Include feedback-specific fields
+    comfort: feedback.comfort,
+    comments: feedback.comments
   };
 }
 
