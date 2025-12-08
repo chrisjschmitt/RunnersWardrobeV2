@@ -1,0 +1,815 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clothing Info Guide - How Recommendations Were Created</title>
+    <style>
+        :root {
+            --bg: #0f172a;
+            --surface: #1e293b;
+            --border: #334155;
+            --text: #f1f5f9;
+            --muted: #94a3b8;
+            --accent: #3b82f6;
+            --green: #22c55e;
+            --yellow: #eab308;
+            --red: #ef4444;
+            --purple: #8b5cf6;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.7;
+            padding: 2rem;
+        }
+        
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        
+        h1 {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(135deg, var(--accent), var(--purple));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .subtitle {
+            color: var(--muted);
+            margin-bottom: 2rem;
+            font-size: 1.1rem;
+        }
+        
+        h2 {
+            font-size: 1.4rem;
+            margin: 2.5rem 0 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        h3 {
+            font-size: 1.1rem;
+            margin: 1.5rem 0 0.75rem;
+            color: var(--accent);
+        }
+        
+        p {
+            margin-bottom: 1rem;
+            color: var(--text);
+        }
+        
+        .section {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .section.methodology {
+            border-color: var(--accent);
+        }
+        
+        .section.maintenance {
+            border-color: var(--green);
+        }
+        
+        .section.coverage {
+            border-color: var(--purple);
+        }
+        
+        ul, ol {
+            margin-left: 1.5rem;
+            margin-bottom: 1rem;
+        }
+        
+        li {
+            margin-bottom: 0.5rem;
+            color: var(--text);
+        }
+        
+        .highlight {
+            background: rgba(59, 130, 246, 0.1);
+            border-left: 3px solid var(--accent);
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 0 8px 8px 0;
+        }
+        
+        .warning {
+            background: rgba(234, 179, 8, 0.1);
+            border-left: 3px solid var(--yellow);
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 0 8px 8px 0;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1rem 0;
+            font-size: 0.9rem;
+        }
+        
+        th {
+            text-align: left;
+            padding: 0.75rem;
+            background: rgba(255,255,255,0.05);
+            border-bottom: 1px solid var(--border);
+            color: var(--muted);
+            font-weight: 500;
+        }
+        
+        td {
+            padding: 0.75rem;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+        
+        tr:hover {
+            background: rgba(255,255,255,0.02);
+        }
+        
+        .coverage-bar {
+            height: 8px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        
+        .coverage-fill {
+            height: 100%;
+            border-radius: 4px;
+            transition: width 0.3s;
+        }
+        
+        .coverage-high { background: var(--green); }
+        .coverage-medium { background: var(--yellow); }
+        .coverage-low { background: var(--red); }
+        
+        code {
+            background: rgba(255,255,255,0.1);
+            padding: 0.2rem 0.4rem;
+            border-radius: 4px;
+            font-family: 'SF Mono', Monaco, monospace;
+            font-size: 0.85rem;
+        }
+        
+        .source-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin: 1rem 0;
+        }
+        
+        .source-card {
+            background: rgba(255,255,255,0.05);
+            border-radius: 8px;
+            padding: 1rem;
+            text-align: center;
+        }
+        
+        .source-icon {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .source-name {
+            font-weight: 500;
+            margin-bottom: 0.25rem;
+        }
+        
+        .source-desc {
+            font-size: 0.8rem;
+            color: var(--muted);
+        }
+        
+        .checklist {
+            list-style: none;
+            margin-left: 0;
+        }
+        
+        .checklist li {
+            padding: 0.5rem 0;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            display: flex;
+            align-items: flex-start;
+            gap: 0.75rem;
+        }
+        
+        .checklist li:last-child {
+            border-bottom: none;
+        }
+        
+        .check-icon {
+            color: var(--green);
+            font-weight: bold;
+        }
+        
+        .schedule-table td:first-child {
+            font-weight: 500;
+            color: var(--accent);
+        }
+        
+        .badge {
+            display: inline-block;
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+        
+        .badge.green { background: rgba(34, 197, 94, 0.2); color: var(--green); }
+        .badge.yellow { background: rgba(234, 179, 8, 0.2); color: var(--yellow); }
+        .badge.red { background: rgba(239, 68, 68, 0.2); color: var(--red); }
+        
+        footer {
+            margin-top: 3rem;
+            padding-top: 1rem;
+            border-top: 1px solid var(--border);
+            text-align: center;
+            color: var(--muted);
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧥 Clothing Info Guide</h1>
+        <p class="subtitle">How recommendations were created and how to keep them fresh</p>
+        
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 1rem; margin-bottom: 2rem;">
+            <div class="source-card">
+                <div class="source-icon" style="font-size: 1.5rem;">167</div>
+                <div class="source-name">Total Items</div>
+                <div class="source-desc">with tips</div>
+            </div>
+            <div class="source-card">
+                <div class="source-icon" style="font-size: 1.5rem;">7</div>
+                <div class="source-name">Activities</div>
+                <div class="source-desc">covered</div>
+            </div>
+            <div class="source-card">
+                <div class="source-icon" style="font-size: 1.5rem;">19</div>
+                <div class="source-name">Categories</div>
+                <div class="source-desc">of gear</div>
+            </div>
+            <div class="source-card">
+                <div class="source-icon" style="font-size: 1.5rem;">95%</div>
+                <div class="source-name">Coverage</div>
+                <div class="source-desc">average</div>
+            </div>
+        </div>
+        
+        <!-- METHODOLOGY SECTION -->
+        <h2>📚 How Recommendations Were Created</h2>
+        
+        <div class="section methodology">
+            <h3>Research Sources</h3>
+            <p>The clothing recommendations were compiled from multiple authoritative sources:</p>
+            
+            <div class="source-list">
+                <div class="source-card">
+                    <div class="source-icon">🏃</div>
+                    <div class="source-name">Running Communities</div>
+                    <div class="source-desc">Reddit r/running, Strava clubs, running forums</div>
+                </div>
+                <div class="source-card">
+                    <div class="source-icon">🏔️</div>
+                    <div class="source-name">Outdoor Retailers</div>
+                    <div class="source-desc">REI, Backcountry, outdoor gear guides</div>
+                </div>
+                <div class="source-card">
+                    <div class="source-icon">📖</div>
+                    <div class="source-name">Gear Reviews</div>
+                    <div class="source-desc">Outdoor Gear Lab, RunRepeat, BikeRadar</div>
+                </div>
+                <div class="source-card">
+                    <div class="source-icon">🎓</div>
+                    <div class="source-name">Expert Knowledge</div>
+                    <div class="source-desc">Coaches, experienced athletes, manufacturers</div>
+                </div>
+            </div>
+            
+            <h3>Information Structure</h3>
+            <p>Each clothing item includes up to 7 fields:</p>
+            
+            <table>
+                <thead>
+                    <tr>
+                        <th>Field</th>
+                        <th>Purpose</th>
+                        <th>Example</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><code>name</code></td>
+                        <td>Display name for the item</td>
+                        <td>"Merino Wool Base Layer"</td>
+                    </tr>
+                    <tr>
+                        <td><code>description</code></td>
+                        <td>What the item is</td>
+                        <td>"Natural wool layer that regulates temperature"</td>
+                    </tr>
+                    <tr>
+                        <td><code>whyWear</code></td>
+                        <td>Temperature/conditions when appropriate</td>
+                        <td>"Cold weather. Wool stays warm even when wet"</td>
+                    </tr>
+                    <tr>
+                        <td><code>lookFor</code></td>
+                        <td>Features to prioritize when buying</td>
+                        <td>["150-200 weight", "Flatlock seams"]</td>
+                    </tr>
+                    <tr>
+                        <td><code>examples</code></td>
+                        <td>Specific brand/product recommendations</td>
+                        <td>["Smartwool", "Icebreaker", "Ridge Merino"]</td>
+                    </tr>
+                    <tr>
+                        <td><code>budgetTip</code></td>
+                        <td>How to save money</td>
+                        <td>"Worth the investment - lasts years"</td>
+                    </tr>
+                    <tr>
+                        <td><code>avoid</code></td>
+                        <td>Common mistakes</td>
+                        <td>"Cotton - it absorbs sweat and chafes"</td>
+                    </tr>
+                </tbody>
+            </table>
+            
+            <h3>Guiding Principles</h3>
+            <ul>
+                <li><strong>Beginner-friendly:</strong> Explain terminology that experienced athletes take for granted</li>
+                <li><strong>Temperature-specific:</strong> Include °F and °C for when to wear items</li>
+                <li><strong>Budget-conscious:</strong> Always include affordable alternatives</li>
+                <li><strong>Activity-aware:</strong> Same item may have different advice for different activities</li>
+                <li><strong>Practical:</strong> Focus on what matters, skip marketing fluff</li>
+            </ul>
+        </div>
+        
+        <!-- MAINTENANCE SECTION -->
+        <h2>🔄 Keeping Recommendations Fresh</h2>
+        
+        <div class="section maintenance">
+            <h3>Why Updates Matter</h3>
+            <p>Outdoor gear evolves constantly. New materials, discontinued products, and changing best practices mean recommendations need regular attention.</p>
+            
+            <div class="warning">
+                <strong>⚠️ Common Staleness Issues:</strong>
+                <ul style="margin-top: 0.5rem; margin-bottom: 0;">
+                    <li>Recommended products discontinued or renamed</li>
+                    <li>New materials/technologies not mentioned (e.g., carbon plate shoes)</li>
+                    <li>Price ranges becoming outdated</li>
+                    <li>Brand quality changes (some decline, new players emerge)</li>
+                </ul>
+            </div>
+            
+            <h3>Recommended Update Schedule</h3>
+            <table class="schedule-table">
+                <thead>
+                    <tr>
+                        <th>Frequency</th>
+                        <th>What to Update</th>
+                        <th>How</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Quarterly</td>
+                        <td>Product examples, price ranges</td>
+                        <td>Check if linked products still exist, update prices</td>
+                    </tr>
+                    <tr>
+                        <td>Bi-annually</td>
+                        <td>Budget tips, "what to look for"</td>
+                        <td>Review gear guides (REI, Outdoor Gear Lab)</td>
+                    </tr>
+                    <tr>
+                        <td>Annually</td>
+                        <td>Full content review</td>
+                        <td>Compare against current best practices</td>
+                    </tr>
+                    <tr>
+                        <td>As needed</td>
+                        <td>New gear categories</td>
+                        <td>When new activity types or technologies emerge</td>
+                    </tr>
+                </tbody>
+            </table>
+            
+            <h3>Update Checklist</h3>
+            <ul class="checklist">
+                <li>
+                    <span class="check-icon">□</span>
+                    <span><strong>Verify product examples:</strong> Search each brand/model to confirm it's still sold. Replace discontinued items with current equivalents.</span>
+                </li>
+                <li>
+                    <span class="check-icon">□</span>
+                    <span><strong>Check price ranges:</strong> Update "budget tip" amounts for inflation. A "$30-50" range in 2024 might be "$35-60" in 2026.</span>
+                </li>
+                <li>
+                    <span class="check-icon">□</span>
+                    <span><strong>Review new technologies:</strong> Check if new materials have become mainstream (e.g., graphene, new foam types).</span>
+                </li>
+                <li>
+                    <span class="check-icon">□</span>
+                    <span><strong>Validate temperature ranges:</strong> Ensure "whyWear" guidance matches current expert consensus.</span>
+                </li>
+                <li>
+                    <span class="check-icon">□</span>
+                    <span><strong>Add new entries:</strong> Check if new clothing categories have emerged for any activity.</span>
+                </li>
+                <li>
+                    <span class="check-icon">□</span>
+                    <span><strong>Remove outdated advice:</strong> Delete recommendations that are no longer best practice.</span>
+                </li>
+            </ul>
+            
+            <h3>Where to Find Current Information</h3>
+            <div class="source-list">
+                <div class="source-card">
+                    <div class="source-icon">🔬</div>
+                    <div class="source-name">Outdoor Gear Lab</div>
+                    <div class="source-desc">outdoorgearlab.com - detailed gear testing</div>
+                </div>
+                <div class="source-card">
+                    <div class="source-icon">🏕️</div>
+                    <div class="source-name">REI Expert Advice</div>
+                    <div class="source-desc">rei.com/learn - buying guides by category</div>
+                </div>
+                <div class="source-card">
+                    <div class="source-icon">👟</div>
+                    <div class="source-name">RunRepeat</div>
+                    <div class="source-desc">runrepeat.com - shoe reviews and data</div>
+                </div>
+                <div class="source-card">
+                    <div class="source-icon">🚴</div>
+                    <div class="source-name">BikeRadar / Cycling Weekly</div>
+                    <div class="source-desc">Cycling gear reviews and guides</div>
+                </div>
+                <div class="source-card">
+                    <div class="source-icon">💬</div>
+                    <div class="source-name">Reddit Communities</div>
+                    <div class="source-desc">r/running, r/hiking, r/cycling, r/xcountryskiing</div>
+                </div>
+                <div class="source-card">
+                    <div class="source-icon">📺</div>
+                    <div class="source-name">YouTube Reviewers</div>
+                    <div class="source-desc">Chase the Summit, GCN, etc.</div>
+                </div>
+            </div>
+            
+            <div class="highlight">
+                <strong>💡 Pro Tip:</strong> Set a calendar reminder for each season change (March, June, September, December) to review and update recommendations relevant to the upcoming weather.
+            </div>
+        </div>
+        
+        <!-- COVERAGE REPORT -->
+        <h2>📊 Current Coverage Report</h2>
+        
+        <div class="section coverage">
+            <h3>Coverage by Activity</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Activity</th>
+                        <th>Items with Info</th>
+                        <th>Missing</th>
+                        <th>Coverage</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>🏃 Running</td>
+                        <td>28</td>
+                        <td>2</td>
+                        <td><span class="badge green">93%</span></td>
+                        <td>
+                            <div class="coverage-bar">
+                                <div class="coverage-fill coverage-high" style="width: 93%"></div>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>🏔️ Trail Running</td>
+                        <td>34</td>
+                        <td>2</td>
+                        <td><span class="badge green">94%</span></td>
+                        <td>
+                            <div class="coverage-bar">
+                                <div class="coverage-fill coverage-high" style="width: 94%"></div>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>🥾 Hiking</td>
+                        <td>44</td>
+                        <td>3</td>
+                        <td><span class="badge green">94%</span></td>
+                        <td>
+                            <div class="coverage-bar">
+                                <div class="coverage-fill coverage-high" style="width: 94%"></div>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>🚶 Walking</td>
+                        <td>31</td>
+                        <td>2</td>
+                        <td><span class="badge green">94%</span></td>
+                        <td>
+                            <div class="coverage-bar">
+                                <div class="coverage-fill coverage-high" style="width: 94%"></div>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>🚴 Cycling</td>
+                        <td>41</td>
+                        <td>1</td>
+                        <td><span class="badge green">98%</span></td>
+                        <td>
+                            <div class="coverage-bar">
+                                <div class="coverage-fill coverage-high" style="width: 98%"></div>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>❄️ Snowshoeing</td>
+                        <td>41</td>
+                        <td>2</td>
+                        <td><span class="badge green">95%</span></td>
+                        <td>
+                            <div class="coverage-bar">
+                                <div class="coverage-fill coverage-high" style="width: 95%"></div>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>⛷️ XC Skiing</td>
+                        <td>25</td>
+                        <td>1</td>
+                        <td><span class="badge green">96%</span></td>
+                        <td>
+                            <div class="coverage-bar">
+                                <div class="coverage-fill coverage-high" style="width: 96%"></div>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+            
+            <h3>What's Missing (and Why It's OK)</h3>
+            <p>The remaining items without info are intentionally minimal:</p>
+            <ul>
+                <li><strong>"None" options:</strong> No explanation needed for "no gloves" or "no accessories"</li>
+                <li><strong>Combo items:</strong> Items like "Sunglasses + poles", "Headlamp + reflective vest" combine items that already have individual explanations</li>
+            </ul>
+            
+            <h3>Items Added in v3.4.1 (9 new entries)</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Category</th>
+                        <th>Item</th>
+                        <th>Used By</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Socks</td>
+                        <td>Wool socks</td>
+                        <td>Cycling, XC Skiing</td>
+                    </tr>
+                    <tr>
+                        <td>Footwear</td>
+                        <td>Sandals</td>
+                        <td>Walking</td>
+                    </tr>
+                    <tr>
+                        <td>Base Layers</td>
+                        <td>Light synthetic</td>
+                        <td>Snowshoeing, XC Skiing</td>
+                    </tr>
+                    <tr>
+                        <td>Base Layers</td>
+                        <td>Heavy merino</td>
+                        <td>Snowshoeing</td>
+                    </tr>
+                    <tr>
+                        <td>Base Layers</td>
+                        <td>Expedition weight</td>
+                        <td>Snowshoeing</td>
+                    </tr>
+                    <tr>
+                        <td>Base Layers</td>
+                        <td>Race suit base</td>
+                        <td>XC Skiing</td>
+                    </tr>
+                    <tr>
+                        <td>XC Tops</td>
+                        <td>Race suit top</td>
+                        <td>XC Skiing</td>
+                    </tr>
+                    <tr>
+                        <td>XC Tops</td>
+                        <td>XC jacket</td>
+                        <td>XC Skiing</td>
+                    </tr>
+                    <tr>
+                        <td>XC Tops</td>
+                        <td>Soft shell</td>
+                        <td>XC Skiing</td>
+                    </tr>
+                </tbody>
+            </table>
+            
+            <h3>Coverage History</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Activity</th>
+                        <th>Before v3.4.0</th>
+                        <th>After v3.4.1</th>
+                        <th>Improvement</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Running</td>
+                        <td>58%</td>
+                        <td>93%</td>
+                        <td><span style="color: var(--green)">+35%</span></td>
+                    </tr>
+                    <tr>
+                        <td>Trail Running</td>
+                        <td>44%</td>
+                        <td>94%</td>
+                        <td><span style="color: var(--green)">+50%</span></td>
+                    </tr>
+                    <tr>
+                        <td>Hiking</td>
+                        <td>43%</td>
+                        <td>94%</td>
+                        <td><span style="color: var(--green)">+51%</span></td>
+                    </tr>
+                    <tr>
+                        <td>Walking</td>
+                        <td>69%</td>
+                        <td>94%</td>
+                        <td><span style="color: var(--green)">+25%</span></td>
+                    </tr>
+                    <tr>
+                        <td>Cycling</td>
+                        <td>7%</td>
+                        <td>98%</td>
+                        <td><span style="color: var(--green)">+91%</span></td>
+                    </tr>
+                    <tr>
+                        <td>Snowshoeing</td>
+                        <td>35%</td>
+                        <td>95%</td>
+                        <td><span style="color: var(--green)">+60%</span></td>
+                    </tr>
+                    <tr>
+                        <td>XC Skiing</td>
+                        <td>24%</td>
+                        <td>96%</td>
+                        <td><span style="color: var(--green)">+72%</span></td>
+                    </tr>
+                    <tr style="font-weight: bold; background: rgba(255,255,255,0.05);">
+                        <td>Average</td>
+                        <td>42%</td>
+                        <td>95%</td>
+                        <td><span style="color: var(--green)">+53%</span></td>
+                    </tr>
+                </tbody>
+            </table>
+            
+            <h3>Remaining Gaps (Combo Items Only)</h3>
+            <p>These combo items don't need separate tips since individual components have full coverage:</p>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Combo Item</th>
+                        <th>Activity</th>
+                        <th>Components Have Info?</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Sunglasses + watch</td>
+                        <td>Running</td>
+                        <td><span class="badge green">✓ Yes</span></td>
+                    </tr>
+                    <tr>
+                        <td>Headlamp + reflective vest</td>
+                        <td>Running</td>
+                        <td><span class="badge green">✓ Yes</span></td>
+                    </tr>
+                    <tr>
+                        <td>Sunglasses + poles</td>
+                        <td>Trail, Hiking</td>
+                        <td><span class="badge green">✓ Yes</span></td>
+                    </tr>
+                    <tr>
+                        <td>Headlamp + poles</td>
+                        <td>Trail, Hiking, Snowshoeing</td>
+                        <td><span class="badge green">✓ Yes</span></td>
+                    </tr>
+                    <tr>
+                        <td>Sunglasses + hat</td>
+                        <td>Walking</td>
+                        <td><span class="badge green">✓ Yes</span></td>
+                    </tr>
+                    <tr>
+                        <td>Poles + sunglasses</td>
+                        <td>Snowshoeing</td>
+                        <td><span class="badge green">✓ Yes</span></td>
+                    </tr>
+                    <tr>
+                        <td>Poles + goggles</td>
+                        <td>Snowshoeing</td>
+                        <td><span class="badge green">✓ Yes</span></td>
+                    </tr>
+                    <tr>
+                        <td>Wind jacket + fleece</td>
+                        <td>XC Skiing</td>
+                        <td><span class="badge green">✓ Yes</span></td>
+                    </tr>
+                    <tr>
+                        <td>Wind pants over tights</td>
+                        <td>XC Skiing</td>
+                        <td><span class="badge green">✓ Yes</span></td>
+                    </tr>
+                </tbody>
+            </table>
+            <p style="margin-top: 1rem; color: var(--muted); font-size: 0.9rem;">
+                <strong>Note:</strong> These combo items inherit tips from their individual components. 
+                Users can tap the info icon on each component separately.
+            </p>
+        </div>
+        
+        <!-- FILE LOCATION -->
+        <h2>📁 Where to Make Updates</h2>
+        
+        <div class="section">
+            <p>All clothing info is stored in a single file:</p>
+            <div class="highlight">
+                <code>src/data/clothingInfo.ts</code>
+            </div>
+            
+            <p>The file structure:</p>
+            <ul>
+                <li><code>CLOTHING_INFO</code> - Main object containing all categories</li>
+                <li>Categories: <code>headCover</code>, <code>tops</code>, <code>jersey</code>, <code>bottoms</code>, <code>bibs</code>, <code>shoes</code>, <code>socks</code>, <code>gloves</code>, <code>outerLayer</code>, <code>midLayer</code>, <code>rainGear</code>, <code>helmet</code>, <code>armWarmers</code>, <code>eyewear</code>, <code>hydration</code>, <code>gaiters</code>, <code>poles</code>, <code>pack</code>, <code>accessories</code></li>
+                <li>Each item has: <code>name</code>, <code>description</code>, <code>whyWear</code>, <code>lookFor</code>, <code>examples</code>, <code>budgetTip</code>, <code>avoid</code></li>
+            </ul>
+            
+            <p>To add a new item, add an entry to the appropriate category:</p>
+            <pre style="background: rgba(0,0,0,0.3); padding: 1rem; border-radius: 8px; overflow-x: auto; font-size: 0.85rem;">
+'New Item Name': {
+  name: 'New Item Name',
+  description: 'What it is',
+  whyWear: 'When to use it',
+  lookFor: ['Feature 1', 'Feature 2'],
+  examples: ['Brand 1', 'Brand 2'],
+  budgetTip: 'How to save money',
+  avoid: 'What to avoid',
+},</pre>
+            
+            <div class="warning" style="margin-top: 1.5rem;">
+                <strong>⚠️ Important:</strong> The item key (e.g., <code>'New Item Name'</code>) must <strong>exactly match</strong> 
+                the option string in <code>src/types/index.ts</code>. The lookup is case-insensitive but must otherwise be identical.
+                <br><br>
+                For example: <code>'Wool socks'</code> in clothingInfo.ts matches <code>'Wool socks'</code> in types/index.ts, 
+                but would NOT match <code>'Wool'</code>.
+            </div>
+        </div>
+        
+        <footer>
+            <p>Clothing Info Guide • TrailKit • Last updated: December 2025 • v3.4.1</p>
+        </footer>
+    </div>
+</body>
+</html>
+
