@@ -1,5 +1,6 @@
 import type { WeatherData, RunRecord, ClothingItems, ClothingRecommendation, RunFeedback, ComfortAdjustment, ActivityType, ClothingCategory } from '../types';
 import { getDefaultClothing, getClothingCategories, isDarkOutside, isSunny } from '../types';
+import { ACTIVITY_TEMP_DEFAULTS, getTempRange, getWeatherOverrides, type WeatherModifiers } from '../data/activityDefaults';
 
 // Weather similarity thresholds
 const THRESHOLDS = {
@@ -627,6 +628,7 @@ export function getClothingRecommendation(
 }
 
 // Get fallback recommendation when no history exists
+// Uses data-driven activity-specific defaults from activityDefaults.ts
 export function getFallbackRecommendation(
   weather: WeatherData,
   feedbackHistory: RunFeedback[] = [],
@@ -647,95 +649,55 @@ export function getFallbackRecommendation(
     return applyAccessoryLogic(relevantFeedback[0].clothing, weather, activity);
   }
 
-  // Get default clothing for this activity
+  // Get base defaults for this activity
   const clothing = getDefaultClothing(activity);
   const categories = getClothingCategories(activity);
   
+  // Calculate adjusted temperature based on comfort history
   const comfortAdjustment = calculateComfortAdjustment(weather, feedbackHistory);
-  const temp = weather.temperature - comfortAdjustment.temperatureOffset;
-  const description = weather.description.toLowerCase();
-  const isWindy = weather.windSpeed > 10;
+  const adjustedTemp = weather.temperature - comfortAdjustment.temperatureOffset;
   
-  // Check if it's snowing (below freezing OR snow in description)
+  // Get temperature range
+  const tempRange = getTempRange(adjustedTemp);
+  
+  // Get activity-specific defaults for this temperature range
+  const activityDefaults = ACTIVITY_TEMP_DEFAULTS[activity];
+  const tempDefaults = activityDefaults[tempRange];
+  
+  // Apply temperature-based defaults (only if the value exists in the category's options)
+  for (const [key, value] of Object.entries(tempDefaults)) {
+    if (value) {
+      applyIfExists(clothing, categories, key, value);
+    }
+  }
+  
+  // Calculate weather modifiers
+  const description = weather.description.toLowerCase();
   const isSnowing = description.includes('snow') || 
     description.includes('flurr') ||
     description.includes('sleet') ||
     (weather.temperature < 32 && weather.precipitation > 0);
+  const isRaining = !isSnowing && weather.precipitation > 0;
   
-  // Only consider it rain if it's NOT snowing  
-  const hasRain = !isSnowing && weather.precipitation > 0;
-
-  // Apply temperature-based adjustments
-  if (temp < 25) {
-    // Very cold
-    applyIfExists(clothing, categories, 'headCover', 'Beanie');
-    applyFirstValid(clothing, categories, 'tops', ['Base layer + jacket', 'Fleece', 'Light jacket']);
-    applyIfExists(clothing, categories, 'baseLayer', 'Heavy merino');
-    applyIfExists(clothing, categories, 'midLayer', 'Heavy puffy');
-    applyFirstValid(clothing, categories, 'outerLayer', ['Insulated jacket', 'Down jacket', 'Winter coat']);
-    applyFirstValid(clothing, categories, 'bottoms', ['Insulated pants', 'Tights', 'Fleece-lined leggings', 'Softshell pants', 'Jeans']);
-    applyFirstValid(clothing, categories, 'gloves', ['Heavy gloves', 'Warm gloves', 'Mittens']);
-    applyFirstValid(clothing, categories, 'socks', ['Wool', 'Heavy wool', 'Thick']);
-  } else if (temp < 40) {
-    // Cold
-    applyIfExists(clothing, categories, 'headCover', 'Beanie');
-    applyFirstValid(clothing, categories, 'tops', ['Long sleeve', 'Sweater', 'Fleece']);
-    applyIfExists(clothing, categories, 'baseLayer', 'Merino base');
-    applyIfExists(clothing, categories, 'midLayer', 'Fleece');
-    applyFirstValid(clothing, categories, 'outerLayer', ['Light jacket', 'Winter coat']);
-    applyFirstValid(clothing, categories, 'bottoms', ['Fleece-lined leggings', 'Tights', 'Jeans', 'Leggings', 'Casual pants']);
-    applyIfExists(clothing, categories, 'gloves', 'Light gloves');
-    applyFirstValid(clothing, categories, 'socks', ['Wool', 'Thick']);
-  } else if (temp < 55) {
-    // Cool
-    applyFirstValid(clothing, categories, 'headCover', [temp < 45 ? 'Headband' : 'None', 'Ear warmers', 'Cap']);
-    applyFirstValid(clothing, categories, 'tops', ['Long sleeve', 'Sweater']);
-    applyIfExists(clothing, categories, 'baseLayer', 'Long sleeve');
-    applyFirstValid(clothing, categories, 'bottoms', ['Tights', 'Casual pants', 'Jeans', 'Leggings']);
-    applyIfExists(clothing, categories, 'gloves', temp < 45 ? 'Light gloves' : 'None');
-  } else if (temp < 65) {
-    // Mild
-    applyFirstValid(clothing, categories, 'tops', [isWindy ? 'Long sleeve' : 'T-shirt', 'T-shirt']);
-    applyFirstValid(clothing, categories, 'bottoms', ['Shorts', 'Casual pants', 'Capris']);
-  } else if (temp < 75) {
-    // Warm
-    applyIfExists(clothing, categories, 'tops', 'T-shirt');
-    applyFirstValid(clothing, categories, 'bottoms', ['Shorts', 'Capris']);
-  } else {
-    // Hot
-    applyFirstValid(clothing, categories, 'headCover', [weather.uvIndex > 5 ? 'Cap' : 'None', 'Sun hat']);
-    applyFirstValid(clothing, categories, 'tops', ['Singlet', 'T-shirt']);
-    applyFirstValid(clothing, categories, 'bottoms', ['Short shorts', 'Shorts']);
-    applyFirstValid(clothing, categories, 'socks', ['Light', 'No-show']);
-  }
-
-  // Rain adjustments
-  if (hasRain) {
-    applyIfExists(clothing, categories, 'rainGear', temp < 50 ? 'Waterproof jacket' : 'Light rain jacket');
-    applyIfExists(clothing, categories, 'outerLayer', 'Rain jacket');
-  }
-
-  // Cold weather footwear adjustments - use alternatives for different activities
-  // Includes options from all activities: Walking, Hiking, Cycling, Snowshoeing, XC Skiing
-  const COLD_FOOTWEAR = [
-    'Waterproof boots', 'Waterproof shoes', 'Boots', 'Winter boots',
-    'Winter hiking boots', 'Hiking boots', 'Walking shoes',
-    'Insulated boots',  // XC Skiing
-    'Shoe covers'       // Cycling
-  ];
+  const modifiers: WeatherModifiers = {
+    isRaining,
+    isSnowing,
+    isWindy: weather.windSpeed > 10,
+    isSunny: isSunny(weather),
+    isDark: isDarkOutside(weather),
+  };
   
-  if (temp < 32) {
-    applyFirstValid(clothing, categories, 'shoes', COLD_FOOTWEAR);
-    applyFirstValid(clothing, categories, 'boots', ['Winter boots', 'Waterproof boots', 'Pac boots']);
-  }
+  // Get weather-based overrides
+  const weatherOverrides = getWeatherOverrides(activity, modifiers, tempRange);
   
-  // Wet weather footwear adjustments
-  if (hasRain || isSnowing) {
-    applyFirstValid(clothing, categories, 'shoes', ['Waterproof shoes', 'Waterproof boots', 'Boots', 'Walking shoes']);
-    applyFirstValid(clothing, categories, 'boots', ['Waterproof boots', 'Winter boots']);
+  // Apply weather overrides
+  for (const [key, value] of Object.entries(weatherOverrides)) {
+    if (value) {
+      applyIfExists(clothing, categories, key, value);
+    }
   }
 
-  // Apply accessory logic
+  // Apply accessory logic (sunglasses/headlamp based on conditions)
   return applyAccessoryLogic(clothing, weather, activity);
 }
 

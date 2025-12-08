@@ -1,0 +1,141 @@
+Clothing Selection Engine Report
+Generated: 2025-12-08
+Version: 3.5.0
+
+================================================================================
+SECTION 1: TEMPERATURE RANGES
+================================================================================
+Range Name,Min Temp (°F),Max Temp (°F),Min Temp (°C),Max Temp (°C)
+freezing,-∞,15,-∞,-9
+veryCold,15,25,-9,-4
+cold,25,40,-4,4
+cool,40,55,4,13
+mild,55,65,13,18
+warm,65,75,18,24
+hot,75,∞,24,∞
+
+================================================================================
+SECTION 2: RUNNING DEFAULTS BY TEMPERATURE
+================================================================================
+Temp Range,headCover,tops,bottoms,shoes,socks,gloves,rainGear,accessories
+freezing,Balaclava,Base layer + jacket,Tights,Running shoes,Wool,Heavy gloves,None,None
+veryCold,Beanie,Base layer + jacket,Tights,Running shoes,Wool,Heavy gloves,None,None
+cold,Beanie,Long sleeve,Tights,Running shoes,Wool,Light gloves,None,None
+cool,Headband,Long sleeve,Tights,Running shoes,Regular,None,None,None
+mild,None,T-shirt,Shorts,Running shoes,Regular,None,None,None
+warm,Cap,T-shirt,Shorts,Running shoes,No-show,None,None,None
+hot,Cap,Singlet,Short shorts,Running shoes,No-show,None,None,None
+
+================================================================================
+SECTION 3: TRAIL RUNNING DEFAULTS BY TEMPERATURE
+================================================================================
+Temp Range,headCover,tops,bottoms,shoes,socks,gloves,rainGear,hydration,accessories
+freezing,Balaclava,Base layer + jacket,Tights,Trail shoes,Wool,Heavy gloves,Wind jacket,Hydration vest,None
+veryCold,Beanie,Base layer + jacket,Tights,Trail shoes,Wool,Heavy gloves,Wind jacket,Hydration vest,None
+cold,Beanie,Long sleeve,Tights,Trail shoes,Wool,Light gloves,None,Hydration vest,None
+cool,Buff,Long sleeve,Tights,Trail shoes,Regular,None,None,Hydration vest,None
+mild,Cap,T-shirt,Shorts,Trail shoes,Regular,None,None,Handheld bottle,None
+warm,Cap,T-shirt,Shorts,Trail shoes,No-show,None,None,Hydration vest,None
+hot,Cap,Singlet,Short shorts,Light trail shoes,No-show,None,None,Hydration vest,None
+
+================================================================================
+SECTION 4: HIKING DEFAULTS BY TEMPERATURE
+================================================================================
+Temp Range,headCover,baseLayer,midLayer,outerLayer,bottoms,shoes,socks,gloves,pack,accessories
+freezing,Balaclava,Merino base,Heavy puffy,Insulated jacket,Insulated pants,Waterproof boots,Heavy wool,Insulated gloves,Daypack (30L),None
+veryCold,Beanie,Merino base,Heavy puffy,Hardshell,Insulated pants,Waterproof boots,Heavy wool,Insulated gloves,Daypack (30L),Trekking poles
+cold,Beanie,Merino base,Fleece,Wind jacket,Softshell pants,Hiking boots,Hiking socks,Light gloves,Daypack (30L),Trekking poles
+cool,Cap,Long sleeve,Fleece,None,Hiking pants,Hiking boots,Hiking socks,None,Daypack (20L),Trekking poles
+mild,Cap,T-shirt,None,None,Hiking pants,Hiking shoes,Light hiking,None,Daypack (20L),None
+warm,Sun hat,T-shirt,None,None,Convertible pants,Trail runners,Light hiking,None,Daypack (20L),None
+hot,Sun hat,T-shirt,None,None,Shorts,Trail runners,Light hiking,None,Waist pack,None
+
+================================================================================
+SECTION 5: WALKING DEFAULTS BY TEMPERATURE
+================================================================================
+Temp Range,headCover,tops,outerLayer,bottoms,shoes,socks,gloves,accessories
+freezing,Beanie,Fleece,Winter coat,Insulated pants,Boots,Thick,Warm gloves,Scarf
+veryCold,Beanie,Fleece,Winter coat,Fleece-lined leggings,Boots,Thick,Warm gloves,Scarf
+cold,Beanie,Sweater,Down jacket,Fleece-lined leggings,Boots,Wool,Light gloves,None
+cool,Ear warmers,Long sleeve,Light jacket,Casual pants,Walking shoes,Regular,None,None
+mild,None,T-shirt,Light jacket,Casual pants,Sneakers,Regular,None,None
+warm,Cap,T-shirt,None,Shorts,Sneakers,No-show,None,None
+hot,Sun hat,T-shirt,None,Shorts,Sandals,No-show,None,None
+
+================================================================================
+SECTION 6: CYCLING DEFAULTS BY TEMPERATURE
+================================================================================
+Temp Range,helmet,tops,bottoms,shoes,socks,gloves,armWarmers,eyewear,rainGear,accessories
+freezing,Road helmet,Thermal jersey,Bib tights,Shoe covers,Thermal socks,Lobster gloves,Arm + leg warmers,Clear glasses,None,Lights
+veryCold,Road helmet,Jersey + jacket,Bib tights,Shoe covers,Thermal socks,Lobster gloves,Arm + leg warmers,Clear glasses,None,Lights
+cold,Road helmet,Jersey + jacket,Bib tights,Road shoes,Wool socks,Thermal gloves,Leg warmers,Photochromic,None,None
+cool,Road helmet,Long sleeve jersey,3/4 bibs,Road shoes,Cycling socks,Full finger light,Knee warmers,Photochromic,None,None
+mild,Road helmet,Short sleeve jersey,Bib shorts,Road shoes,Cycling socks,Fingerless,None,Sunglasses,None,None
+warm,Road helmet,Short sleeve jersey,Bib shorts,Road shoes,Cycling socks,None,None,Sunglasses,None,None
+hot,Road helmet,Sleeveless jersey,Shorts,Road shoes,No-show,None,None,Sunglasses,None,None
+
+================================================================================
+SECTION 7: SNOWSHOEING DEFAULTS BY TEMPERATURE
+================================================================================
+Temp Range,headCover,baseLayer,midLayer,outerLayer,bottoms,boots,socks,gloves,gaiters,accessories
+freezing,Balaclava,Expedition weight,Heavy puffy,Insulated jacket,Bibs,Pac boots,Liner + wool,Liner + mittens,Full gaiters,Poles + goggles
+veryCold,Balaclava,Heavy merino,Heavy puffy,Hardshell,Insulated pants,Winter boots,Heavy wool,Heavy mittens,Gaiters,Poles + goggles
+cold,Beanie,Merino base,Fleece,Softshell,Softshell pants,Winter boots,Heavy wool,Insulated gloves,Gaiters,Poles + sunglasses
+cool,Fleece headband,Light synthetic,Light fleece,Wind jacket,Hiking pants,Winter hiking boots,Wool,Light gloves,Low gaiters,Poles + sunglasses
+mild,Fleece headband,Light synthetic,Light fleece,None,Hiking pants,Hiking boots,Wool,None,Low gaiters,Poles
+warm,Fleece headband,Light synthetic,None,None,Hiking pants,Hiking boots,Wool,None,None,Poles
+hot,Fleece headband,Light synthetic,None,None,Hiking pants,Hiking boots,Wool,None,None,Poles
+
+================================================================================
+SECTION 8: XC SKIING DEFAULTS BY TEMPERATURE
+================================================================================
+Temp Range,headCover,baseLayer,tops,bottoms,boots,socks,gloves,eyewear,accessories
+freezing,Balaclava,Merino base,Wind jacket + fleece,Wind pants over tights,Insulated boots,Wool socks,Heavy mittens,Goggles,Neck gaiter + hand warmers
+veryCold,Beanie,Merino base,XC jacket,XC pants,Classic boots,Wool socks,Lobster mitts,Goggles,Neck gaiter
+cold,Light beanie,Merino base,XC jacket,XC pants,Classic boots,XC socks,XC gloves,Sunglasses,Neck gaiter
+cool,Headband,Light synthetic,XC jacket,XC pants,Classic boots,XC socks,Light gloves,Sunglasses,None
+mild,Headband,Light synthetic,Soft shell,Race suit tights,Classic boots,Thin socks,Light gloves,Sunglasses,None
+warm,Headband,Light synthetic,Race suit top,Race suit tights,Classic boots,Thin socks,None,Sunglasses,None
+hot,Headband,Light synthetic,Race suit top,Race suit tights,Classic boots,Thin socks,None,Sunglasses,None
+
+================================================================================
+SECTION 9: WEATHER CONDITION OVERRIDES
+================================================================================
+Condition,Activity,Override Applied
+Rain,Running,rainGear → Waterproof jacket (cold) or Light rain jacket (warm)
+Rain,Trail Running,rainGear → Waterproof jacket (cold) or Light rain jacket (warm)
+Rain,Hiking,outerLayer → Rain jacket; bottoms → Rain pants
+Rain,Walking,outerLayer → Rain jacket; accessories → Umbrella
+Rain,Cycling,rainGear → Full rain kit
+Snow,Hiking/Walking,shoes → Waterproof boots
+Wind,Running,tops → Long sleeve (if cool/mild)
+Wind,Trail Running,rainGear → Wind jacket (if cool/mild)
+Wind,Cycling,tops → Jersey + vest (if mild)
+Sunny,All,accessories/eyewear → Sunglasses
+Dark,Running,accessories → Headlamp + reflective vest
+Dark,Trail Running,accessories → Headlamp
+Dark,Hiking,accessories → Headlamp
+Dark,Cycling,accessories → Lights + vest; eyewear → Clear glasses
+Dark,Snowshoeing,accessories → Headlamp + poles
+Dark,XC Skiing,accessories → Headlamp
+
+================================================================================
+SECTION 10: SMART SAFETY OVERRIDES (History-Based Recommendations)
+================================================================================
+These apply when historical data suggests inappropriate clothing:
+
+Category,Temp Trigger,Override Rule
+tops/baseLayer,<25°F,If T-shirt/Singlet selected → Force warm layer
+tops/baseLayer,<40°F,If T-shirt/Singlet selected → Force Long sleeve
+tops/baseLayer,<50°F,If Singlet/Sleeveless selected → Force T-shirt or Long sleeve
+midLayer,<25°F,If None selected → Force Fleece or Puffy
+outerLayer,<20°F,If None selected → Force Insulated jacket
+bottoms,<25°F,If Shorts/Capris selected → Force Tights or Insulated pants
+bottoms,<45°F,If Shorts/Capris selected → Force Tights or Pants
+gloves,<25°F,If None selected → Force Heavy gloves or Mittens
+gloves,<35°F,If None selected → Force Light gloves
+headCover,<25°F,If None selected → Force Beanie or Balaclava
+headCover,<40°F,If None selected → Force Headband or Beanie
+shoes,<32°F,If Sandals/Sneakers selected → Force Boots or Waterproof shoes
+shoes,Rain/Snow,If Sandals/Sneakers selected → Force Waterproof footwear
+rainGear,Precipitation,If None selected → Force Rain jacket
