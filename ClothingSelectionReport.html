@@ -1,0 +1,732 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clothing Selection Engine Report - v3.5.0</title>
+    <style>
+        :root {
+            --bg-dark: #0f172a;
+            --bg-card: #1e293b;
+            --bg-table: #334155;
+            --text-primary: #f1f5f9;
+            --text-muted: #94a3b8;
+            --accent-blue: #3b82f6;
+            --accent-green: #22c55e;
+            --accent-orange: #f97316;
+            --accent-purple: #a855f7;
+            --accent-pink: #ec4899;
+            --accent-cyan: #06b6d4;
+            --accent-yellow: #eab308;
+            --border: rgba(255,255,255,0.1);
+        }
+        
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg-dark);
+            color: var(--text-primary);
+            line-height: 1.6;
+            padding: 2rem;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 3rem;
+            padding: 2rem;
+            background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
+            border-radius: 16px;
+        }
+        
+        header h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+        
+        header p {
+            opacity: 0.9;
+            font-size: 1.1rem;
+        }
+        
+        .nav {
+            background: var(--bg-card);
+            border-radius: 12px;
+            padding: 1rem;
+            margin-bottom: 2rem;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            justify-content: center;
+        }
+        
+        .nav a {
+            color: var(--text-muted);
+            text-decoration: none;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            transition: all 0.2s;
+        }
+        
+        .nav a:hover {
+            background: var(--bg-table);
+            color: var(--text-primary);
+        }
+        
+        section {
+            background: var(--bg-card);
+            border-radius: 16px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+        
+        h2 {
+            font-size: 1.5rem;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        
+        h2 .icon {
+            font-size: 1.75rem;
+        }
+        
+        h3 {
+            font-size: 1.2rem;
+            margin: 1.5rem 0 1rem;
+            color: var(--accent-blue);
+        }
+        
+        .activity-running h2 { border-left: 4px solid var(--accent-blue); padding-left: 1rem; }
+        .activity-trail h2 { border-left: 4px solid var(--accent-green); padding-left: 1rem; }
+        .activity-hiking h2 { border-left: 4px solid var(--accent-orange); padding-left: 1rem; }
+        .activity-walking h2 { border-left: 4px solid var(--accent-purple); padding-left: 1rem; }
+        .activity-cycling h2 { border-left: 4px solid var(--accent-pink); padding-left: 1rem; }
+        .activity-snowshoeing h2 { border-left: 4px solid var(--accent-cyan); padding-left: 1rem; }
+        .activity-xc h2 { border-left: 4px solid var(--accent-yellow); padding-left: 1rem; }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+            margin-top: 1rem;
+        }
+        
+        th, td {
+            padding: 0.75rem;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+        }
+        
+        th {
+            background: var(--bg-table);
+            font-weight: 600;
+            color: var(--text-primary);
+            position: sticky;
+            top: 0;
+        }
+        
+        tr:hover {
+            background: rgba(255,255,255,0.03);
+        }
+        
+        .temp-freezing { background: linear-gradient(90deg, #3b82f6 0%, transparent 100%); }
+        .temp-verycold { background: linear-gradient(90deg, #06b6d4 0%, transparent 100%); }
+        .temp-cold { background: linear-gradient(90deg, #22d3ee 0%, transparent 100%); }
+        .temp-cool { background: linear-gradient(90deg, #a3e635 0%, transparent 100%); }
+        .temp-mild { background: linear-gradient(90deg, #fbbf24 0%, transparent 100%); }
+        .temp-warm { background: linear-gradient(90deg, #fb923c 0%, transparent 100%); }
+        .temp-hot { background: linear-gradient(90deg, #ef4444 0%, transparent 100%); }
+        
+        .temp-badge {
+            display: inline-block;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-weight: 600;
+            font-size: 0.8rem;
+        }
+        
+        .temp-ranges {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .temp-card {
+            background: var(--bg-table);
+            border-radius: 8px;
+            padding: 1rem;
+            text-align: center;
+        }
+        
+        .temp-card .name {
+            font-weight: 600;
+            text-transform: capitalize;
+            margin-bottom: 0.25rem;
+        }
+        
+        .temp-card .range {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+        
+        .override-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+        }
+        
+        .override-card {
+            background: var(--bg-table);
+            border-radius: 12px;
+            padding: 1.25rem;
+        }
+        
+        .override-card h4 {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+            font-size: 1rem;
+        }
+        
+        .override-list {
+            list-style: none;
+        }
+        
+        .override-list li {
+            padding: 0.5rem 0;
+            border-bottom: 1px solid var(--border);
+            font-size: 0.9rem;
+        }
+        
+        .override-list li:last-child {
+            border-bottom: none;
+        }
+        
+        .override-list strong {
+            color: var(--accent-blue);
+        }
+        
+        .arrow {
+            color: var(--accent-green);
+            margin: 0 0.25rem;
+        }
+        
+        .mapping-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1rem;
+        }
+        
+        .mapping-card {
+            background: var(--bg-table);
+            border-radius: 8px;
+            padding: 1rem;
+        }
+        
+        .mapping-card h4 {
+            margin-bottom: 0.5rem;
+            font-size: 0.95rem;
+        }
+        
+        .mapping-card .categories {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            line-height: 1.8;
+        }
+        
+        .mapping-card .categories code {
+            background: rgba(59,130,246,0.2);
+            padding: 0.15rem 0.4rem;
+            border-radius: 4px;
+            color: var(--accent-blue);
+            font-size: 0.8rem;
+        }
+        
+        .source-files {
+            background: var(--bg-table);
+            border-radius: 8px;
+            padding: 1rem;
+            font-family: 'SF Mono', 'Fira Code', monospace;
+            font-size: 0.85rem;
+        }
+        
+        .source-files code {
+            color: var(--accent-green);
+        }
+        
+        @media (max-width: 768px) {
+            body {
+                padding: 1rem;
+            }
+            
+            header h1 {
+                font-size: 1.75rem;
+            }
+            
+            table {
+                font-size: 0.75rem;
+            }
+            
+            th, td {
+                padding: 0.5rem;
+            }
+            
+            .nav {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🏃 Clothing Selection Engine Report</h1>
+            <p>Version 3.5.0 • Generated December 8, 2025</p>
+        </header>
+        
+        <nav class="nav">
+            <a href="#temp-ranges">Temperature Ranges</a>
+            <a href="#running">Running</a>
+            <a href="#trail-running">Trail Running</a>
+            <a href="#hiking">Hiking</a>
+            <a href="#walking">Walking</a>
+            <a href="#cycling">Cycling</a>
+            <a href="#snowshoeing">Snowshoeing</a>
+            <a href="#xc-skiing">XC Skiing</a>
+            <a href="#weather-overrides">Weather Overrides</a>
+            <a href="#safety-overrides">Safety Overrides</a>
+            <a href="#mappings">Category Mappings</a>
+        </nav>
+
+        <!-- Temperature Ranges -->
+        <section id="temp-ranges">
+            <h2><span class="icon">🌡️</span> Temperature Ranges</h2>
+            <div class="temp-ranges">
+                <div class="temp-card temp-freezing">
+                    <div class="name">Freezing</div>
+                    <div class="range">&lt; 15°F (&lt; -9°C)</div>
+                </div>
+                <div class="temp-card temp-verycold">
+                    <div class="name">Very Cold</div>
+                    <div class="range">15–24°F (-9 to -4°C)</div>
+                </div>
+                <div class="temp-card temp-cold">
+                    <div class="name">Cold</div>
+                    <div class="range">25–39°F (-4 to 4°C)</div>
+                </div>
+                <div class="temp-card temp-cool">
+                    <div class="name">Cool</div>
+                    <div class="range">40–54°F (4 to 12°C)</div>
+                </div>
+                <div class="temp-card temp-mild">
+                    <div class="name">Mild</div>
+                    <div class="range">55–64°F (13 to 18°C)</div>
+                </div>
+                <div class="temp-card temp-warm">
+                    <div class="name">Warm</div>
+                    <div class="range">65–74°F (18 to 23°C)</div>
+                </div>
+                <div class="temp-card temp-hot">
+                    <div class="name">Hot</div>
+                    <div class="range">75°F+ (24°C+)</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Running -->
+        <section id="running" class="activity-running">
+            <h2><span class="icon">🏃</span> Running - Temperature-Based Defaults</h2>
+            <div style="overflow-x: auto;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Temp Range</th>
+                            <th>Head Cover</th>
+                            <th>Tops</th>
+                            <th>Bottoms</th>
+                            <th>Shoes</th>
+                            <th>Socks</th>
+                            <th>Gloves</th>
+                            <th>Rain Gear</th>
+                            <th>Accessories</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td><span class="temp-badge temp-freezing">Freezing</span></td><td>Balaclava</td><td>Base layer + jacket</td><td>Tights</td><td>Running shoes</td><td>Wool</td><td>Heavy gloves</td><td>None</td><td>None</td></tr>
+                        <tr><td><span class="temp-badge temp-verycold">Very Cold</span></td><td>Beanie</td><td>Base layer + jacket</td><td>Tights</td><td>Running shoes</td><td>Wool</td><td>Heavy gloves</td><td>None</td><td>None</td></tr>
+                        <tr><td><span class="temp-badge temp-cold">Cold</span></td><td>Beanie</td><td>Long sleeve</td><td>Tights</td><td>Running shoes</td><td>Wool</td><td>Light gloves</td><td>None</td><td>None</td></tr>
+                        <tr><td><span class="temp-badge temp-cool">Cool</span></td><td>Headband</td><td>Long sleeve</td><td>Tights</td><td>Running shoes</td><td>Regular</td><td>None</td><td>None</td><td>None</td></tr>
+                        <tr><td><span class="temp-badge temp-mild">Mild</span></td><td>None</td><td>T-shirt</td><td>Shorts</td><td>Running shoes</td><td>Regular</td><td>None</td><td>None</td><td>None</td></tr>
+                        <tr><td><span class="temp-badge temp-warm">Warm</span></td><td>Cap</td><td>T-shirt</td><td>Shorts</td><td>Running shoes</td><td>No-show</td><td>None</td><td>None</td><td>None</td></tr>
+                        <tr><td><span class="temp-badge temp-hot">Hot</span></td><td>Cap</td><td>Singlet</td><td>Short shorts</td><td>Running shoes</td><td>No-show</td><td>None</td><td>None</td><td>None</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Trail Running -->
+        <section id="trail-running" class="activity-trail">
+            <h2><span class="icon">🌲</span> Trail Running - Temperature-Based Defaults</h2>
+            <div style="overflow-x: auto;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Temp Range</th>
+                            <th>Head Cover</th>
+                            <th>Tops</th>
+                            <th>Bottoms</th>
+                            <th>Shoes</th>
+                            <th>Socks</th>
+                            <th>Gloves</th>
+                            <th>Rain Gear</th>
+                            <th>Hydration</th>
+                            <th>Accessories</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td><span class="temp-badge temp-freezing">Freezing</span></td><td>Balaclava</td><td>Base layer + jacket</td><td>Tights</td><td>Trail shoes</td><td>Wool</td><td>Heavy gloves</td><td>Wind jacket</td><td>Hydration vest</td><td>None</td></tr>
+                        <tr><td><span class="temp-badge temp-verycold">Very Cold</span></td><td>Beanie</td><td>Base layer + jacket</td><td>Tights</td><td>Trail shoes</td><td>Wool</td><td>Heavy gloves</td><td>Wind jacket</td><td>Hydration vest</td><td>None</td></tr>
+                        <tr><td><span class="temp-badge temp-cold">Cold</span></td><td>Beanie</td><td>Long sleeve</td><td>Tights</td><td>Trail shoes</td><td>Wool</td><td>Light gloves</td><td>None</td><td>Hydration vest</td><td>None</td></tr>
+                        <tr><td><span class="temp-badge temp-cool">Cool</span></td><td>Buff</td><td>Long sleeve</td><td>Tights</td><td>Trail shoes</td><td>Regular</td><td>None</td><td>None</td><td>Hydration vest</td><td>None</td></tr>
+                        <tr><td><span class="temp-badge temp-mild">Mild</span></td><td>Cap</td><td>T-shirt</td><td>Shorts</td><td>Trail shoes</td><td>Regular</td><td>None</td><td>None</td><td>Handheld bottle</td><td>None</td></tr>
+                        <tr><td><span class="temp-badge temp-warm">Warm</span></td><td>Cap</td><td>T-shirt</td><td>Shorts</td><td>Trail shoes</td><td>No-show</td><td>None</td><td>None</td><td>Hydration vest</td><td>None</td></tr>
+                        <tr><td><span class="temp-badge temp-hot">Hot</span></td><td>Cap</td><td>Singlet</td><td>Short shorts</td><td>Light trail shoes</td><td>No-show</td><td>None</td><td>None</td><td>Hydration vest</td><td>None</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Hiking -->
+        <section id="hiking" class="activity-hiking">
+            <h2><span class="icon">🥾</span> Hiking - Temperature-Based Defaults (Layering System)</h2>
+            <div style="overflow-x: auto;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Temp Range</th>
+                            <th>Head Cover</th>
+                            <th>Base Layer</th>
+                            <th>Mid Layer</th>
+                            <th>Outer Layer</th>
+                            <th>Bottoms</th>
+                            <th>Shoes</th>
+                            <th>Socks</th>
+                            <th>Gloves</th>
+                            <th>Pack</th>
+                            <th>Accessories</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td><span class="temp-badge temp-freezing">Freezing</span></td><td>Balaclava</td><td>Merino base</td><td>Heavy puffy</td><td>Insulated jacket</td><td>Insulated pants</td><td>Waterproof boots</td><td>Heavy wool</td><td>Insulated gloves</td><td>Daypack (30L)</td><td>None</td></tr>
+                        <tr><td><span class="temp-badge temp-verycold">Very Cold</span></td><td>Beanie</td><td>Merino base</td><td>Heavy puffy</td><td>Hardshell</td><td>Insulated pants</td><td>Waterproof boots</td><td>Heavy wool</td><td>Insulated gloves</td><td>Daypack (30L)</td><td>Trekking poles</td></tr>
+                        <tr><td><span class="temp-badge temp-cold">Cold</span></td><td>Beanie</td><td>Merino base</td><td>Fleece</td><td>Wind jacket</td><td>Softshell pants</td><td>Hiking boots</td><td>Hiking socks</td><td>Light gloves</td><td>Daypack (30L)</td><td>Trekking poles</td></tr>
+                        <tr><td><span class="temp-badge temp-cool">Cool</span></td><td>Cap</td><td>Long sleeve</td><td>Fleece</td><td>None</td><td>Hiking pants</td><td>Hiking boots</td><td>Hiking socks</td><td>None</td><td>Daypack (20L)</td><td>Trekking poles</td></tr>
+                        <tr><td><span class="temp-badge temp-mild">Mild</span></td><td>Cap</td><td>T-shirt</td><td>None</td><td>None</td><td>Hiking pants</td><td>Hiking shoes</td><td>Light hiking</td><td>None</td><td>Daypack (20L)</td><td>None</td></tr>
+                        <tr><td><span class="temp-badge temp-warm">Warm</span></td><td>Sun hat</td><td>T-shirt</td><td>None</td><td>None</td><td>Convertible pants</td><td>Trail runners</td><td>Light hiking</td><td>None</td><td>Daypack (20L)</td><td>None</td></tr>
+                        <tr><td><span class="temp-badge temp-hot">Hot</span></td><td>Sun hat</td><td>T-shirt</td><td>None</td><td>None</td><td>Shorts</td><td>Trail runners</td><td>Light hiking</td><td>None</td><td>Waist pack</td><td>None</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Walking -->
+        <section id="walking" class="activity-walking">
+            <h2><span class="icon">🚶</span> Walking - Temperature-Based Defaults (Casual Clothing)</h2>
+            <div style="overflow-x: auto;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Temp Range</th>
+                            <th>Head Cover</th>
+                            <th>Tops</th>
+                            <th>Outer Layer</th>
+                            <th>Bottoms</th>
+                            <th>Shoes</th>
+                            <th>Socks</th>
+                            <th>Gloves</th>
+                            <th>Accessories</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td><span class="temp-badge temp-freezing">Freezing</span></td><td>Beanie</td><td>Fleece</td><td>Winter coat</td><td>Insulated pants</td><td>Boots</td><td>Thick</td><td>Warm gloves</td><td>Scarf</td></tr>
+                        <tr><td><span class="temp-badge temp-verycold">Very Cold</span></td><td>Beanie</td><td>Fleece</td><td>Winter coat</td><td>Fleece-lined leggings</td><td>Boots</td><td>Thick</td><td>Warm gloves</td><td>Scarf</td></tr>
+                        <tr><td><span class="temp-badge temp-cold">Cold</span></td><td>Beanie</td><td>Sweater</td><td>Down jacket</td><td>Fleece-lined leggings</td><td>Boots</td><td>Wool</td><td>Light gloves</td><td>None</td></tr>
+                        <tr><td><span class="temp-badge temp-cool">Cool</span></td><td>Ear warmers</td><td>Long sleeve</td><td>Light jacket</td><td>Casual pants</td><td>Walking shoes</td><td>Regular</td><td>None</td><td>None</td></tr>
+                        <tr><td><span class="temp-badge temp-mild">Mild</span></td><td>None</td><td>T-shirt</td><td>Light jacket</td><td>Casual pants</td><td>Sneakers</td><td>Regular</td><td>None</td><td>None</td></tr>
+                        <tr><td><span class="temp-badge temp-warm">Warm</span></td><td>Cap</td><td>T-shirt</td><td>None</td><td>Shorts</td><td>Sneakers</td><td>No-show</td><td>None</td><td>None</td></tr>
+                        <tr><td><span class="temp-badge temp-hot">Hot</span></td><td>Sun hat</td><td>T-shirt</td><td>None</td><td>Shorts</td><td>Sandals</td><td>No-show</td><td>None</td><td>None</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Cycling -->
+        <section id="cycling" class="activity-cycling">
+            <h2><span class="icon">🚴</span> Cycling - Temperature-Based Defaults (Road Cycling Gear)</h2>
+            <div style="overflow-x: auto;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Temp Range</th>
+                            <th>Helmet</th>
+                            <th>Tops</th>
+                            <th>Bottoms</th>
+                            <th>Shoes</th>
+                            <th>Socks</th>
+                            <th>Gloves</th>
+                            <th>Arm Warmers</th>
+                            <th>Eyewear</th>
+                            <th>Rain Gear</th>
+                            <th>Accessories</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td><span class="temp-badge temp-freezing">Freezing</span></td><td>Road helmet</td><td>Thermal jersey</td><td>Bib tights</td><td>Shoe covers</td><td>Thermal socks</td><td>Lobster gloves</td><td>Arm + leg warmers</td><td>Clear glasses</td><td>None</td><td>Lights</td></tr>
+                        <tr><td><span class="temp-badge temp-verycold">Very Cold</span></td><td>Road helmet</td><td>Jersey + jacket</td><td>Bib tights</td><td>Shoe covers</td><td>Thermal socks</td><td>Lobster gloves</td><td>Arm + leg warmers</td><td>Clear glasses</td><td>None</td><td>Lights</td></tr>
+                        <tr><td><span class="temp-badge temp-cold">Cold</span></td><td>Road helmet</td><td>Jersey + jacket</td><td>Bib tights</td><td>Road shoes</td><td>Wool socks</td><td>Thermal gloves</td><td>Leg warmers</td><td>Photochromic</td><td>None</td><td>None</td></tr>
+                        <tr><td><span class="temp-badge temp-cool">Cool</span></td><td>Road helmet</td><td>Long sleeve jersey</td><td>3/4 bibs</td><td>Road shoes</td><td>Cycling socks</td><td>Full finger light</td><td>Knee warmers</td><td>Photochromic</td><td>None</td><td>None</td></tr>
+                        <tr><td><span class="temp-badge temp-mild">Mild</span></td><td>Road helmet</td><td>Short sleeve jersey</td><td>Bib shorts</td><td>Road shoes</td><td>Cycling socks</td><td>Fingerless</td><td>None</td><td>Sunglasses</td><td>None</td><td>None</td></tr>
+                        <tr><td><span class="temp-badge temp-warm">Warm</span></td><td>Road helmet</td><td>Short sleeve jersey</td><td>Bib shorts</td><td>Road shoes</td><td>Cycling socks</td><td>None</td><td>None</td><td>Sunglasses</td><td>None</td><td>None</td></tr>
+                        <tr><td><span class="temp-badge temp-hot">Hot</span></td><td>Road helmet</td><td>Sleeveless jersey</td><td>Shorts</td><td>Road shoes</td><td>No-show</td><td>None</td><td>None</td><td>Sunglasses</td><td>None</td><td>None</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Snowshoeing -->
+        <section id="snowshoeing" class="activity-snowshoeing">
+            <h2><span class="icon">🎿</span> Snowshoeing - Temperature-Based Defaults (Winter Activity)</h2>
+            <div style="overflow-x: auto;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Temp Range</th>
+                            <th>Head Cover</th>
+                            <th>Base Layer</th>
+                            <th>Mid Layer</th>
+                            <th>Outer Layer</th>
+                            <th>Bottoms</th>
+                            <th>Boots</th>
+                            <th>Socks</th>
+                            <th>Gloves</th>
+                            <th>Gaiters</th>
+                            <th>Accessories</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td><span class="temp-badge temp-freezing">Freezing</span></td><td>Balaclava</td><td>Expedition weight</td><td>Heavy puffy</td><td>Insulated jacket</td><td>Bibs</td><td>Pac boots</td><td>Liner + wool</td><td>Liner + mittens</td><td>Full gaiters</td><td>Poles + goggles</td></tr>
+                        <tr><td><span class="temp-badge temp-verycold">Very Cold</span></td><td>Balaclava</td><td>Heavy merino</td><td>Heavy puffy</td><td>Hardshell</td><td>Insulated pants</td><td>Winter boots</td><td>Heavy wool</td><td>Heavy mittens</td><td>Gaiters</td><td>Poles + goggles</td></tr>
+                        <tr><td><span class="temp-badge temp-cold">Cold</span></td><td>Beanie</td><td>Merino base</td><td>Fleece</td><td>Softshell</td><td>Softshell pants</td><td>Winter boots</td><td>Heavy wool</td><td>Insulated gloves</td><td>Gaiters</td><td>Poles + sunglasses</td></tr>
+                        <tr><td><span class="temp-badge temp-cool">Cool</span></td><td>Fleece headband</td><td>Light synthetic</td><td>Light fleece</td><td>Wind jacket</td><td>Hiking pants</td><td>Winter hiking boots</td><td>Wool</td><td>Light gloves</td><td>Low gaiters</td><td>Poles + sunglasses</td></tr>
+                        <tr><td><span class="temp-badge temp-mild">Mild</span></td><td>Fleece headband</td><td>Light synthetic</td><td>Light fleece</td><td>None</td><td>Hiking pants</td><td>Hiking boots</td><td>Wool</td><td>None</td><td>Low gaiters</td><td>Poles</td></tr>
+                        <tr><td><span class="temp-badge temp-warm">Warm</span></td><td>Fleece headband</td><td>Light synthetic</td><td>None</td><td>None</td><td>Hiking pants</td><td>Hiking boots</td><td>Wool</td><td>None</td><td>None</td><td>Poles</td></tr>
+                        <tr><td><span class="temp-badge temp-hot">Hot</span></td><td>Fleece headband</td><td>Light synthetic</td><td>None</td><td>None</td><td>Hiking pants</td><td>Hiking boots</td><td>Wool</td><td>None</td><td>None</td><td>Poles</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- XC Skiing -->
+        <section id="xc-skiing" class="activity-xc">
+            <h2><span class="icon">⛷️</span> Cross Country Skiing - Temperature-Based Defaults</h2>
+            <div style="overflow-x: auto;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Temp Range</th>
+                            <th>Head Cover</th>
+                            <th>Base Layer</th>
+                            <th>Tops</th>
+                            <th>Bottoms</th>
+                            <th>Boots</th>
+                            <th>Socks</th>
+                            <th>Gloves</th>
+                            <th>Eyewear</th>
+                            <th>Accessories</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td><span class="temp-badge temp-freezing">Freezing</span></td><td>Balaclava</td><td>Merino base</td><td>Wind jacket + fleece</td><td>Wind pants over tights</td><td>Insulated boots</td><td>Wool socks</td><td>Heavy mittens</td><td>Goggles</td><td>Neck gaiter + hand warmers</td></tr>
+                        <tr><td><span class="temp-badge temp-verycold">Very Cold</span></td><td>Beanie</td><td>Merino base</td><td>XC jacket</td><td>XC pants</td><td>Classic boots</td><td>Wool socks</td><td>Lobster mitts</td><td>Goggles</td><td>Neck gaiter</td></tr>
+                        <tr><td><span class="temp-badge temp-cold">Cold</span></td><td>Light beanie</td><td>Merino base</td><td>XC jacket</td><td>XC pants</td><td>Classic boots</td><td>XC socks</td><td>XC gloves</td><td>Sunglasses</td><td>Neck gaiter</td></tr>
+                        <tr><td><span class="temp-badge temp-cool">Cool</span></td><td>Headband</td><td>Light synthetic</td><td>XC jacket</td><td>XC pants</td><td>Classic boots</td><td>XC socks</td><td>Light gloves</td><td>Sunglasses</td><td>None</td></tr>
+                        <tr><td><span class="temp-badge temp-mild">Mild</span></td><td>Headband</td><td>Light synthetic</td><td>Soft shell</td><td>Race suit tights</td><td>Classic boots</td><td>Thin socks</td><td>Light gloves</td><td>Sunglasses</td><td>None</td></tr>
+                        <tr><td><span class="temp-badge temp-warm">Warm</span></td><td>Headband</td><td>Light synthetic</td><td>Race suit top</td><td>Race suit tights</td><td>Classic boots</td><td>Thin socks</td><td>None</td><td>Sunglasses</td><td>None</td></tr>
+                        <tr><td><span class="temp-badge temp-hot">Hot</span></td><td>Headband</td><td>Light synthetic</td><td>Race suit top</td><td>Race suit tights</td><td>Classic boots</td><td>Thin socks</td><td>None</td><td>Sunglasses</td><td>None</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Weather Condition Overrides -->
+        <section id="weather-overrides">
+            <h2><span class="icon">🌦️</span> Weather Condition Overrides</h2>
+            <p style="color: var(--text-muted); margin-bottom: 1.5rem;">These overrides are applied after temperature-based defaults when specific weather conditions are detected.</p>
+            
+            <div class="override-grid">
+                <div class="override-card">
+                    <h4>🌧️ Rain Overrides</h4>
+                    <ul class="override-list">
+                        <li><strong>Running/Trail Running:</strong> rainGear <span class="arrow">→</span> Waterproof jacket (cold) or Light rain jacket (warm)</li>
+                        <li><strong>Hiking:</strong> outerLayer <span class="arrow">→</span> Rain jacket + bottoms <span class="arrow">→</span> Rain pants</li>
+                        <li><strong>Walking:</strong> outerLayer <span class="arrow">→</span> Rain jacket + accessories <span class="arrow">→</span> Umbrella</li>
+                        <li><strong>Cycling:</strong> rainGear <span class="arrow">→</span> Full rain kit</li>
+                    </ul>
+                </div>
+                
+                <div class="override-card">
+                    <h4>❄️ Snow Overrides</h4>
+                    <ul class="override-list">
+                        <li><strong>Hiking:</strong> shoes <span class="arrow">→</span> Waterproof boots</li>
+                        <li><strong>Walking:</strong> shoes <span class="arrow">→</span> Waterproof boots</li>
+                    </ul>
+                </div>
+                
+                <div class="override-card">
+                    <h4>💨 Wind Overrides</h4>
+                    <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.5rem;">Applied when wind &gt; 10 mph</p>
+                    <ul class="override-list">
+                        <li><strong>Running (cool/mild):</strong> tops <span class="arrow">→</span> Long sleeve</li>
+                        <li><strong>Trail Running (cool/mild):</strong> rainGear <span class="arrow">→</span> Wind jacket</li>
+                        <li><strong>Cycling (mild):</strong> tops <span class="arrow">→</span> Jersey + vest</li>
+                    </ul>
+                </div>
+                
+                <div class="override-card">
+                    <h4>☀️ Sunny Overrides</h4>
+                    <ul class="override-list">
+                        <li><strong>Running/Trail/Hiking/Walking:</strong> accessories <span class="arrow">→</span> Sunglasses</li>
+                        <li><strong>Cycling:</strong> eyewear <span class="arrow">→</span> Sunglasses</li>
+                        <li><strong>Snowshoeing:</strong> accessories <span class="arrow">→</span> Poles + sunglasses</li>
+                        <li><strong>XC Skiing:</strong> eyewear <span class="arrow">→</span> Sunglasses</li>
+                    </ul>
+                </div>
+                
+                <div class="override-card">
+                    <h4>🌙 Dark/Night Overrides</h4>
+                    <ul class="override-list">
+                        <li><strong>Running:</strong> accessories <span class="arrow">→</span> Headlamp + reflective vest</li>
+                        <li><strong>Trail Running/Hiking:</strong> accessories <span class="arrow">→</span> Headlamp</li>
+                        <li><strong>Cycling:</strong> accessories <span class="arrow">→</span> Lights + vest, eyewear <span class="arrow">→</span> Clear glasses</li>
+                        <li><strong>Snowshoeing:</strong> accessories <span class="arrow">→</span> Headlamp + poles</li>
+                        <li><strong>XC Skiing:</strong> accessories <span class="arrow">→</span> Headlamp</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- Smart Safety Overrides -->
+        <section id="safety-overrides">
+            <h2><span class="icon">🛡️</span> Smart Safety Overrides</h2>
+            <p style="color: var(--text-muted); margin-bottom: 1.5rem;">These additional safety checks apply when historical data suggests inappropriate clothing.</p>
+            
+            <div style="overflow-x: auto;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Category</th>
+                            <th>Trigger</th>
+                            <th>If Current Value</th>
+                            <th>Force Override</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td>Tops/Base Layer</td><td>&lt; 25°F</td><td>T-shirt or Singlet</td><td>→ Base layer + jacket or Fleece</td></tr>
+                        <tr><td>Tops/Base Layer</td><td>&lt; 40°F</td><td>T-shirt or Singlet</td><td>→ Long sleeve or Sweater</td></tr>
+                        <tr><td>Tops/Base Layer</td><td>&lt; 50°F</td><td>Singlet or Sleeveless</td><td>→ T-shirt or Long sleeve</td></tr>
+                        <tr><td>Mid Layer</td><td>&lt; 25°F</td><td>None</td><td>→ Fleece or Heavy puffy</td></tr>
+                        <tr><td>Outer Layer</td><td>&lt; 20°F</td><td>None</td><td>→ Insulated jacket or Winter coat</td></tr>
+                        <tr><td>Bottoms</td><td>&lt; 25°F</td><td>Shorts or Capris</td><td>→ Tights or Insulated pants</td></tr>
+                        <tr><td>Bottoms</td><td>&lt; 45°F</td><td>Shorts or Capris</td><td>→ Tights or Pants</td></tr>
+                        <tr><td>Gloves</td><td>&lt; 25°F</td><td>None</td><td>→ Heavy gloves or Mittens</td></tr>
+                        <tr><td>Gloves</td><td>&lt; 35°F</td><td>None</td><td>→ Light gloves</td></tr>
+                        <tr><td>Head Cover</td><td>&lt; 25°F</td><td>None</td><td>→ Beanie or Balaclava</td></tr>
+                        <tr><td>Head Cover</td><td>&lt; 40°F</td><td>None</td><td>→ Headband or Beanie</td></tr>
+                        <tr><td>Footwear</td><td>&lt; 32°F</td><td>Sandals or Sneakers</td><td>→ Boots or Waterproof shoes</td></tr>
+                        <tr><td>Footwear</td><td>Rain/Snow</td><td>Sandals or Sneakers</td><td>→ Waterproof footwear</td></tr>
+                        <tr><td>Rain Gear</td><td>Precipitation</td><td>None</td><td>→ Rain jacket</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Category Mappings -->
+        <section id="mappings">
+            <h2><span class="icon">🗂️</span> Category Mappings by Activity</h2>
+            <p style="color: var(--text-muted); margin-bottom: 1.5rem;">Not all activities use the same category names. Here's how they map:</p>
+            
+            <div class="mapping-grid">
+                <div class="mapping-card">
+                    <h4>🏃 Running</h4>
+                    <div class="categories">
+                        <code>headCover</code> <code>tops</code> <code>bottoms</code> <code>shoes</code> <code>socks</code> <code>gloves</code> <code>rainGear</code> <code>accessories</code>
+                    </div>
+                </div>
+                <div class="mapping-card">
+                    <h4>🌲 Trail Running</h4>
+                    <div class="categories">
+                        <code>headCover</code> <code>tops</code> <code>bottoms</code> <code>shoes</code> <code>socks</code> <code>gloves</code> <code>rainGear</code> <code>hydration</code> <code>accessories</code>
+                    </div>
+                </div>
+                <div class="mapping-card">
+                    <h4>🥾 Hiking</h4>
+                    <div class="categories">
+                        <code>headCover</code> <code>baseLayer</code> <code>midLayer</code> <code>outerLayer</code> <code>bottoms</code> <code>shoes</code> <code>socks</code> <code>gloves</code> <code>pack</code> <code>accessories</code>
+                    </div>
+                </div>
+                <div class="mapping-card">
+                    <h4>🚶 Walking</h4>
+                    <div class="categories">
+                        <code>headCover</code> <code>tops</code> <code>outerLayer</code> <code>bottoms</code> <code>shoes</code> <code>socks</code> <code>gloves</code> <code>accessories</code>
+                    </div>
+                </div>
+                <div class="mapping-card">
+                    <h4>🚴 Cycling</h4>
+                    <div class="categories">
+                        <code>helmet</code> <code>tops</code> <code>bottoms</code> <code>shoes</code> <code>socks</code> <code>gloves</code> <code>armWarmers</code> <code>eyewear</code> <code>rainGear</code> <code>accessories</code>
+                    </div>
+                </div>
+                <div class="mapping-card">
+                    <h4>🎿 Snowshoeing</h4>
+                    <div class="categories">
+                        <code>headCover</code> <code>baseLayer</code> <code>midLayer</code> <code>outerLayer</code> <code>bottoms</code> <code>boots</code> <code>socks</code> <code>gloves</code> <code>gaiters</code> <code>accessories</code>
+                    </div>
+                </div>
+                <div class="mapping-card">
+                    <h4>⛷️ XC Skiing</h4>
+                    <div class="categories">
+                        <code>headCover</code> <code>baseLayer</code> <code>tops</code> <code>bottoms</code> <code>boots</code> <code>socks</code> <code>gloves</code> <code>eyewear</code> <code>accessories</code>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Data Sources -->
+        <section>
+            <h2><span class="icon">📁</span> Data Source Locations</h2>
+            <div class="source-files">
+                <p><strong>Temperature defaults:</strong> <code>src/data/activityDefaults.ts</code> → ACTIVITY_TEMP_DEFAULTS</p>
+                <p><strong>Weather overrides:</strong> <code>src/data/activityDefaults.ts</code> → getWeatherOverrides()</p>
+                <p><strong>Safety overrides:</strong> <code>src/services/recommendationEngine.ts</code> → getClothingRecommendation()</p>
+                <p><strong>Fallback logic:</strong> <code>src/services/recommendationEngine.ts</code> → getFallbackRecommendation()</p>
+            </div>
+        </section>
+    </div>
+</body>
+</html>
+
