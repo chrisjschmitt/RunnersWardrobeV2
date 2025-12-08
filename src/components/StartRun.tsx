@@ -127,7 +127,13 @@ export function StartRun({ apiKey, hasApiKey, temperatureUnit, onNeedApiKey, tes
       let weatherData: WeatherData;
 
       if (testMode && testWeather) {
-        // Use test weather data
+        // Use test weather data with simulated sunrise/sunset
+        const today = new Date();
+        const sunrise = new Date(today);
+        sunrise.setHours(6, 30, 0, 0); // 6:30 AM
+        const sunset = new Date(today);
+        sunset.setHours(18, 30, 0, 0); // 6:30 PM
+        
         weatherData = {
           temperature: testWeather.temperature,
           feelsLike: testWeather.feelsLike,
@@ -140,7 +146,9 @@ export function StartRun({ apiKey, hasApiKey, temperatureUnit, onNeedApiKey, tes
           description: testWeather.description,
           icon: getTestWeatherIcon(testWeather),
           location: '🧪 Test Mode',
-          timestamp: new Date()
+          timestamp: new Date(),
+          sunrise,
+          sunset
         };
       } else {
         // Get location

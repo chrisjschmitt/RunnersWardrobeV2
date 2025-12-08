@@ -356,8 +356,13 @@ export function isDarkOutside(weather?: WeatherData): boolean {
 }
 
 // Helper to check if sunny (for sunglasses recommendations)
-// More restrictive: low cloud cover AND either decent UV or very clear skies
+// Requires: daytime AND (low cloud cover OR decent UV)
 export function isSunny(weather: WeatherData): boolean {
+  // Can't be sunny if it's dark outside!
+  if (isDarkOutside(weather)) {
+    return false;
+  }
+  
   // Sunny if: very few clouds (<30%) OR moderate clouds (<50%) with good UV
   const veryClear = weather.cloudCover < 30;
   const clearWithUV = weather.cloudCover < 50 && weather.uvIndex > 3;
