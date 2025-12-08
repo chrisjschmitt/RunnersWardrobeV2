@@ -236,7 +236,7 @@ export function StartRun({ apiKey, hasApiKey, temperatureUnit, onNeedApiKey, tes
     setRunState('feedback');
   };
 
-  const handleFeedbackSubmit = async (comfort: ComfortLevel) => {
+  const handleFeedbackSubmit = async (comfort: ComfortLevel, comments?: string) => {
     if (!weather || !actualClothing) return;
 
     // Use local date instead of UTC to avoid timezone issues
@@ -254,7 +254,8 @@ export function StartRun({ apiKey, hasApiKey, temperatureUnit, onNeedApiKey, tes
       clothing: actualClothing, // Store what they actually wore, not what was recommended
       comfort,
       timestamp: new Date(),
-      activity
+      activity,
+      comments // Optional user notes
     };
 
     await addFeedback(feedback);
@@ -346,6 +347,7 @@ export function StartRun({ apiKey, hasApiKey, temperatureUnit, onNeedApiKey, tes
         <FeedbackModal
           onSubmit={handleFeedbackSubmit}
           onCancel={handleFeedbackCancel}
+          activityName={activityConfig.name.toLowerCase()}
         />
       )}
 

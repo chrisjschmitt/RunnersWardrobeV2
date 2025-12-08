@@ -300,6 +300,7 @@ export interface RunFeedback {
   comfort: ComfortLevel;
   timestamp: Date;
   activity?: ActivityType;
+  comments?: string;  // Optional notes like "don't wear heavy gloves next time"
 }
 
 // Temperature adjustment based on feedback history

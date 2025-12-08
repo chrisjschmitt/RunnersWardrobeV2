@@ -2,29 +2,31 @@ import { useState } from 'react';
 import type { ComfortLevel } from '../types';
 
 interface FeedbackModalProps {
-  onSubmit: (comfort: ComfortLevel) => void;
+  onSubmit: (comfort: ComfortLevel, comments?: string) => void;
   onCancel: () => void;
+  activityName?: string;
 }
 
-export function FeedbackModal({ onSubmit, onCancel }: FeedbackModalProps) {
+export function FeedbackModal({ onSubmit, onCancel, activityName = 'run' }: FeedbackModalProps) {
   const [selected, setSelected] = useState<ComfortLevel | null>(null);
+  const [comments, setComments] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit = async () => {
     if (!selected) return;
     setIsSubmitting(true);
-    await onSubmit(selected);
+    await onSubmit(selected, comments.trim() || undefined);
   };
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
       <div className="glass-card p-6 w-full max-w-sm animate-slide-up">
-        <h2 className="text-xl font-bold text-center mb-2">How was your run?</h2>
+        <h2 className="text-xl font-bold text-center mb-2">How was your {activityName}?</h2>
         <p className="text-[var(--color-text-muted)] text-center text-sm mb-6">
           This helps us improve future recommendations
         </p>
 
-        <div className="space-y-3 mb-6">
+        <div className="space-y-3 mb-4">
           <FeedbackOption
             icon="🥶"
             label="Too Cold"
@@ -47,6 +49,24 @@ export function FeedbackModal({ onSubmit, onCancel }: FeedbackModalProps) {
             selected={selected === 'too_hot'}
             onClick={() => setSelected('too_hot')}
           />
+        </div>
+
+        {/* Optional comments field */}
+        <div className="mb-6">
+          <label className="block text-sm text-[var(--color-text-muted)] mb-2">
+            Notes (optional)
+          </label>
+          <textarea
+            value={comments}
+            onChange={(e) => setComments(e.target.value)}
+            placeholder="e.g., Don't wear heavy gloves next time..."
+            className="w-full px-3 py-2 bg-[rgba(255,255,255,0.05)] border border-[rgba(255,255,255,0.1)] rounded-lg text-sm placeholder:text-[var(--color-text-muted)] focus:outline-none focus:border-[var(--color-accent)] resize-none"
+            rows={2}
+            maxLength={200}
+          />
+          <div className="text-xs text-[var(--color-text-muted)] text-right mt-1">
+            {comments.length}/200
+          </div>
         </div>
 
         <div className="flex gap-3">

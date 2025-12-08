@@ -8,6 +8,7 @@ import { formatTemperature, formatWindSpeed, type TemperatureUnit } from '../ser
 interface DisplayRun extends RunRecord {
   source: 'csv' | 'feedback';
   comfort?: string;
+  comments?: string;
 }
 
 interface RunHistoryProps {
@@ -56,7 +57,8 @@ export function RunHistory({ onDataCleared, temperatureUnit, activity = 'running
           cloudCover: fb.cloudCover,
           clothing: fb.clothing,
           source: 'feedback' as const,
-          comfort: fb.comfort
+          comfort: fb.comfort,
+          comments: fb.comments
         }));
         
         // Combine and sort by date descending
@@ -363,6 +365,12 @@ function RunCard({ run, index, temperatureUnit, onDelete, activityName }: RunCar
                 {getComfortEmoji(run.comfort)}
               </span>
             )}
+            {/* Notes indicator */}
+            {run.comments && (
+              <span className="text-sm" title="Has notes">
+                📝
+              </span>
+            )}
           </div>
           <div className="text-sm text-[var(--color-text-muted)] mt-1">
             {formatDate(run.date)} {run.time && `at ${run.time}`}
@@ -390,6 +398,14 @@ function RunCard({ run, index, temperatureUnit, onDelete, activityName }: RunCar
                 <span className="text-[var(--color-text-muted)]">How you felt: </span>
                 <span className="font-medium">{getComfortEmoji(run.comfort)} {getComfortLabel(run.comfort)}</span>
               </span>
+            </div>
+          )}
+
+          {/* User comments/notes */}
+          {run.comments && (
+            <div className="mb-4 p-3 rounded-lg bg-[rgba(255,255,255,0.05)] border-l-2 border-[var(--color-accent)]">
+              <div className="text-xs uppercase tracking-wide text-[var(--color-text-muted)] mb-1">Notes</div>
+              <p className="text-sm italic">"{run.comments}"</p>
             </div>
           )}
 
