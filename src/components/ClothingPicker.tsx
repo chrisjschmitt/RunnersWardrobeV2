@@ -92,7 +92,7 @@ export function ClothingPicker({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-start justify-center bg-black/60 backdrop-blur-sm animate-fade-in pt-12">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm animate-fade-in">
       <div 
         className="absolute inset-0" 
         onClick={onClose}
