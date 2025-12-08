@@ -37,6 +37,7 @@ Switch between 7 different outdoor activities, each with tailored clothing categ
 - **Rain Gear Override**: Always suggests rain protection when precipitation > 0
 - **Cold Weather Override**: Recommends gloves (< 35°F) and hats (< 40°F)
 - **Activity-Specific Defaults**: Sensible starting recommendations for each sport
+- **Clothing Help**: Tap ⓘ on any item to see what it is, when to wear it, what to look for, and budget tips
 
 ### Developer/Testing
 - **Test Mode**: Test recommendations with custom weather conditions
@@ -219,6 +220,27 @@ Even if voting says "None", the app will recommend:
 ### 6. Activity-Specific Defaults
 With no history, sensible defaults based on temperature and activity type.
 
+## Clothing Help System
+
+The app includes beginner-friendly tips for 167 clothing items across all activities. Users can tap the ⓘ icon next to any recommended item to learn:
+
+- **What it is**: Brief description of the item
+- **When to wear**: Temperature ranges and conditions
+- **What to look for**: Features to prioritize when buying
+- **Examples**: Specific brand/product recommendations
+- **Budget tip**: How to save money
+- **What to avoid**: Common mistakes
+
+### Maintaining Clothing Info
+
+All tips are stored in `src/data/clothingInfo.ts`. See `ClothingInfoGuide.html` for:
+- How recommendations were researched
+- Update schedule and checklist
+- Coverage report by activity
+- Instructions for adding new items
+
+**Important**: Item keys in `clothingInfo.ts` must exactly match option strings in `src/types/index.ts` (case-insensitive).
+
 ## Tech Stack
 
 - **React 19** with TypeScript
@@ -245,6 +267,8 @@ With no history, sensible defaults based on temperature and activity type.
 │   │   ├── FeedbackModal.tsx   # Post-activity comfort feedback
 │   │   ├── Settings.tsx        # Configuration + Test Mode
 │   │   └── Help.tsx            # FAQ and instructions
+│   ├── data/
+│   │   └── clothingInfo.ts     # Beginner tips for 167 clothing items
 │   ├── services/
 │   │   ├── database.ts         # IndexedDB operations
 │   │   ├── csvParser.ts        # CSV parsing
@@ -257,12 +281,15 @@ With no history, sensible defaults based on temperature and activity type.
 │   ├── main.tsx
 │   └── index.css
 ├── sample-*.csv                # Sample data for each activity
+├── ClothingInfoGuide.html      # Documentation for clothing tips system
 ├── vercel.json                 # Vercel configuration
 └── package.json
 ```
 
 ## Version History
 
+- **v3.4.1**: Added 9 missing clothing info entries (wool socks, sandals, XC ski tops, base layers)
+- **v3.4.0**: Clothing help feature - tap ⓘ for beginner-friendly tips on 167 items
 - **v3.3.7**: ClothingPicker modal positioning improvements for Safari iOS
 - **v3.3.2**: Wind speed displays in km/h when Celsius is selected (metric consistency)
 - **v3.2.0**: Walking activity added with casual clothing options
