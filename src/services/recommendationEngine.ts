@@ -720,25 +720,3 @@ function applyIfExists(
     // If value isn't valid, don't change the default
   }
 }
-
-// Helper to apply the first valid value from a list of alternatives
-function applyFirstValid(
-  clothing: ClothingItems,
-  categories: ClothingCategory[],
-  key: string,
-  values: string[]
-): void {
-  const category = categories.find(c => c.key === key);
-  if (category) {
-    for (const value of values) {
-      const validOption = category.options.find(
-        opt => opt.toLowerCase() === value.toLowerCase()
-      );
-      if (validOption) {
-        clothing[key] = validOption;
-        return; // Use first valid match
-      }
-    }
-    // If none valid, keep the default
-  }
-}
