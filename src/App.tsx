@@ -8,6 +8,7 @@ import { RunHistory } from './components/RunHistory';
 import { Settings } from './components/Settings';
 import { Help } from './components/Help';
 import { Onboarding } from './components/Onboarding';
+import { TermsPrivacy } from './components/TermsPrivacy';
 import type { TemperatureUnit } from './services/temperatureUtils';
 import { isProxyMode } from './services/weatherApi';
 
@@ -210,7 +211,8 @@ function App() {
             onTestWeatherChange={setTestWeather}
           />
         )}
-        {view === 'help' && <Help />}
+        {view === 'help' && <Help onTermsClick={() => setView('terms')} />}
+        {view === 'terms' && <TermsPrivacy onBack={() => setView('help')} />}
       </main>
 
       {/* Bottom navigation */}

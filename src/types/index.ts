@@ -275,7 +275,7 @@ export interface TestWeatherData {
 }
 
 // Navigation views
-export type AppView = 'home' | 'upload' | 'history' | 'settings' | 'help';
+export type AppView = 'home' | 'upload' | 'history' | 'settings' | 'help' | 'terms';
 
 // Geolocation position
 export interface GeoPosition {

@@ -359,6 +359,8 @@ Let me know if you're in! 🏃‍♂️</div>
                 <li>Clothing info tooltips (ⓘ icons)</li>
                 <li>Unit switching (°C/°F, km/h/mph)</li>
                 <li>Activity switching (all 7 activities)</li>
+                <li>Help & FAQ navigation</li>
+                <li>Terms & Privacy accessibility</li>
             </ul>
             
             <h3>Activities to Cover</h3>
@@ -556,6 +558,44 @@ Screenshot attached: Yes/No</div>
             </div>
         </section>
 
+        <!-- Legal & Terms -->
+        <section>
+            <h2>📜 Terms & Privacy</h2>
+            
+            <div class="highlight">
+                <strong>✅ Completed:</strong> Terms of Service and Privacy Policy have been added to the app (Help → Terms & Privacy).
+            </div>
+            
+            <h3>Key Legal Points</h3>
+            <ul>
+                <li><strong>Disclaimer:</strong> Clothing recommendations are suggestions only — users must use their own judgment</li>
+                <li><strong>No Warranty:</strong> App is provided "as-is" with no guarantees</li>
+                <li><strong>Limitation of Liability:</strong> Not responsible for discomfort, injury, or damage</li>
+                <li><strong>Beta Status:</strong> Clearly stated that app is in beta and may have bugs</li>
+            </ul>
+            
+            <h3>Privacy Highlights</h3>
+            <ul>
+                <li><strong>Data stays on device:</strong> All user data stored locally in IndexedDB</li>
+                <li><strong>No accounts:</strong> No user accounts or cloud sync</li>
+                <li><strong>Location usage:</strong> Only used to fetch weather, not stored by us</li>
+                <li><strong>Third parties:</strong> OpenWeatherMap (weather), Vercel (hosting), Formspree (beta signups)</li>
+                <li><strong>No tracking:</strong> No cookies, analytics, or user tracking</li>
+            </ul>
+            
+            <h3>Where to Find</h3>
+            <p>Users can access Terms & Privacy via: <strong>Help tab → scroll to bottom → "Terms & Privacy" button</strong></p>
+            
+            <h3>Production Considerations</h3>
+            <ul class="checklist">
+                <li>Current terms suitable for free beta testing</li>
+                <li>Review terms before any paid features or app store submission</li>
+                <li>Consider legal review if expanding to commercial use</li>
+                <li>Add cookie consent if analytics are added later</li>
+                <li>Update privacy policy if cloud sync/accounts are added</li>
+            </ul>
+        </section>
+
         <!-- Onboarding Checklist -->
         <section>
             <h2>✅ Tester Onboarding Checklist</h2>
@@ -567,6 +607,7 @@ Screenshot attached: Yes/No</div>
                 <li>Welcome email template ready</li>
                 <li>Bug report process established</li>
                 <li>Survey created</li>
+                <li>Terms & Privacy page reviewed and published</li>
             </ul>
             
             <h3>Send to Each Tester</h3>
@@ -576,6 +617,7 @@ Screenshot attached: Yes/No</div>
                 <li>Brief feature overview</li>
                 <li>How to report bugs</li>
                 <li>Expected time commitment (5-10 min per activity)</li>
+                <li>Note about Terms & Privacy (available in Help section)</li>
             </ul>
             
             <h3>After First Week</h3>
@@ -634,6 +676,10 @@ Screenshot attached: Yes/No</div>
                     <tr>
                         <td><strong>Domains</strong></td>
                         <td>gettrailkit.app, trailkit.ca</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Terms & Privacy</strong></td>
+                        <td>In-app: Help → Terms & Privacy</td>
                     </tr>
                 </tbody>
             </table>

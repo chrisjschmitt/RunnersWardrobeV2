@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TrailKit TikTok Scripts</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 50%, #16213e 100%);
+            color: #e0e0e0;
+            line-height: 1.7;
+            min-height: 100vh;
+            padding: 2rem;
+        }
+        
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        
+        h1 {
+            text-align: center;
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(135deg, #00f5d4, #00bbf9, #9b5de5);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .subtitle {
+            text-align: center;
+            color: #888;
+            margin-bottom: 3rem;
+            font-size: 1.1rem;
+        }
+        
+        .script-card {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            backdrop-filter: blur(10px);
+        }
+        
+        .script-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+        
+        .script-title {
+            font-size: 1.5rem;
+            color: #fff;
+        }
+        
+        .script-meta {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+        
+        .meta-badge {
+            background: rgba(0, 245, 212, 0.15);
+            color: #00f5d4;
+            padding: 0.3rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+        
+        .meta-badge.purple {
+            background: rgba(155, 93, 229, 0.15);
+            color: #9b5de5;
+        }
+        
+        .script-section {
+            margin-bottom: 1.5rem;
+        }
+        
+        .section-header {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 0.75rem;
+        }
+        
+        .section-time {
+            background: #ff6b6b;
+            color: #fff;
+            padding: 0.2rem 0.6rem;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+        
+        .section-name {
+            color: #00bbf9;
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.9rem;
+            letter-spacing: 0.5px;
+        }
+        
+        .script-content {
+            background: rgba(0, 0, 0, 0.3);
+            border-left: 3px solid #00f5d4;
+            padding: 1rem 1.25rem;
+            border-radius: 0 8px 8px 0;
+            font-family: 'SF Mono', 'Fira Code', monospace;
+            font-size: 0.95rem;
+        }
+        
+        .script-content p {
+            margin-bottom: 0.5rem;
+        }
+        
+        .script-content p:last-child {
+            margin-bottom: 0;
+        }
+        
+        .direction {
+            color: #888;
+            font-style: italic;
+        }
+        
+        .text-overlay {
+            color: #ffd93d;
+        }
+        
+        .dialogue {
+            color: #fff;
+        }
+        
+        .caption-section {
+            margin-top: 1.5rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .caption-label {
+            color: #9b5de5;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+        }
+        
+        .caption-text {
+            background: rgba(155, 93, 229, 0.1);
+            padding: 1rem;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            word-wrap: break-word;
+        }
+        
+        .tips-section {
+            background: rgba(255, 215, 0, 0.08);
+            border: 1px solid rgba(255, 215, 0, 0.2);
+            border-radius: 16px;
+            padding: 2rem;
+            margin-top: 2rem;
+        }
+        
+        .tips-title {
+            color: #ffd93d;
+            font-size: 1.3rem;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .tips-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+        }
+        
+        .tip-card {
+            background: rgba(0, 0, 0, 0.2);
+            padding: 1.25rem;
+            border-radius: 10px;
+        }
+        
+        .tip-card h4 {
+            color: #00f5d4;
+            margin-bottom: 0.75rem;
+            font-size: 1rem;
+        }
+        
+        .tip-card ul {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .tip-card li {
+            padding: 0.3rem 0;
+            font-size: 0.9rem;
+            color: #ccc;
+        }
+        
+        .tip-card li::before {
+            content: "→ ";
+            color: #00bbf9;
+        }
+        
+        .hashtags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+        
+        .hashtag {
+            background: rgba(0, 187, 249, 0.15);
+            color: #00bbf9;
+            padding: 0.3rem 0.7rem;
+            border-radius: 15px;
+            font-size: 0.8rem;
+        }
+        
+        @media (max-width: 600px) {
+            body {
+                padding: 1rem;
+            }
+            
+            h1 {
+                font-size: 1.8rem;
+            }
+            
+            .script-card {
+                padding: 1.25rem;
+            }
+            
+            .script-content {
+                font-size: 0.85rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎬 TrailKit TikTok Scripts</h1>
+        <p class="subtitle">Three video concepts to promote the beta launch</p>
+        
+        <!-- Script 1 -->
+        <div class="script-card">
+            <div class="script-header">
+                <h2 class="script-title">Script 1: "The Struggle"</h2>
+                <div class="script-meta">
+                    <span class="meta-badge">30 seconds</span>
+                    <span class="meta-badge purple">POV / Comedy</span>
+                </div>
+            </div>
+            
+            <div class="script-section">
+                <div class="section-header">
+                    <span class="section-time">0-3s</span>
+                    <span class="section-name">Hook</span>
+                </div>
+                <div class="script-content">
+                    <p class="text-overlay">[Text on screen: "POV: It's 6am and -15°C outside"]</p>
+                    <p class="direction">[You looking exhausted, holding coffee]</p>
+                </div>
+            </div>
+            
+            <div class="script-section">
+                <div class="section-header">
+                    <span class="section-time">3-10s</span>
+                    <span class="section-name">Problem</span>
+                </div>
+                <div class="script-content">
+                    <p class="text-overlay">[Text: "You want to run but..."]</p>
+                    <p class="direction">[Quick cuts of you:]</p>
+                    <p class="direction">• Staring at closet confused 😵‍💫</p>
+                    <p class="direction">• Putting on jacket, taking it off</p>
+                    <p class="direction">• Checking weather app, still confused</p>
+                    <p class="direction">• Holding up 3 different pairs of gloves</p>
+                </div>
+            </div>
+            
+            <div class="script-section">
+                <div class="section-header">
+                    <span class="section-time">10-12s</span>
+                    <span class="section-name">Transition</span>
+                </div>
+                <div class="script-content">
+                    <p class="text-overlay">[Text: "Until I found this..."]</p>
+                    <p class="direction">[Phone notification sound]</p>
+                </div>
+            </div>
+            
+            <div class="script-section">
+                <div class="section-header">
+                    <span class="section-time">12-25s</span>
+                    <span class="section-name">Solution</span>
+                </div>
+                <div class="script-content">
+                    <p class="direction">[Screen recording of TrailKit:]</p>
+                    <p class="direction">• Open app, weather loads</p>
+                    <p class="direction">• Show clothing recommendations</p>
+                    <p class="direction">• Tap info icon on an item</p>
+                    <p class="direction">• Quick scroll through outfit</p>
+                    <p class="text-overlay">[Voiceover or text:]</p>
+                    <p class="dialogue">"It literally tells you EXACTLY what to wear based on the weather"</p>
+                    <p class="dialogue">"No more freezing or sweating to death"</p>
+                </div>
+            </div>
+            
+            <div class="script-section">
+                <div class="section-header">
+                    <span class="section-time">25-30s</span>
+                    <span class="section-name">Call to Action</span>
+                </div>
+                <div class="script-content">
+                    <p class="direction">[Back to you, now dressed and ready]</p>
+                    <p class="text-overlay">[Text: "Link in bio - it's free 🔥"]</p>
+                    <p class="dialogue">"Beta testing now - come freeze with me"</p>
+                </div>
+            </div>
+            
+            <div class="caption-section">
+                <p class="caption-label">📝 CAPTION:</p>
+                <p class="caption-text">finally stopped overdressing for runs 😅 #running #winterrunning #runner #trailrunning #runtok #runningmotivation #coldweatherrunning</p>
+            </div>
+        </div>
+        
+        <!-- Script 2 -->
+        <div class="script-card">
+            <div class="script-header">
+                <h2 class="script-title">Script 2: "Quick Demo"</h2>
+                <div class="script-meta">
+                    <span class="meta-badge">15-20 seconds</span>
+                    <span class="meta-badge purple">Product Focus</span>
+                </div>
+            </div>
+            
+            <div class="script-section">
+                <div class="section-header">
+                    <span class="section-time">0-2s</span>
+                    <span class="section-name">Hook</span>
+                </div>
+                <div class="script-content">
+                    <p class="text-overlay">[Text: "App every runner needs this winter ❄️"]</p>
+                    <p class="direction">[Show phone with TrailKit open]</p>
+                </div>
+            </div>
+            
+            <div class="script-section">
+                <div class="section-header">
+                    <span class="section-time">2-15s</span>
+                    <span class="section-name">Demo</span>
+                </div>
+                <div class="script-content">
+                    <p class="direction">[Screen recording with upbeat music:]</p>
+                    <p class="text-overlay">[Text overlay: "1. Check the weather"]</p>
+                    <p class="direction">→ Show temp loading (-8°C)</p>
+                    <p class="text-overlay">[Text overlay: "2. Get your outfit"]</p>
+                    <p class="direction">→ Show recommendations appearing</p>
+                    <p class="text-overlay">[Text overlay: "3. Tap for details"]</p>
+                    <p class="direction">→ Tap info icon, show description</p>
+                    <p class="text-overlay">[Text overlay: "4. Never overdress again"]</p>
+                    <p class="direction">→ Show full outfit summary</p>
+                </div>
+            </div>
+            
+            <div class="script-section">
+                <div class="section-header">
+                    <span class="section-time">15-20s</span>
+                    <span class="section-name">Call to Action</span>
+                </div>
+                <div class="script-content">
+                    <p class="text-overlay">[Text: "Free beta → link in bio"]</p>
+                    <p class="direction">[Quick flash of landing page]</p>
+                </div>
+            </div>
+            
+            <div class="caption-section">
+                <p class="caption-label">📝 CAPTION:</p>
+                <p class="caption-text">this would've saved me so many bad runs 🥶 #runningtips #winterrunning #runnerproblems #trailkit</p>
+            </div>
+        </div>
+        
+        <!-- Script 3 -->
+        <div class="script-card">
+            <div class="script-header">
+                <h2 class="script-title">Script 3: "Storytime"</h2>
+                <div class="script-meta">
+                    <span class="meta-badge">45-60 seconds</span>
+                    <span class="meta-badge purple">Talking Head / Authentic</span>
+                </div>
+            </div>
+            
+            <div class="script-section">
+                <div class="section-header">
+                    <span class="section-time">0-3s</span>
+                    <span class="section-name">Hook</span>
+                </div>
+                <div class="script-content">
+                    <p class="dialogue">"Okay so I literally built an app because I kept freezing on runs"</p>
+                </div>
+            </div>
+            
+            <div class="script-section">
+                <div class="section-header">
+                    <span class="section-time">3-20s</span>
+                    <span class="section-name">Story</span>
+                </div>
+                <div class="script-content">
+                    <p class="dialogue">"Like I would check the weather, it says -10, and I'd be like 'okay tights, jacket, gloves' and then I'd either be DRENCHED in sweat or literally couldn't feel my fingers"</p>
+                    <p class="dialogue">"And my running friends would show up in like... the perfect outfit every time??"</p>
+                </div>
+            </div>
+            
+            <div class="script-section">
+                <div class="section-header">
+                    <span class="section-time">20-40s</span>
+                    <span class="section-name">Solution</span>
+                </div>
+                <div class="script-content">
+                    <p class="dialogue">"So I tracked what I wore on every run for like a year and built an app that just... tells you what to wear"</p>
+                    <p class="direction">[Show phone]</p>
+                    <p class="dialogue">"You open it, it gets the weather, and it's like: 'Hey, wear this base layer, these tights, light gloves'"</p>
+                    <p class="direction">[Tap info icon]</p>
+                    <p class="dialogue">"And if you're new to running, you can tap these to learn WHY each item works"</p>
+                </div>
+            </div>
+            
+            <div class="script-section">
+                <div class="section-header">
+                    <span class="section-time">40-50s</span>
+                    <span class="section-name">Call to Action</span>
+                </div>
+                <div class="script-content">
+                    <p class="dialogue">"It's called TrailKit, it's free, and I'm looking for people to test it"</p>
+                    <p class="dialogue">"Link in bio if you want early access - and let me know what features you'd want"</p>
+                </div>
+            </div>
+            
+            <div class="caption-section">
+                <p class="caption-label">📝 CAPTION:</p>
+                <p class="caption-text">built this because google wasn't helping 😭 looking for beta testers! #indiehacker #runningapp #buildingpublic #winterrunning #runner</p>
+            </div>
+        </div>
+        
+        <!-- Tips Section -->
+        <div class="tips-section">
+            <h3 class="tips-title">💡 Production Tips</h3>
+            <div class="tips-grid">
+                <div class="tip-card">
+                    <h4>🎵 Music Suggestions</h4>
+                    <ul>
+                        <li>Trending sounds (check Discover)</li>
+                        <li>"Oh No" by Kreepa (comedy)</li>
+                        <li>Chill lo-fi for demos</li>
+                        <li>Any viral text-on-screen audio</li>
+                    </ul>
+                </div>
+                <div class="tip-card">
+                    <h4>📱 Recording Tips</h4>
+                    <ul>
+                        <li>Film in good lighting (near window)</li>
+                        <li>Use iPhone screen recording for demo</li>
+                        <li>Keep phone steady or use tripod</li>
+                        <li>Film vertical (9:16 ratio)</li>
+                    </ul>
+                </div>
+                <div class="tip-card">
+                    <h4>✂️ Editing Tips</h4>
+                    <ul>
+                        <li>Use CapCut or TikTok editor</li>
+                        <li>Add captions for accessibility</li>
+                        <li>Keep cuts fast and punchy</li>
+                        <li>Hook must grab in first 2 seconds</li>
+                    </ul>
+                </div>
+                <div class="tip-card">
+                    <h4>🚀 Posting Strategy</h4>
+                    <ul>
+                        <li>Post between 6-9am or 7-10pm</li>
+                        <li>Reply to every comment quickly</li>
+                        <li>Cross-post to Instagram Reels</li>
+                        <li>Make 3-5 videos per concept</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <h4 style="color: #00f5d4; margin-top: 2rem; margin-bottom: 1rem;">Recommended Hashtags</h4>
+            <div class="hashtags">
+                <span class="hashtag">#winterrunning</span>
+                <span class="hashtag">#running</span>
+                <span class="hashtag">#runner</span>
+                <span class="hashtag">#runtok</span>
+                <span class="hashtag">#runningproblems</span>
+                <span class="hashtag">#coldweatherrunning</span>
+                <span class="hashtag">#trailrunning</span>
+                <span class="hashtag">#runningtips</span>
+                <span class="hashtag">#runningmotivation</span>
+                <span class="hashtag">#runnersoftiktok</span>
+                <span class="hashtag">#indiehacker</span>
+                <span class="hashtag">#buildingpublic</span>
+                <span class="hashtag">#appdev</span>
+            </div>
+        </div>
+        
+    </div>
+</body>
+</html>
+

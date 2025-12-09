@@ -913,9 +913,11 @@ export const CLOTHING_INFO: Record<string, Record<string, ClothingInfo>> = {
     },
     'Light fleece': {
       name: 'Light Fleece',
-      description: 'Thin fleece for mild cold or high activity.',
-      whyWear: '35-50°F (2-10°C) or as base layer under shell.',
-      lookFor: ['Thin, stretchy', 'Moisture-wicking'],
+      description: 'Thin, breathable fleece for active use in cool conditions.',
+      whyWear: '35-55°F (2-13°C). Great for high-output activities like snowshoeing where you generate lots of heat.',
+      lookFor: ['Thin, stretchy fabric', 'Moisture-wicking', 'Quarter zip for ventilation', 'Thumb loops'],
+      examples: ['Patagonia R1 Pullover', 'Arc\'teryx Delta LT', 'Rab Nexus'],
+      budgetTip: 'Any thin athletic fleece works - look for \'microfleece\' or \'grid fleece\' ($30-50)',
     },
     'Grid fleece': {
       name: 'Grid Fleece',

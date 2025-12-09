@@ -1,5 +1,9 @@
 import { useState } from 'react';
 
+interface HelpProps {
+  onTermsClick?: () => void;
+}
+
 interface FAQItem {
   question: string;
   answer: string;
@@ -195,7 +199,7 @@ Each activity has its own clothing categories and your history is tracked separa
   }
 ];
 
-export function Help() {
+export function Help({ onTermsClick }: HelpProps) {
   const [expandedIndex, setExpandedIndex] = useState<number | null>(null);
 
   const toggleFAQ = (index: number) => {
@@ -372,6 +376,27 @@ export function Help() {
         <p className="mt-1">Email us at <span className="text-[var(--color-accent)]">GetTrailKit@gmail.com</span></p>
         <p className="mt-1 opacity-75">This app is in active development and your feedback helps make it better!</p>
       </div>
+
+      {/* Terms & Privacy Link */}
+      {onTermsClick && (
+        <button
+          onClick={onTermsClick}
+          className="w-full mt-6 glass-card p-4 flex items-center justify-between hover:bg-[rgba(255,255,255,0.08)] transition-colors"
+        >
+          <div className="flex items-center gap-3">
+            <svg className="w-6 h-6 text-[var(--color-accent)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+            <div className="text-left">
+              <div className="font-medium">Terms & Privacy</div>
+              <div className="text-sm text-[var(--color-text-muted)]">Legal info and data usage</div>
+            </div>
+          </div>
+          <svg className="w-5 h-5 text-[var(--color-text-muted)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+          </svg>
+        </button>
+      )}
     </div>
   );
 }

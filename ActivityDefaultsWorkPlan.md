@@ -199,3 +199,5 @@ Currently missing activity-specific accessory defaults:
 
 Both will achieve the same result - sensible defaults for every activity at every temperature.
 
+
+
