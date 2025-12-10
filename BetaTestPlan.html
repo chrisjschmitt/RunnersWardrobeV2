@@ -241,7 +241,7 @@
         <header>
             <h1>🧪 Beta Test Plan</h1>
             <p>TrailKit - Smart Clothing Recommendations for Outdoor Activities</p>
-            <div class="version-badge">Version 4.0.1</div>
+            <div class="version-badge">Version 4.1.0</div>
         </header>
 
         <!-- Overview -->
@@ -462,7 +462,7 @@ Let me know if you're in! 🏃‍♂️</div>
 
 Device: iPhone 14 / Android Pixel 7
 Browser: Safari / Chrome
-App Version: 4.0.1
+App Version: 4.1.0
 
 What happened:
 [Describe the issue]
@@ -558,6 +558,94 @@ Screenshot attached: Yes/No</div>
             </div>
         </section>
 
+        <!-- First Launch Tracking -->
+        <section>
+            <h2>📊 First Launch Tracking</h2>
+            
+            <div class="highlight" style="border-color: #3b82f6; background: rgba(59,130,246,0.15);">
+                <strong style="color: #60a5fa;">🆕 Beta Feature:</strong> When a user opens the app for the first time, you'll receive an email with their device info. This helps with troubleshooting and understanding your beta user base.
+            </div>
+            
+            <h3>Data Collected (One-Time)</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Field</th>
+                        <th>Example</th>
+                        <th>Why It Helps</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>IP Address</td>
+                        <td>24.137.xxx.xxx</td>
+                        <td>Approximate location, identify repeat issues</td>
+                    </tr>
+                    <tr>
+                        <td>Browser + Version</td>
+                        <td>Safari 17.2</td>
+                        <td>Safari has different bugs than Chrome</td>
+                    </tr>
+                    <tr>
+                        <td>OS + Version</td>
+                        <td>iOS 17.1</td>
+                        <td>iOS 16 vs 17 behave differently</td>
+                    </tr>
+                    <tr>
+                        <td>Device Type</td>
+                        <td>iPhone</td>
+                        <td>Screen layout issues are device-specific</td>
+                    </tr>
+                    <tr>
+                        <td>Screen Size</td>
+                        <td>390 × 844 @3x</td>
+                        <td>Reproduce UI bugs</td>
+                    </tr>
+                    <tr>
+                        <td>App Version</td>
+                        <td>4.1.0</td>
+                        <td>Know which code they're running</td>
+                    </tr>
+                    <tr>
+                        <td>Display Mode</td>
+                        <td>Standalone (PWA)</td>
+                        <td>PWA vs browser behave differently</td>
+                    </tr>
+                    <tr>
+                        <td>Timezone</td>
+                        <td>America/Toronto</td>
+                        <td>Correlate with bug reports</td>
+                    </tr>
+                </tbody>
+            </table>
+            
+            <h3>Example Email</h3>
+            <div class="template">🆕 New TrailKit User (Beta)
+
+type: First Launch Tracking
+browser: Safari 17.2
+os: iOS 17.1.1
+device: iPhone
+screen: 390 × 844 @3x
+appVersion: 4.1.0
+displayMode: Standalone (PWA installed)
+timezone: America/Toronto
+language: en-CA
+online: Yes
+serviceWorker: Active
+timestamp: 2024-12-10T15:45:00.000Z</div>
+
+            <div class="cta-box" style="background: linear-gradient(135deg, #ef4444, #dc2626);">
+                <h3>⚠️ REMOVE BEFORE PRODUCTION</h3>
+                <p>This tracking feature must be removed before public release. Files to modify:</p>
+                <p style="font-family: monospace; margin-top: 0.5rem;">
+                    src/services/betaTracking.ts (delete)<br>
+                    src/App.tsx (remove import and trackFirstLaunch call)<br>
+                    src/components/TermsPrivacy.tsx (remove beta tracking notice)
+                </p>
+            </div>
+        </section>
+
         <!-- Legal & Terms -->
         <section>
             <h2>📜 Terms & Privacy</h2>
@@ -572,6 +660,7 @@ Screenshot attached: Yes/No</div>
                 <li><strong>No Warranty:</strong> App is provided "as-is" with no guarantees</li>
                 <li><strong>Limitation of Liability:</strong> Not responsible for discomfort, injury, or damage</li>
                 <li><strong>Beta Status:</strong> Clearly stated that app is in beta and may have bugs</li>
+                <li><strong>Beta Tracking:</strong> Disclosed that first-launch device info is collected during beta</li>
             </ul>
             
             <h3>Privacy Highlights</h3>
@@ -659,7 +748,7 @@ Screenshot attached: Yes/No</div>
                     </tr>
                     <tr>
                         <td><strong>Current Version</strong></td>
-                        <td>4.0.1</td>
+                        <td>4.1.0</td>
                     </tr>
                     <tr>
                         <td><strong>Support Email</strong></td>
@@ -686,7 +775,7 @@ Screenshot attached: Yes/No</div>
         </section>
 
         <footer style="text-align: center; padding: 2rem; color: var(--text-muted); font-size: 0.9rem;">
-            <p>TrailKit Beta Test Plan • Version 4.0.1 • December 2024</p>
+            <p>TrailKit Beta Test Plan • Version 4.1.0 • December 2024</p>
         </footer>
     </div>
 </body>

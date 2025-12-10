@@ -200,6 +200,32 @@ function PrivacyPolicy() {
         </p>
       </div>
 
+      {/* Beta Tracking Notice */}
+      <div className="glass-card p-6 border-2 border-blue-500/50 bg-[rgba(59,130,246,0.1)]">
+        <h2 className="text-lg font-semibold mb-3 flex items-center gap-2 text-blue-300">
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
+          </svg>
+          Beta Tracking Notice
+        </h2>
+        <p className="text-sm text-[var(--color-text-muted)]">
+          <strong className="text-blue-200">During beta testing only:</strong> When you first open 
+          the app, we collect anonymous device information to help with troubleshooting. This is 
+          sent once and includes:
+        </p>
+        <ul className="text-sm text-[var(--color-text-muted)] mt-2 ml-4 list-disc space-y-1">
+          <li>IP address (for approximate location)</li>
+          <li>Browser and version</li>
+          <li>Operating system</li>
+          <li>Device type and screen size</li>
+          <li>App version</li>
+        </ul>
+        <p className="text-sm text-[var(--color-text-muted)] mt-3">
+          <strong className="text-blue-200">This tracking will be removed</strong> before the 
+          production release. It helps us understand our beta users and fix device-specific issues.
+        </p>
+      </div>
+
       {/* Privacy Content */}
       <div className="glass-card p-6">
         <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
@@ -294,8 +320,9 @@ function PrivacyPolicy() {
 
           <Section title="6. Cookies & Tracking">
             <p>
-              TrailKit does not use cookies, analytics, or tracking scripts. We don't know 
-              who you are, how often you use the App, or what you do with it.
+              TrailKit does not use cookies or ongoing analytics. During the beta period only, 
+              we collect anonymous device information on first launch (see Beta Tracking Notice above). 
+              This will be removed before production release.
             </p>
           </Section>
 
@@ -354,4 +381,5 @@ function Section({ title, children }: SectionProps) {
     </div>
   );
 }
+
 

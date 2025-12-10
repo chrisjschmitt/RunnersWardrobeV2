@@ -11,6 +11,8 @@ import { Onboarding } from './components/Onboarding';
 import { TermsPrivacy } from './components/TermsPrivacy';
 import type { TemperatureUnit } from './services/temperatureUtils';
 import { isProxyMode } from './services/weatherApi';
+// TODO: Remove beta tracking before production release
+import { trackFirstLaunch } from './services/betaTracking';
 
 function App() {
   const [view, setView] = useState<AppView>('home');
@@ -51,6 +53,10 @@ function App() {
       if (!onboardingDone) {
         setShowOnboarding(true);
       }
+      
+      // TODO: Remove beta tracking before production release
+      // Track first launch for beta troubleshooting (sends device info once)
+      trackFirstLaunch();
     } catch (error) {
       console.error('Failed to load initial data:', error);
     } finally {
