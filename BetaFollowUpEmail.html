@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TrailKit Beta Update - December 2024</title>
+    <style>
+        :root {
+            --bg-dark: #0f172a;
+            --bg-card: #1e293b;
+            --text-primary: #f1f5f9;
+            --text-muted: #94a3b8;
+            --accent: #f97316;
+            --success: #22c55e;
+            --blue: #3b82f6;
+        }
+        
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg-dark);
+            color: var(--text-primary);
+            line-height: 1.7;
+            padding: 2rem;
+        }
+        
+        .container {
+            max-width: 650px;
+            margin: 0 auto;
+            background: var(--bg-card);
+            border-radius: 16px;
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, var(--accent), #ea580c);
+            padding: 2rem;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 1.75rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+        
+        .header p {
+            opacity: 0.9;
+            font-size: 1rem;
+        }
+        
+        .version-badge {
+            display: inline-block;
+            background: rgba(255,255,255,0.2);
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            margin-top: 0.75rem;
+        }
+        
+        .content {
+            padding: 2rem;
+        }
+        
+        .greeting {
+            font-size: 1.1rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        h2 {
+            font-size: 1.25rem;
+            margin: 2rem 0 1rem;
+            color: var(--accent);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        h2:first-of-type {
+            margin-top: 0;
+        }
+        
+        p {
+            margin-bottom: 1rem;
+            color: var(--text-muted);
+        }
+        
+        .feature-list {
+            list-style: none;
+            margin: 1rem 0;
+        }
+        
+        .feature-list li {
+            padding: 0.75rem 0;
+            padding-left: 2rem;
+            position: relative;
+            color: var(--text-muted);
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+        
+        .feature-list li:last-child {
+            border-bottom: none;
+        }
+        
+        .feature-list li::before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            color: var(--success);
+            font-weight: bold;
+        }
+        
+        .feature-list li strong {
+            color: var(--text-primary);
+        }
+        
+        .highlight-box {
+            background: rgba(59,130,246,0.15);
+            border-left: 4px solid var(--blue);
+            padding: 1rem 1.25rem;
+            border-radius: 0 8px 8px 0;
+            margin: 1.5rem 0;
+        }
+        
+        .highlight-box h3 {
+            color: #60a5fa;
+            font-size: 1rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .highlight-box p {
+            margin: 0;
+            font-size: 0.95rem;
+        }
+        
+        .terms-summary {
+            background: rgba(255,255,255,0.05);
+            border-radius: 12px;
+            padding: 1.25rem;
+            margin: 1rem 0;
+        }
+        
+        .terms-summary ul {
+            list-style: none;
+            margin: 0;
+        }
+        
+        .terms-summary li {
+            padding: 0.5rem 0;
+            color: var(--text-muted);
+            display: flex;
+            gap: 0.75rem;
+        }
+        
+        .terms-summary li span {
+            font-size: 1.1rem;
+        }
+        
+        .next-steps {
+            background: rgba(249,115,22,0.1);
+            border-radius: 12px;
+            padding: 1.25rem;
+            margin: 1rem 0;
+        }
+        
+        .next-steps ol {
+            margin: 0.5rem 0 0 1.25rem;
+            color: var(--text-muted);
+        }
+        
+        .next-steps li {
+            padding: 0.4rem 0;
+        }
+        
+        .cta-button {
+            display: inline-block;
+            background: linear-gradient(135deg, var(--accent), #ea580c);
+            color: white;
+            padding: 0.875rem 1.75rem;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            margin: 1rem 0;
+        }
+        
+        .signature {
+            margin-top: 2rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .signature p {
+            margin-bottom: 0.25rem;
+        }
+        
+        .footer {
+            background: rgba(0,0,0,0.2);
+            padding: 1.5rem 2rem;
+            text-align: center;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+        
+        .footer a {
+            color: var(--accent);
+            text-decoration: none;
+        }
+        
+        .browser-note {
+            background: rgba(239,68,68,0.1);
+            border: 1px solid rgba(239,68,68,0.3);
+            border-radius: 8px;
+            padding: 1rem;
+            margin: 1rem 0;
+            font-size: 0.9rem;
+        }
+        
+        .browser-note strong {
+            color: #f87171;
+        }
+        
+        @media (max-width: 600px) {
+            body {
+                padding: 1rem;
+            }
+            
+            .content {
+                padding: 1.5rem;
+            }
+            
+            .header h1 {
+                font-size: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🏔️ TrailKit Beta Update</h1>
+            <p>What's New & What's Next</p>
+            <div class="version-badge">Version 4.1.0 • December 2024</div>
+        </div>
+        
+        <div class="content">
+            <p class="greeting">Hey there, fellow outdoor enthusiast! 👋</p>
+            
+            <p>Thank you for being part of the TrailKit beta! Your feedback has been incredibly valuable, and I've been busy making improvements based on what you've shared. Here's what's new since you started testing.</p>
+            
+            <h2>🆕 What's New in v4.1</h2>
+            
+            <ul class="feature-list">
+                <li>
+                    <strong>See Why It's Recommended</strong><br>
+                    Tap the green "Based on X similar sessions" banner to see which past activities influenced the recommendation — including what you wore and how you felt.
+                </li>
+                <li>
+                    <strong>Add Notes to Your Feedback</strong><br>
+                    After each activity, you can now add optional notes like "gloves were too heavy" or "perfect layering!" These notes are saved and shown in similar sessions.
+                </li>
+                <li>
+                    <strong>Learn About Each Item</strong><br>
+                    Tap the ⓘ info icons next to any clothing item to learn what it is, when to wear it, and budget-friendly options.
+                </li>
+                <li>
+                    <strong>Smarter Headlamp Suggestions</strong><br>
+                    The app now suggests a headlamp starting 1 hour before sunset — giving you time to prepare for the dark.
+                </li>
+                <li>
+                    <strong>Easier Navigation</strong><br>
+                    Help & FAQ is now in the main navigation bar, and you can import data from Settings.
+                </li>
+                <li>
+                    <strong>Terms & Privacy Added</strong><br>
+                    Legal stuff (see below) is now available in Help → Terms & Privacy.
+                </li>
+            </ul>
+            
+            <div class="browser-note">
+                <strong>⚠️ Browser Note:</strong> Please use <strong>Safari</strong> (iPhone) or <strong>Chrome</strong> (Android/Desktop). Privacy browsers like DuckDuckGo and Brave may not work correctly.
+            </div>
+            
+            <h2>📜 About Terms & Privacy</h2>
+            
+            <p>I've added a Terms of Service and Privacy Policy to the app. Here's the short version:</p>
+            
+            <div class="terms-summary">
+                <ul>
+                    <li><span>🏠</span> <strong>Your data stays on your device</strong> — no cloud, no accounts, no tracking</li>
+                    <li><span>📍</span> <strong>Location is only used for weather</strong> — we don't store or share it</li>
+                    <li><span>⚠️</span> <strong>Recommendations are suggestions</strong> — always use your own judgment for safety</li>
+                    <li><span>🧪</span> <strong>Beta means bugs happen</strong> — the app is provided "as-is" during testing</li>
+                    <li><span>📊</span> <strong>Beta tracking (temporary)</strong> — first-launch device info helps me troubleshoot issues you report</li>
+                </ul>
+            </div>
+            
+            <p>You can read the full Terms & Privacy in the app: <strong>Help → Terms & Privacy</strong></p>
+            
+            <h2>🔮 What's Next</h2>
+            
+            <p>We're still in the early weeks of beta testing. Here's what I'm focusing on:</p>
+            
+            <div class="next-steps">
+                <ol>
+                    <li><strong>Tune the recommendations</strong> — analyzing "too cold/too hot" patterns to improve defaults</li>
+                    <li><strong>Fix bugs you report</strong> — keep 'em coming!</li>
+                    <li><strong>Polish the experience</strong> — small UX improvements based on your feedback</li>
+                    <li><strong>Prepare for public launch</strong> — once we're confident the app is solid</li>
+                </ol>
+            </div>
+            
+            <div class="highlight-box">
+                <h3>💬 Your Feedback Matters!</h3>
+                <p>The best way to help is to <strong>use the app before your activities</strong> and <strong>give feedback after</strong>. Every "too cold" or "too hot" rating makes the app smarter. And if something breaks, let me know!</p>
+            </div>
+            
+            <p style="text-align: center; margin-top: 1.5rem;">
+                <a href="https://gettrailkit.app" class="cta-button">Open TrailKit →</a>
+            </p>
+            
+            <div class="signature">
+                <p style="color: var(--text-primary); font-weight: 500;">Thanks for being a beta tester! 🙏</p>
+                <p>— Chris</p>
+                <p style="font-size: 0.9rem; margin-top: 0.5rem;">
+                    Questions or bugs? Email me at <a href="mailto:GetTrailKit@gmail.com" style="color: var(--accent);">GetTrailKit@gmail.com</a>
+                </p>
+            </div>
+        </div>
+        
+        <div class="footer">
+            <p>TrailKit • <a href="https://gettrailkit.app">gettrailkit.app</a></p>
+            <p style="margin-top: 0.5rem; font-size: 0.8rem;">You're receiving this because you signed up for the TrailKit beta.</p>
+        </div>
+    </div>
+</body>
+</html>
+

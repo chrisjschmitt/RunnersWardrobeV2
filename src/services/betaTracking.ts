@@ -270,11 +270,36 @@ async function sendToFormspree(info: DeviceInfo): Promise<boolean> {
 }
 
 /**
+ * Check if the current visitor is likely a bot
+ */
+function isLikelyBot(): boolean {
+  const ua = navigator.userAgent.toLowerCase();
+  
+  const botPatterns = [
+    'bot', 'crawl', 'spider', 'slurp', 'facebook', 'twitter', 'linkedin',
+    'pinterest', 'whatsapp', 'telegram', 'slack', 'discord', 'preview',
+    'fetch', 'curl', 'wget', 'python', 'java/', 'php/', 'ruby',
+    'headless', 'phantom', 'selenium', 'puppeteer', 'playwright',
+    'googlebot', 'bingbot', 'yandex', 'baidu', 'duckduckbot',
+    'applebot', 'semrush', 'ahref', 'mj12bot', 'dotbot',
+    'petalbot', 'bytespider', 'gptbot', 'claudebot'
+  ];
+  
+  return botPatterns.some(pattern => ua.includes(pattern));
+}
+
+/**
  * Track first launch if not already tracked
  * 
  * ⚠️ TODO: REMOVE THIS FUNCTION BEFORE PRODUCTION RELEASE
  */
 export async function trackFirstLaunch(): Promise<void> {
+  // Skip bots and crawlers
+  if (isLikelyBot()) {
+    console.log('Beta tracking: Skipping bot/crawler');
+    return;
+  }
+  
   // Check if already tracked
   if (localStorage.getItem(FIRST_LAUNCH_KEY)) {
     return;
