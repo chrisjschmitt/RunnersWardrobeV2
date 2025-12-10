@@ -115,6 +115,26 @@ The app weighs recent feedback more heavily than older feedback, so it adapts as
 Once installed, the app appears on your home screen and opens in full screen - just like a regular app!`
   },
   {
+    question: "Which browsers are supported?",
+    answer: `For the best experience, use these browsers:
+
+**✅ Recommended**
+• **Safari** - Best for iPhone and Mac (required for iOS PWA install)
+• **Chrome** - Best for Android and desktop
+• **Edge** - Works great on desktop
+
+**⚠️ Limited Support**
+• **Firefox** - Works but can't install as PWA on iOS
+• **Brave** - May need to disable shields for location to work
+
+**❌ Not Supported**
+• **DuckDuckGo** - Privacy controls block location services and data storage
+• Other privacy-focused browsers may have similar issues
+
+**Why privacy browsers don't work**
+These browsers block features the app needs: location access for weather, localStorage for saving your history, and third-party requests for weather data.`
+  },
+  {
     question: "Can I switch between Celsius and Fahrenheit?",
     answer: `Yes! Go to Settings and tap °C or °F. Your preference is saved automatically.
 
@@ -244,6 +264,11 @@ export function Help({ onTermsClick }: HelpProps) {
             icon="🌡️" 
             title="Weather accuracy varies"
             description="Weather data comes from OpenWeatherMap. Conditions at your exact location may differ from what the app shows."
+          />
+          <LimitationItem 
+            icon="🌐" 
+            title="Use Safari or Chrome"
+            description="Privacy browsers like DuckDuckGo are not supported. Their privacy controls block features the app needs to work properly."
           />
         </div>
       </div>
