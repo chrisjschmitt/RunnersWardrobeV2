@@ -19,7 +19,7 @@
  * This should be removed or made opt-in before production release.
  */
 
-const FORMSPREE_ENDPOINT = 'https://formspree.io/f/xrbnaokl';
+const FORMSPREE_ENDPOINT = 'https://formspree.io/f/xkgdqvjo';
 const FIRST_LAUNCH_KEY = 'trailkit_first_launch_tracked';
 const APP_VERSION = '4.1.0';
 
