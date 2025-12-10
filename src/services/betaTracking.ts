@@ -208,14 +208,20 @@ export async function trackFirstLaunch(): Promise<void> {
     return;
   }
   
+  // IMMEDIATELY set the flag to prevent duplicate sends
+  // This prevents race conditions if the page reloads before the request completes
+  localStorage.setItem(FIRST_LAUNCH_KEY, new Date().toISOString());
+  
   try {
     const deviceInfo = collectDeviceInfo();
     const success = await sendToFormspree(deviceInfo);
     
     if (success) {
-      // Mark as tracked so we don't send again
-      localStorage.setItem(FIRST_LAUNCH_KEY, new Date().toISOString());
       console.log('Beta tracking: First launch recorded');
+    } else {
+      // If send failed, we could remove the flag to retry next time
+      // But for beta, it's better to not spam - just log it
+      console.log('Beta tracking: Send failed, but flag set to prevent retries');
     }
   } catch (error) {
     // Fail silently - tracking should never break the app
