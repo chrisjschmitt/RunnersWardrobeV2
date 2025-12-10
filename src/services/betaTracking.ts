@@ -285,7 +285,7 @@ export async function trackFirstLaunch(): Promise<void> {
   localStorage.setItem(FIRST_LAUNCH_KEY, new Date().toISOString());
   
   try {
-    const deviceInfo = collectDeviceInfo();
+    const deviceInfo = await collectDeviceInfo();
     const success = await sendToFormspree(deviceInfo);
     
     if (success) {
