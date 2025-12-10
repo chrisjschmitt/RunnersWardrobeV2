@@ -36,6 +36,7 @@ interface DeviceInfo {
   online: boolean;
   serviceWorker: boolean;
   timestamp: string;
+  ipAddress: string;
 }
 
 /**
@@ -44,25 +45,54 @@ interface DeviceInfo {
 function getBrowserInfo(): string {
   const ua = navigator.userAgent;
   
-  // Check for common browsers
+  // Check for common browsers (order matters!)
+  
+  // Firefox (including iOS Firefox - FxiOS)
+  if (ua.includes('FxiOS/')) {
+    const match = ua.match(/FxiOS\/(\d+)/);
+    return `Firefox iOS ${match?.[1] || ''}`;
+  }
   if (ua.includes('Firefox/')) {
     const match = ua.match(/Firefox\/(\d+)/);
     return `Firefox ${match?.[1] || ''}`;
+  }
+  
+  // Edge (including mobile - EdgiOS)
+  if (ua.includes('EdgiOS/')) {
+    const match = ua.match(/EdgiOS\/(\d+)/);
+    return `Edge iOS ${match?.[1] || ''}`;
   }
   if (ua.includes('Edg/')) {
     const match = ua.match(/Edg\/(\d+)/);
     return `Edge ${match?.[1] || ''}`;
   }
+  
+  // Chrome on iOS uses CriOS
+  if (ua.includes('CriOS/')) {
+    const match = ua.match(/CriOS\/(\d+)/);
+    return `Chrome iOS ${match?.[1] || ''}`;
+  }
+  
+  // Chrome on other platforms
   if (ua.includes('Chrome/') && !ua.includes('Edg/')) {
     const match = ua.match(/Chrome\/(\d+)/);
     return `Chrome ${match?.[1] || ''}`;
   }
-  if (ua.includes('Safari/') && !ua.includes('Chrome/')) {
+  
+  // Safari (must check after Chrome since Chrome includes Safari in UA)
+  if (ua.includes('Safari/') && !ua.includes('Chrome/') && !ua.includes('CriOS/')) {
     const match = ua.match(/Version\/(\d+)/);
     return `Safari ${match?.[1] || ''}`;
   }
+  
+  // Opera
   if (ua.includes('Opera/') || ua.includes('OPR/')) {
     return 'Opera';
+  }
+  
+  // DuckDuckGo
+  if (ua.includes('DuckDuckGo/')) {
+    return 'DuckDuckGo (not supported)';
   }
   
   return 'Unknown Browser';
@@ -139,9 +169,49 @@ function getDisplayMode(): string {
 }
 
 /**
+ * Fetch public IP address using ipify API
+ */
+async function getIPAddress(): Promise<string> {
+  try {
+    const response = await fetch('https://api.ipify.org?format=json');
+    if (response.ok) {
+      const data = await response.json();
+      return data.ip || 'Unknown';
+    }
+    return 'Fetch failed';
+  } catch {
+    return 'Blocked or unavailable';
+  }
+}
+
+/**
+ * Format timestamp in user's local timezone
+ */
+function getLocalTimestamp(): string {
+  const now = new Date();
+  const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+  
+  // Format: "Dec 10, 2024, 3:45:30 PM EST"
+  return now.toLocaleString('en-US', {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: true,
+    timeZone: timezone,
+    timeZoneName: 'short'
+  });
+}
+
+/**
  * Collect all device information
  */
-function collectDeviceInfo(): DeviceInfo {
+async function collectDeviceInfo(): Promise<DeviceInfo> {
+  // Fetch IP address in parallel with collecting other info
+  const ipAddress = await getIPAddress();
+  
   return {
     browser: getBrowserInfo(),
     os: getOSInfo(),
@@ -154,7 +224,8 @@ function collectDeviceInfo(): DeviceInfo {
     language: navigator.language,
     online: navigator.onLine,
     serviceWorker: 'serviceWorker' in navigator,
-    timestamp: new Date().toISOString(),
+    timestamp: getLocalTimestamp(),
+    ipAddress,
   };
 }
 
@@ -170,6 +241,7 @@ async function sendToFormspree(info: DeviceInfo): Promise<boolean> {
     
     // Format the data nicely for email
     formData.append('type', 'First Launch Tracking');
+    formData.append('ipAddress', info.ipAddress);
     formData.append('browser', info.browser);
     formData.append('os', info.os);
     formData.append('device', info.device);
