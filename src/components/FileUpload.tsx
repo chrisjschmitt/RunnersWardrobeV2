@@ -18,6 +18,8 @@ export function FileUpload({ onUploadComplete, existingCount, activity = 'runnin
   const [error, setError] = useState<string | null>(null);
   const [warnings, setWarnings] = useState<string[]>([]);
   const [replaceMode, setReplaceMode] = useState(true);
+  const [uploadSuccess, setUploadSuccess] = useState(false);
+  const [importedCount, setImportedCount] = useState(0);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleDragOver = (e: DragEvent) => {
@@ -123,7 +125,14 @@ export function FileUpload({ onUploadComplete, existingCount, activity = 'runnin
 
       // Get new total count
       const newCount = await getRunCount();
-      onUploadComplete(newCount);
+      setImportedCount(result.records.length);
+      setUploadSuccess(true);
+      
+      // If no warnings, auto-continue after 2 seconds
+      // If warnings, wait for user to click Continue
+      if (warnings.length === 0 && result.warnings.length === 0) {
+        setTimeout(() => onUploadComplete(newCount), 2000);
+      }
 
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to process file');
@@ -132,7 +141,56 @@ export function FileUpload({ onUploadComplete, existingCount, activity = 'runnin
     }
   };
 
+  const handleContinue = async () => {
+    const newCount = await getRunCount();
+    onUploadComplete(newCount);
+  };
+
   const activityConfig = ACTIVITY_CONFIGS[activity];
+
+  // Show success screen after upload
+  if (uploadSuccess) {
+    return (
+      <div className="animate-fade-in">
+        <div className="glass-card p-6">
+          <div className="text-center mb-6">
+            <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-[var(--color-success)] flex items-center justify-center">
+              <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              </svg>
+            </div>
+            <h2 className="text-xl font-semibold text-[var(--color-success)] mb-2">Import Successful!</h2>
+            <p className="text-[var(--color-text-muted)]">
+              Imported <strong className="text-[var(--color-text-primary)]">{importedCount}</strong> records
+            </p>
+          </div>
+
+          {warnings.length > 0 && (
+            <div className="mb-6 p-4 bg-[rgba(234,179,8,0.15)] border border-[var(--color-warning)] rounded-lg">
+              <p className="text-[var(--color-warning)] font-medium mb-2 flex items-center gap-2">
+                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                </svg>
+                {warnings.length} Warning{warnings.length > 1 ? 's' : ''}
+              </p>
+              <ul className="text-sm text-[var(--color-warning)] opacity-90 list-disc list-inside space-y-1 max-h-48 overflow-y-auto">
+                {warnings.map((warning, i) => (
+                  <li key={i}>{warning}</li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          <button
+            onClick={handleContinue}
+            className="btn-primary w-full"
+          >
+            {warnings.length > 0 ? 'Continue' : 'Done'}
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="animate-fade-in">
