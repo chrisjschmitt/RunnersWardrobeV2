@@ -110,12 +110,32 @@ export function RunHistory({ onDataCleared, temperatureUnit, activity = 'running
         return;
       }
       
-      // Create and download file
+      const filename = `${activity}-history-${new Date().toISOString().split('T')[0]}.csv`;
       const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      
+      // Try Web Share API first (works best on iOS)
+      if (navigator.share && navigator.canShare) {
+        const file = new File([blob], filename, { type: 'text/csv' });
+        const shareData = { files: [file] };
+        
+        if (navigator.canShare(shareData)) {
+          try {
+            await navigator.share(shareData);
+            return;
+          } catch (shareError) {
+            // User cancelled or share failed, fall through to download
+            if ((shareError as Error).name === 'AbortError') {
+              return; // User cancelled, don't show error
+            }
+          }
+        }
+      }
+      
+      // Fallback: Standard download (works on desktop)
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
-      link.download = `${activity}-history-${new Date().toISOString().split('T')[0]}.csv`;
+      link.download = filename;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
