@@ -353,6 +353,12 @@ Test recommendations without real weather data:
 
 ## Version History
 
+- **v4.4.3**: Show all clothing in similar sessions (not truncated), fix comments import from CSV
+- **v4.4.2**: Import summary shown as info (not warning), better success screen UX
+- **v4.4.1**: Import warnings stay visible until user taps Continue
+- **v4.4.0**: Export All feature (single CSV with all activities), multi-activity import (auto-sorts by activity column)
+- **v4.3.0**: Export All button in history, unified CSV format with activity column
+- **v4.2.1**: Dynamic clothing display in history (shows all categories for each activity)
 - **v4.2.0**: Location tracking in beta emails, comments in CSV export, iOS Safari export fix, confidence display fix
 - **v4.1.0**: Beta tracking (first-launch device info), Terms & Privacy page, bot detection
 - **v4.0.1**: Help moved to main navigation, Import Data in Settings, UX improvements
