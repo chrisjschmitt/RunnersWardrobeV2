@@ -179,11 +179,23 @@ export function StartRun({ apiKey, hasApiKey, temperatureUnit, onNeedApiKey, tes
       
       if (runs.length > 0 || feedbackHistory.length > 0) {
         const rec = getClothingRecommendation(weatherData, runs, feedbackHistory, activity);
-        setRecommendation(rec);
-        setFallback(null);
-        // Only update actualClothing if user hasn't made edits
-        if (!hasUserEdits) {
-          setActualClothing(rec.clothing);
+        
+        // If no similar runs found (confidence would be 0), use fallback instead
+        // This shows "Using activity defaults" message instead of "0% confidence"
+        if (rec.matchingRuns === 0) {
+          const fallbackRec = getFallbackRecommendation(weatherData, feedbackHistory, activity);
+          setFallback(fallbackRec);
+          setRecommendation(null);
+          if (!hasUserEdits) {
+            setActualClothing(fallbackRec);
+          }
+        } else {
+          setRecommendation(rec);
+          setFallback(null);
+          // Only update actualClothing if user hasn't made edits
+          if (!hasUserEdits) {
+            setActualClothing(rec.clothing);
+          }
         }
       } else {
         const fallbackRec = getFallbackRecommendation(weatherData, feedbackHistory, activity);
