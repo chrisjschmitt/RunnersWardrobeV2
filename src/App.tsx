@@ -53,10 +53,6 @@ function App() {
       if (!onboardingDone) {
         setShowOnboarding(true);
       }
-      
-      // TODO: Remove beta tracking before production release
-      // Track first launch for beta troubleshooting (sends device info once)
-      trackFirstLaunch();
     } catch (error) {
       console.error('Failed to load initial data:', error);
     } finally {
@@ -67,6 +63,10 @@ function App() {
   const handleOnboardingComplete = async () => {
     await setOnboardingComplete();
     setShowOnboarding(false);
+    
+    // TODO: Remove beta tracking before production release
+    // Track first launch AFTER onboarding - proves a real human clicked through
+    trackFirstLaunch();
   };
 
   const handleActivityChange = async (activity: ActivityType) => {
