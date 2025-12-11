@@ -52,7 +52,7 @@ export function TermsPrivacy({ onBack }: TermsPrivacyProps) {
 
       {/* Last Updated */}
       <div className="mt-6 text-center text-xs text-[var(--color-text-muted)]">
-        Last updated: December 2024
+        Last updated: December 11, 2025
       </div>
     </div>
   );
