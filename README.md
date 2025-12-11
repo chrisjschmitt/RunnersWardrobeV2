@@ -1,6 +1,8 @@
-# Outdoor Wardrobe
+# TrailKit
 
 A Progressive Web App (PWA) that recommends what to wear for outdoor activities based on current weather conditions, your personal history, and comfort feedback.
+
+**Live App:** [gettrailkit.app](https://gettrailkit.app)
 
 ## Features
 
@@ -242,6 +244,68 @@ All tips are stored in `src/data/clothingInfo.ts`. See `ClothingInfoGuide.html` 
 
 **Important**: Item keys in `clothingInfo.ts` must exactly match option strings in `src/types/index.ts` (case-insensitive).
 
+## Testing
+
+### Automated Tests
+
+Run the test suite before deploying:
+
+```bash
+npm run test        # Run tests once
+npm run test:watch  # Watch mode for development
+```
+
+Tests are automatically run as part of `npm run build`.
+
+### Testing First-Time User Experience
+
+To simulate a brand new user (see onboarding, trigger first-launch tracking):
+
+**Option 1: Browser Console**
+
+```javascript
+// Clear all first-time flags
+localStorage.removeItem('trailkit_first_launch_tracked');
+indexedDB.deleteDatabase('RunnersWardrobeDB');
+location.reload();
+```
+
+**Option 2: DevTools UI**
+
+1. Open DevTools → **Application** tab
+2. Click **Storage** in the left sidebar
+3. Click **"Clear site data"** button
+4. Reload the page
+
+**Option 3: Incognito Window**
+
+Open the app in an Incognito/Private window for a clean slate.
+
+After clearing, you should see:
+1. Onboarding screens (swipe through all steps)
+2. Tap "Get Started" to complete onboarding
+3. First-launch tracking email is sent (beta only)
+
+### Test Mode
+
+Test recommendations without real weather data:
+
+1. Go to Settings → Test Mode → Toggle ON
+2. Choose a preset (❄️ Freezing, 🌧️ Rainy, etc.)
+3. Or adjust individual sliders for custom conditions
+4. Go to Home to see recommendations for those conditions
+
+### Supported Browsers
+
+| Browser | Status | Notes |
+|---------|--------|-------|
+| Safari (iOS/macOS) | ✅ Recommended | Best PWA support on Apple devices |
+| Chrome (Android/Desktop) | ✅ Recommended | Best PWA support on Android |
+| Edge | ✅ Supported | Works well on desktop |
+| Firefox | ⚠️ Limited | Works but no PWA install on iOS |
+| Brave | ⚠️ Limited | May need to disable shields |
+| DuckDuckGo | ❌ Not Supported | Privacy controls block location & storage |
+
 ## Tech Stack
 
 - **React 19** with TypeScript
@@ -289,6 +353,10 @@ All tips are stored in `src/data/clothingInfo.ts`. See `ClothingInfoGuide.html` 
 
 ## Version History
 
+- **v4.1.0**: Beta tracking (first-launch device info), Terms & Privacy page, bot detection
+- **v4.0.1**: Help moved to main navigation, Import Data in Settings, UX improvements
+- **v4.0.0**: Rebranded to TrailKit, similar sessions display (tap banner to see details), notes on feedback, headlamp 60 min before sunset
+- **v3.5.1**: Comprehensive test suite (110+ tests), tests run on build
 - **v3.5.0**: Activity-specific temperature defaults - each activity now has tailored recommendations for 7 temperature ranges (freezing to hot)
 - **v3.4.3**: Restore delete button for custom clothing items
 - **v3.4.2**: Fix shorts being recommended in freezing weather (added bottoms safety override)
