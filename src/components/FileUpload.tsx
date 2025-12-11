@@ -20,6 +20,7 @@ export function FileUpload({ onUploadComplete, existingCount, activity = 'runnin
   const [replaceMode, setReplaceMode] = useState(true);
   const [uploadSuccess, setUploadSuccess] = useState(false);
   const [importedCount, setImportedCount] = useState(0);
+  const [importSummary, setImportSummary] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleDragOver = (e: DragEvent) => {
@@ -105,14 +106,13 @@ export function FileUpload({ onUploadComplete, existingCount, activity = 'runnin
           }
         }
         
-        // Show how many were imported to which activities
+        // Show how many were imported to which activities (as info, not warning)
         const summary = ALL_ACTIVITIES
           .filter(act => result.recordsByActivity[act].length > 0)
           .map(act => `${ACTIVITY_CONFIGS[act].name}: ${result.recordsByActivity[act].length}`)
           .join(', ');
         if (summary) {
-          result.warnings.push(`Imported by activity: ${summary}`);
-          setWarnings([...result.warnings]);
+          setImportSummary(summary);
         }
       } else {
         // Single activity import (original behavior)
@@ -163,6 +163,11 @@ export function FileUpload({ onUploadComplete, existingCount, activity = 'runnin
             <p className="text-[var(--color-text-muted)]">
               Imported <strong className="text-[var(--color-text-primary)]">{importedCount}</strong> records
             </p>
+            {importSummary && (
+              <p className="text-sm text-[var(--color-accent)] mt-2">
+                {importSummary}
+              </p>
+            )}
           </div>
 
           {warnings.length > 0 && (
