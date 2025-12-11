@@ -207,6 +207,7 @@ export async function exportHistoryAsCSV(activity?: ActivityType): Promise<strin
     precipitation: number;
     cloudCover: number;
     comfort?: string;
+    comments?: string;
     clothing: Record<string, string>;
   }
 
@@ -241,6 +242,7 @@ export async function exportHistoryAsCSV(activity?: ActivityType): Promise<strin
       precipitation: fb.precipitation,
       cloudCover: fb.cloudCover,
       comfort: fb.comfort,
+      comments: fb.comments,
       clothing: fb.clothing
     });
   }
@@ -271,6 +273,7 @@ export async function exportHistoryAsCSV(activity?: ActivityType): Promise<strin
     'precipitation',
     'cloud_cover',
     'comfort',
+    'comments',
     ...clothingKeysArray.map(k => k.replace(/([A-Z])/g, '_$1').toLowerCase())
   ];
 
@@ -290,6 +293,7 @@ export async function exportHistoryAsCSV(activity?: ActivityType): Promise<strin
       record.precipitation,
       record.cloudCover,
       record.comfort || '',
+      record.comments || '',
       ...clothingValues
     ].map(v => escapeCSVValue(String(v))).join(',');
   });
