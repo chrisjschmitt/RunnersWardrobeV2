@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import type { RunRecord, RunFeedback, ActivityType } from '../types';
 import { ACTIVITY_CONFIGS } from '../types';
-import { getAllRuns, clearAllRuns, getAllFeedback, clearAllFeedback, deleteRun, deleteFeedback, exportHistoryAsCSV } from '../services/database';
+import { getAllRuns, clearAllRuns, getAllFeedback, clearAllFeedback, deleteRun, deleteFeedback, exportHistoryAsCSV, exportAllHistoryAsCSV } from '../services/database';
 import { formatTemperature, formatWindSpeed, type TemperatureUnit } from '../services/temperatureUtils';
 
 // Extended type to track source
@@ -111,41 +111,61 @@ export function RunHistory({ onDataCleared, temperatureUnit, activity = 'running
       }
       
       const filename = `${activity}-history-${new Date().toISOString().split('T')[0]}.csv`;
-      // Use application/octet-stream for better iOS Files app compatibility
-      // The .csv extension in the filename will still identify it correctly
-      const blob = new Blob([csv], { type: 'application/octet-stream' });
-      
-      // Try Web Share API first (works best on iOS)
-      if (navigator.share && navigator.canShare) {
-        const file = new File([blob], filename, { type: 'application/octet-stream' });
-        const shareData = { files: [file] };
-        
-        if (navigator.canShare(shareData)) {
-          try {
-            await navigator.share(shareData);
-            return;
-          } catch (shareError) {
-            // User cancelled or share failed, fall through to download
-            if ((shareError as Error).name === 'AbortError') {
-              return; // User cancelled, don't show error
-            }
-          }
-        }
-      }
-      
-      // Fallback: Standard download (works on desktop)
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = filename;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(url);
+      await downloadCSV(csv, filename);
     } catch (error) {
       console.error('Failed to export CSV:', error);
       alert('Failed to export data');
     }
+  };
+
+  const handleExportAllCSV = async () => {
+    try {
+      const csv = await exportAllHistoryAsCSV();
+      if (!csv) {
+        alert('No data to export');
+        return;
+      }
+      
+      const filename = `all-activities-history-${new Date().toISOString().split('T')[0]}.csv`;
+      await downloadCSV(csv, filename);
+    } catch (error) {
+      console.error('Failed to export CSV:', error);
+      alert('Failed to export data');
+    }
+  };
+
+  // Helper function to download CSV (handles iOS Share API and desktop download)
+  const downloadCSV = async (csv: string, filename: string) => {
+    // Use application/octet-stream for better iOS Files app compatibility
+    const blob = new Blob([csv], { type: 'application/octet-stream' });
+    
+    // Try Web Share API first (works best on iOS)
+    if (navigator.share && navigator.canShare) {
+      const file = new File([blob], filename, { type: 'application/octet-stream' });
+      const shareData = { files: [file] };
+      
+      if (navigator.canShare(shareData)) {
+        try {
+          await navigator.share(shareData);
+          return;
+        } catch (shareError) {
+          // User cancelled or share failed, fall through to download
+          if ((shareError as Error).name === 'AbortError') {
+            return; // User cancelled, don't show error
+          }
+        }
+      }
+    }
+    
+    // Fallback: Standard download (works on desktop)
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
   };
 
   const filteredRuns = runs.filter(run => {
@@ -236,15 +256,26 @@ export function RunHistory({ onDataCleared, temperatureUnit, activity = 'running
               className="input-field mb-4"
             />
 
-            <div className="flex gap-2">
+            <div className="flex flex-wrap gap-2">
               <button
                 onClick={handleExportCSV}
                 className="btn-secondary flex items-center gap-2"
+                title={`Export ${activityConfig.name} history`}
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                 </svg>
-                Export CSV
+                Export
+              </button>
+              <button
+                onClick={handleExportAllCSV}
+                className="btn-secondary flex items-center gap-2"
+                title="Export all activities to one file"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                </svg>
+                Export All
               </button>
               <button
                 onClick={() => setShowConfirmClear(true)}

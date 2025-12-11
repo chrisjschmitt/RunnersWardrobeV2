@@ -308,5 +308,127 @@ function escapeCSVValue(value: string): string {
   return value;
 }
 
+// Export ALL activities' history as a single CSV
+export async function exportAllHistoryAsCSV(): Promise<string> {
+  const activities: ActivityType[] = ['running', 'hiking', 'cycling', 'walking', 'trailRunning', 'snowshoeing', 'xcSkiing'];
+  
+  interface ExportRecord {
+    date: string;
+    time: string;
+    activity: string;
+    source: string;
+    temperature: number;
+    feelsLike: number;
+    humidity: number;
+    windSpeed: number;
+    precipitation: number;
+    cloudCover: number;
+    comfort?: string;
+    comments?: string;
+    clothing: Record<string, string>;
+  }
+
+  const allRecords: ExportRecord[] = [];
+
+  // Gather data from all activities
+  for (const activity of activities) {
+    const [runs, feedbackData] = await Promise.all([
+      getAllRuns(activity),
+      getAllFeedback(activity)
+    ]);
+
+    // Add CSV runs
+    for (const run of runs) {
+      allRecords.push({
+        date: run.date,
+        time: run.time || '',
+        activity,
+        source: 'imported',
+        temperature: run.temperature,
+        feelsLike: run.feelsLike,
+        humidity: run.humidity,
+        windSpeed: run.windSpeed,
+        precipitation: run.precipitation,
+        cloudCover: run.cloudCover,
+        clothing: run.clothing
+      });
+    }
+
+    // Add feedback runs
+    for (const fb of feedbackData) {
+      allRecords.push({
+        date: fb.date,
+        time: new Date(fb.timestamp).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
+        activity,
+        source: 'recorded',
+        temperature: fb.temperature,
+        feelsLike: fb.feelsLike,
+        humidity: fb.humidity,
+        windSpeed: fb.windSpeed,
+        precipitation: fb.precipitation,
+        cloudCover: fb.cloudCover,
+        comfort: fb.comfort,
+        comments: fb.comments,
+        clothing: fb.clothing
+      });
+    }
+  }
+
+  // Sort by date descending
+  allRecords.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+
+  if (allRecords.length === 0) {
+    return '';
+  }
+
+  // Get all unique clothing keys across all activities
+  const clothingKeys = new Set<string>();
+  for (const record of allRecords) {
+    Object.keys(record.clothing).forEach(key => clothingKeys.add(key));
+  }
+  const clothingKeysArray = Array.from(clothingKeys).sort();
+
+  // Build CSV header
+  const headers = [
+    'date',
+    'time',
+    'activity',
+    'source',
+    'temperature',
+    'feels_like',
+    'humidity',
+    'wind_speed',
+    'precipitation',
+    'cloud_cover',
+    'comfort',
+    'comments',
+    ...clothingKeysArray.map(k => k.replace(/([A-Z])/g, '_$1').toLowerCase())
+  ];
+
+  // Build CSV rows
+  const rows = allRecords.map(record => {
+    const clothingValues = clothingKeysArray.map(key => 
+      escapeCSVValue(record.clothing[key] || '')
+    );
+    return [
+      record.date,
+      record.time,
+      record.activity,
+      record.source,
+      record.temperature,
+      record.feelsLike,
+      record.humidity,
+      record.windSpeed,
+      record.precipitation,
+      record.cloudCover,
+      record.comfort || '',
+      record.comments || '',
+      ...clothingValues
+    ].map(v => escapeCSVValue(String(v))).join(',');
+  });
+
+  return [headers.join(','), ...rows].join('\n');
+}
+
 // Export database instance for direct access if needed
 export { db };
