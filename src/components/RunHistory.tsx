@@ -291,6 +291,7 @@ export function RunHistory({ onDataCleared, temperatureUnit, activity = 'running
               temperatureUnit={temperatureUnit}
               onDelete={handleDeleteRun}
               activityName={activityConfig.name}
+              clothingCategories={activityConfig.clothingCategories}
             />
           ))}
           {filteredRuns.length === 0 && (filter || sourceFilter !== 'all') && (
@@ -304,15 +305,23 @@ export function RunHistory({ onDataCleared, temperatureUnit, activity = 'running
   );
 }
 
+interface ClothingCategory {
+  key: string;
+  label: string;
+  defaultValue: string;
+  options: string[];
+}
+
 interface RunCardProps {
   run: DisplayRun;
   index: number;
   temperatureUnit: TemperatureUnit;
   onDelete: (run: DisplayRun) => void;
   activityName: string;
+  clothingCategories: ClothingCategory[];
 }
 
-function RunCard({ run, index, temperatureUnit, onDelete, activityName }: RunCardProps) {
+function RunCard({ run, index, temperatureUnit, onDelete, activityName, clothingCategories }: RunCardProps) {
   const [isExpanded, setIsExpanded] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   
@@ -448,13 +457,28 @@ function RunCard({ run, index, temperatureUnit, onDelete, activityName }: RunCar
 
           <div className="text-xs uppercase tracking-wide text-[var(--color-text-muted)] mb-2">Clothing</div>
           <div className="grid grid-cols-2 gap-2 text-sm">
-            <div><span className="text-[var(--color-text-muted)]">Head:</span> {run.clothing.headCover}</div>
-            <div><span className="text-[var(--color-text-muted)]">Top:</span> {run.clothing.tops}</div>
-            <div><span className="text-[var(--color-text-muted)]">Bottom:</span> {run.clothing.bottoms}</div>
-            <div><span className="text-[var(--color-text-muted)]">Shoes:</span> {run.clothing.shoes}</div>
-            <div><span className="text-[var(--color-text-muted)]">Socks:</span> {run.clothing.socks}</div>
-            <div><span className="text-[var(--color-text-muted)]">Gloves:</span> {run.clothing.gloves}</div>
-            <div className="col-span-2"><span className="text-[var(--color-text-muted)]">Rain:</span> {run.clothing.rainGear}</div>
+            {clothingCategories.map(cat => {
+              const value = run.clothing[cat.key];
+              if (!value || value === 'None' || value === '') return null;
+              return (
+                <div key={cat.key}>
+                  <span className="text-[var(--color-text-muted)]">{cat.label}:</span> {value}
+                </div>
+              );
+            })}
+            {/* Show items that might not be in this activity's categories but exist in the data */}
+            {Object.entries(run.clothing).map(([key, value]) => {
+              // Skip if already shown or empty
+              if (!value || value === 'None' || value === '') return null;
+              if (clothingCategories.some(cat => cat.key === key)) return null;
+              // Format key as label (camelCase to Title Case)
+              const label = key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
+              return (
+                <div key={key}>
+                  <span className="text-[var(--color-text-muted)]">{label}:</span> {value}
+                </div>
+              );
+            })}
           </div>
 
           {/* Delete button */}
