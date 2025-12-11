@@ -353,6 +353,7 @@ Test recommendations without real weather data:
 
 ## Version History
 
+- **v4.2.0**: Location tracking in beta emails, comments in CSV export, iOS Safari export fix, confidence display fix
 - **v4.1.0**: Beta tracking (first-launch device info), Terms & Privacy page, bot detection
 - **v4.0.1**: Help moved to main navigation, Import Data in Settings, UX improvements
 - **v4.0.0**: Rebranded to TrailKit, similar sessions display (tap banner to see details), notes on feedback, headlamp 60 min before sunset
