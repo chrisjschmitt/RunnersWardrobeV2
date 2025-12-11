@@ -1,8 +1,10 @@
 import { useState, useRef, type DragEvent, type ChangeEvent } from 'react';
 import { parseCSV, validateCSVFile, readFileAsText } from '../services/csvParser';
-import { addRuns, clearAllRuns, getRunCount } from '../services/database';
+import { addRuns, clearAllRuns, getRunCount, clearAllFeedback } from '../services/database';
 import type { ActivityType } from '../types';
 import { ACTIVITY_CONFIGS } from '../types';
+
+const ALL_ACTIVITIES: ActivityType[] = ['running', 'hiking', 'cycling', 'walking', 'trail_running', 'snowshoeing', 'cross_country_skiing'];
 
 interface FileUploadProps {
   onUploadComplete: (count: number) => void;
@@ -82,14 +84,42 @@ export function FileUpload({ onUploadComplete, existingCount, activity = 'runnin
       // Clear existing data if replace mode
       if (replaceMode) {
         await clearAllRuns();
+        await clearAllFeedback();
       }
 
-      // Add activity to each record and save
-      const recordsWithActivity = result.records.map(record => ({
-        ...record,
-        activity
-      }));
-      await addRuns(recordsWithActivity);
+      // Check if CSV has activity column (multi-activity import)
+      if (result.hasActivityColumn) {
+        // Import records grouped by activity
+        let totalImported = 0;
+        for (const act of ALL_ACTIVITIES) {
+          const activityRecords = result.recordsByActivity[act];
+          if (activityRecords.length > 0) {
+            const recordsWithActivity = activityRecords.map(record => ({
+              ...record,
+              activity: act
+            }));
+            await addRuns(recordsWithActivity);
+            totalImported += activityRecords.length;
+          }
+        }
+        
+        // Show how many were imported to which activities
+        const summary = ALL_ACTIVITIES
+          .filter(act => result.recordsByActivity[act].length > 0)
+          .map(act => `${ACTIVITY_CONFIGS[act].name}: ${result.recordsByActivity[act].length}`)
+          .join(', ');
+        if (summary) {
+          result.warnings.push(`Imported by activity: ${summary}`);
+          setWarnings([...result.warnings]);
+        }
+      } else {
+        // Single activity import (original behavior)
+        const recordsWithActivity = result.records.map(record => ({
+          ...record,
+          activity
+        }));
+        await addRuns(recordsWithActivity);
+      }
 
       // Get new total count
       const newCount = await getRunCount();
@@ -202,12 +232,16 @@ export function FileUpload({ onUploadComplete, existingCount, activity = 'runnin
         <h3 className="font-semibold mb-3 text-[var(--color-text-muted)]">Expected CSV Format</h3>
         <div className="bg-[rgba(0,0,0,0.3)] rounded-lg p-4 overflow-x-auto">
           <code className="text-xs font-mono text-[var(--color-accent-light)] whitespace-pre">
-{`date,time,location,temperature,feels_like,humidity,...
-2024-01-15,06:30,Central Park,45,42,65,...`}
+{`date,time,activity,temperature,feels_like,humidity,...
+2025-12-11,06:30,running,45,42,65,...
+2025-12-11,07:00,cycling,50,48,55,...`}
           </code>
         </div>
         <p className="text-xs text-[var(--color-text-muted)] mt-3">
-          Required columns: date, temperature. All other columns are optional.
+          Required: date, temperature. Optional: activity (for multi-activity import), time, location, clothing columns.
+        </p>
+        <p className="text-xs text-[var(--color-accent)] mt-2">
+          💡 Tip: Use "Export All" to get a CSV with all your activities, then import it on another device!
         </p>
       </div>
     </div>

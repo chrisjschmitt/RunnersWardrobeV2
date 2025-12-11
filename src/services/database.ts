@@ -310,7 +310,7 @@ function escapeCSVValue(value: string): string {
 
 // Export ALL activities' history as a single CSV
 export async function exportAllHistoryAsCSV(): Promise<string> {
-  const activities: ActivityType[] = ['running', 'hiking', 'cycling', 'walking', 'trail_running', 'snowshoeing', 'xc_skiing'];
+  const activities: ActivityType[] = ['running', 'hiking', 'cycling', 'walking', 'trail_running', 'snowshoeing', 'cross_country_skiing'];
   
   interface ExportRecord {
     date: string;

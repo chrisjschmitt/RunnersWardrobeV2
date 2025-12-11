@@ -1,11 +1,16 @@
-import type { RunRecord, ClothingItems } from '../types';
+import type { RunRecord, ClothingItems, ActivityType } from '../types';
+
+// Valid activity names for parsing
+const VALID_ACTIVITIES: ActivityType[] = ['running', 'hiking', 'cycling', 'walking', 'trail_running', 'snowshoeing', 'cross_country_skiing'];
 
 // Expected CSV headers (flexible matching)
 const HEADER_MAPPINGS: Record<string, string> = {
-  // Date/Time/Location
+  // Date/Time/Location/Activity
   'date': 'date',
   'time': 'time',
   'location': 'location',
+  'activity': 'activity',
+  'source': 'source', // We'll ignore this but recognize it
   
   // Weather
   'temperature': 'temperature',
@@ -28,8 +33,10 @@ const HEADER_MAPPINGS: Record<string, string> = {
   'cloudcover': 'cloudCover',
   'cloud cover': 'cloudCover',
   'clouds': 'cloudCover',
+  'comfort': 'comfort',
+  'comments': 'comments',
   
-  // Clothing
+  // Clothing - Common
   'head_cover': 'headCover',
   'headcover': 'headCover',
   'head cover': 'headCover',
@@ -51,11 +58,49 @@ const HEADER_MAPPINGS: Record<string, string> = {
   'raingear': 'rainGear',
   'rain gear': 'rainGear',
   'rain': 'rainGear',
+  'accessories': 'accessories',
+  
+  // Clothing - Layering system (hiking, snowshoeing, xc skiing)
+  'base_layer': 'baseLayer',
+  'baselayer': 'baseLayer',
+  'base layer': 'baseLayer',
+  'mid_layer': 'midLayer',
+  'midlayer': 'midLayer',
+  'mid layer': 'midLayer',
+  'outer_layer': 'outerLayer',
+  'outerlayer': 'outerLayer',
+  'outer layer': 'outerLayer',
+  'jacket': 'outerLayer',
+  
+  // Clothing - Cycling
+  'helmet': 'helmet',
+  'jersey': 'jersey',
+  'bibs': 'bibs',
+  'bib': 'bibs',
+  'arm_warmers': 'armWarmers',
+  'armwarmers': 'armWarmers',
+  'arm warmers': 'armWarmers',
+  'leg_warmers': 'legWarmers',
+  'legwarmers': 'legWarmers',
+  'leg warmers': 'legWarmers',
+  'eyewear': 'eyewear',
+  
+  // Clothing - Winter/hiking specific
+  'boots': 'boots',
+  'gaiters': 'gaiters',
+  'poles': 'poles',
+  'pack': 'pack',
+  
+  // Clothing - Trail running
+  'hydration': 'hydration',
 };
 
 interface ParseResult {
   success: boolean;
   records: RunRecord[];
+  // Records grouped by activity (when activity column is present)
+  recordsByActivity: Record<ActivityType, RunRecord[]>;
+  hasActivityColumn: boolean;
   errors: string[];
   warnings: string[];
 }
@@ -64,6 +109,16 @@ export function parseCSV(csvContent: string): ParseResult {
   const result: ParseResult = {
     success: false,
     records: [],
+    recordsByActivity: {
+      running: [],
+      hiking: [],
+      cycling: [],
+      walking: [],
+      trail_running: [],
+      snowshoeing: [],
+      cross_country_skiing: []
+    },
+    hasActivityColumn: false,
     errors: [],
     warnings: []
   };
@@ -105,6 +160,9 @@ export function parseCSV(csvContent: string): ParseResult {
     return result;
   }
 
+  // Check if activity column is present
+  result.hasActivityColumn = foundFields.has('activity');
+
   // Parse data rows
   for (let i = 1; i < lines.length; i++) {
     const line = lines[i].trim();
@@ -112,10 +170,15 @@ export function parseCSV(csvContent: string): ParseResult {
 
     try {
       const values = parseCSVLine(line);
-      const record = createRunRecord(values, columnMap);
+      const { record, activity } = createRunRecordWithActivity(values, columnMap);
       
       if (record) {
         result.records.push(record);
+        
+        // If activity column exists, group by activity
+        if (result.hasActivityColumn && activity && VALID_ACTIVITIES.includes(activity)) {
+          result.recordsByActivity[activity].push(record);
+        }
       }
     } catch (error) {
       result.warnings.push(`Row ${i + 1}: ${error instanceof Error ? error.message : 'Parse error'}`);
@@ -165,10 +228,42 @@ function parseCSVLine(line: string): string[] {
   return values;
 }
 
-function createRunRecord(
+// Parse activity string to ActivityType (handles various formats)
+function parseActivity(activityStr: string): ActivityType | null {
+  const normalized = activityStr.toLowerCase().trim().replace(/\s+/g, '_');
+  
+  // Map common variations to valid ActivityType
+  const activityMap: Record<string, ActivityType> = {
+    'running': 'running',
+    'run': 'running',
+    'trail_running': 'trail_running',
+    'trailrunning': 'trail_running',
+    'trail running': 'trail_running',
+    'hiking': 'hiking',
+    'hike': 'hiking',
+    'walking': 'walking',
+    'walk': 'walking',
+    'cycling': 'cycling',
+    'cycle': 'cycling',
+    'bike': 'cycling',
+    'biking': 'cycling',
+    'snowshoeing': 'snowshoeing',
+    'snowshoe': 'snowshoeing',
+    'cross_country_skiing': 'cross_country_skiing',
+    'crosscountryskiing': 'cross_country_skiing',
+    'xc_skiing': 'cross_country_skiing',
+    'xcskiing': 'cross_country_skiing',
+    'xc skiing': 'cross_country_skiing',
+    'nordic_skiing': 'cross_country_skiing',
+  };
+  
+  return activityMap[normalized] || null;
+}
+
+function createRunRecordWithActivity(
   values: string[],
   columnMap: Record<number, string>
-): RunRecord | null {
+): { record: RunRecord | null; activity: ActivityType | null } {
   const data: Record<string, string> = {};
   
   // Map values to field names
@@ -184,6 +279,9 @@ function createRunRecord(
     throw new Error('Missing required fields (date or temperature)');
   }
 
+  // Parse activity if present
+  const activity = data.activity ? parseActivity(data.activity) : null;
+
   // Parse numeric fields with defaults
   const parseNum = (val: string | undefined, defaultVal: number = 0): number => {
     if (!val || val === '') return defaultVal;
@@ -191,18 +289,43 @@ function createRunRecord(
     return isNaN(num) ? defaultVal : num;
   };
 
-  // Create clothing object
-  const clothing: ClothingItems = {
-    headCover: data.headCover || 'none',
-    tops: data.tops || 'unknown',
-    bottoms: data.bottoms || 'unknown',
-    shoes: data.shoes || 'unknown',
-    socks: data.socks || 'unknown',
-    gloves: data.gloves || 'none',
-    rainGear: data.rainGear || 'none'
-  };
+  // Create clothing object with all possible fields
+  // Only include fields that have values
+  const clothing: ClothingItems = {};
+  
+  // Common fields
+  if (data.headCover) clothing.headCover = data.headCover;
+  if (data.tops) clothing.tops = data.tops;
+  if (data.bottoms) clothing.bottoms = data.bottoms;
+  if (data.shoes) clothing.shoes = data.shoes;
+  if (data.socks) clothing.socks = data.socks;
+  if (data.gloves) clothing.gloves = data.gloves;
+  if (data.rainGear) clothing.rainGear = data.rainGear;
+  if (data.accessories) clothing.accessories = data.accessories;
+  
+  // Layering system (hiking, snowshoeing, xc skiing)
+  if (data.baseLayer) clothing.baseLayer = data.baseLayer;
+  if (data.midLayer) clothing.midLayer = data.midLayer;
+  if (data.outerLayer) clothing.outerLayer = data.outerLayer;
+  
+  // Cycling
+  if (data.helmet) clothing.helmet = data.helmet;
+  if (data.jersey) clothing.jersey = data.jersey;
+  if (data.bibs) clothing.bibs = data.bibs;
+  if (data.armWarmers) clothing.armWarmers = data.armWarmers;
+  if (data.legWarmers) clothing.legWarmers = data.legWarmers;
+  if (data.eyewear) clothing.eyewear = data.eyewear;
+  
+  // Winter/hiking specific
+  if (data.boots) clothing.boots = data.boots;
+  if (data.gaiters) clothing.gaiters = data.gaiters;
+  if (data.poles) clothing.poles = data.poles;
+  if (data.pack) clothing.pack = data.pack;
+  
+  // Trail running
+  if (data.hydration) clothing.hydration = data.hydration;
 
-  return {
+  const record: RunRecord = {
     date: data.date,
     time: data.time || '00:00',
     location: data.location || 'Unknown',
@@ -216,6 +339,8 @@ function createRunRecord(
     cloudCover: parseNum(data.cloudCover),
     clothing
   };
+
+  return { record, activity };
 }
 
 export function validateCSVFile(file: File): { valid: boolean; error?: string } {
