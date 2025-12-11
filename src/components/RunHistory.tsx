@@ -111,11 +111,13 @@ export function RunHistory({ onDataCleared, temperatureUnit, activity = 'running
       }
       
       const filename = `${activity}-history-${new Date().toISOString().split('T')[0]}.csv`;
-      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      // Use application/octet-stream for better iOS Files app compatibility
+      // The .csv extension in the filename will still identify it correctly
+      const blob = new Blob([csv], { type: 'application/octet-stream' });
       
       // Try Web Share API first (works best on iOS)
       if (navigator.share && navigator.canShare) {
-        const file = new File([blob], filename, { type: 'text/csv' });
+        const file = new File([blob], filename, { type: 'application/octet-stream' });
         const shareData = { files: [file] };
         
         if (navigator.canShare(shareData)) {
