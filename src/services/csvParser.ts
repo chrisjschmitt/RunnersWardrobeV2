@@ -74,15 +74,16 @@ const HEADER_MAPPINGS: Record<string, string> = {
   
   // Clothing - Cycling
   'helmet': 'helmet',
-  'jersey': 'jersey',
-  'bibs': 'bibs',
-  'bib': 'bibs',
+  'jersey': 'tops',        // Cycling uses 'tops' key for jerseys
+  'bibs': 'bottoms',       // Cycling uses 'bottoms' key for bibs
+  'bib': 'bottoms',
+  'bib_shorts': 'bottoms',
   'arm_warmers': 'armWarmers',
   'armwarmers': 'armWarmers',
   'arm warmers': 'armWarmers',
-  'leg_warmers': 'legWarmers',
-  'legwarmers': 'legWarmers',
-  'leg warmers': 'legWarmers',
+  'leg_warmers': 'armWarmers', // Cycling combines arm/leg warmers under armWarmers key
+  'legwarmers': 'armWarmers',
+  'leg warmers': 'armWarmers',
   'eyewear': 'eyewear',
   
   // Clothing - Winter/hiking specific
@@ -310,10 +311,7 @@ function createRunRecordWithActivity(
   
   // Cycling
   if (data.helmet) clothing.helmet = data.helmet;
-  if (data.jersey) clothing.jersey = data.jersey;
-  if (data.bibs) clothing.bibs = data.bibs;
   if (data.armWarmers) clothing.armWarmers = data.armWarmers;
-  if (data.legWarmers) clothing.legWarmers = data.legWarmers;
   if (data.eyewear) clothing.eyewear = data.eyewear;
   
   // Winter/hiking specific
