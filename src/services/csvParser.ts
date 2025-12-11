@@ -335,7 +335,10 @@ function createRunRecordWithActivity(
     uvIndex: parseNum(data.uvIndex),
     windSpeed: parseNum(data.windSpeed),
     cloudCover: parseNum(data.cloudCover),
-    clothing
+    clothing,
+    // Include comfort and comments if present
+    ...(data.comfort && { comfort: data.comfort }),
+    ...(data.comments && { comments: data.comments })
   };
 
   return { record, activity };

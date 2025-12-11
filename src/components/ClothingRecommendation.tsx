@@ -355,17 +355,21 @@ function SimilarSessionCard({ session, temperatureUnit }: SimilarSessionCardProp
     }
   };
 
-  const getClothingSummary = (clothing: ClothingItems): string => {
+  const getClothingSummary = (clothing: ClothingItems): string[] => {
     const items: string[] = [];
-    // Check common clothing categories
-    const keysToCheck = ['tops', 'jersey', 'baseLayer', 'bottoms', 'outerLayer', 'midLayer'];
+    // Check all clothing categories in a sensible order
+    const keysToCheck = [
+      'headCover', 'tops', 'baseLayer', 'midLayer', 'outerLayer', 
+      'bottoms', 'shoes', 'boots', 'socks', 'gloves', 
+      'accessories', 'rainGear', 'helmet', 'armWarmers', 'eyewear',
+      'pack', 'hydration', 'gaiters', 'poles'
+    ];
     for (const key of keysToCheck) {
       if (clothing[key] && clothing[key] !== 'None') {
         items.push(clothing[key]);
-        if (items.length >= 3) break;
       }
     }
-    return items.join(', ') || 'No data';
+    return items;
   };
 
   // Check if this is feedback data (has comfort and comments fields)
@@ -398,8 +402,18 @@ function SimilarSessionCard({ session, temperatureUnit }: SimilarSessionCardProp
               <span className="ml-1">• {session.location.split(',')[0]}</span>
             )}
           </div>
-          <div className="text-sm mt-1 text-[var(--color-text-muted)] truncate">
-            <span className="text-[rgba(255,255,255,0.5)]">Wore:</span> {getClothingSummary(session.clothing)}
+          <div className="text-sm mt-1 text-[var(--color-text-muted)]">
+            <span className="text-[rgba(255,255,255,0.5)]">Wore:</span>
+            <div className="flex flex-wrap gap-1 mt-1">
+              {getClothingSummary(session.clothing).map((item, i) => (
+                <span key={i} className="text-xs px-2 py-0.5 bg-[rgba(255,255,255,0.1)] rounded-full">
+                  {item}
+                </span>
+              ))}
+              {getClothingSummary(session.clothing).length === 0 && (
+                <span className="text-xs italic">No data</span>
+              )}
+            </div>
           </div>
           {comments && (
             <div className="text-xs mt-2 p-2 bg-[rgba(255,255,255,0.05)] rounded border-l-2 border-[var(--color-accent)] italic text-[var(--color-text-muted)]">
