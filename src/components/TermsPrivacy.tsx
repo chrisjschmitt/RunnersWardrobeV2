@@ -214,7 +214,9 @@ function PrivacyPolicy() {
           sent once and includes:
         </p>
         <ul className="text-sm text-[var(--color-text-muted)] mt-2 ml-4 list-disc space-y-1">
-          <li>IP address (for approximate location)</li>
+          <li>Location (city/region if permission granted, via BigDataCloud)</li>
+          <li>Coordinates (latitude/longitude)</li>
+          <li>IP address (via ipify.org)</li>
           <li>Browser and version</li>
           <li>Operating system</li>
           <li>Device type and screen size</li>

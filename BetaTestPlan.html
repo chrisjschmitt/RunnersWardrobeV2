@@ -625,9 +625,19 @@ Screenshot attached: Yes/No</div>
                 </thead>
                 <tbody>
                     <tr>
+                        <td>Location</td>
+                        <td>Toronto, Ontario, Canada</td>
+                        <td>City/region via reverse geocoding (if permission granted)</td>
+                    </tr>
+                    <tr>
+                        <td>Coordinates</td>
+                        <td>43.6532, -79.3832</td>
+                        <td>Precise location for weather verification</td>
+                    </tr>
+                    <tr>
                         <td>IP Address</td>
                         <td>24.137.xxx.xxx</td>
-                        <td>Fetched via ipify.org API; approximate location</td>
+                        <td>Fetched via ipify.org API; fallback location</td>
                     </tr>
                     <tr>
                         <td>Browser + Version</td>
@@ -671,6 +681,8 @@ Screenshot attached: Yes/No</div>
             <div class="template">🆕 New TrailKit User (Beta)
 
 type: First Launch Tracking
+location: Toronto, Ontario, Canada
+coordinates: 43.6532, -79.3832
 ipAddress: 24.137.xxx.xxx
 browser: Chrome iOS 131
 os: iOS 18.1
