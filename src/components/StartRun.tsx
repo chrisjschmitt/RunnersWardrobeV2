@@ -82,19 +82,25 @@ export function StartRun({ apiKey, hasApiKey, temperatureUnit, onNeedApiKey, tes
     if (saved && saved.state === 'running') {
       // Check if this is for the current activity
       if (saved.activity === activity) {
-        setRunState('running');
-        setRunStartTime(saved.startTime ? new Date(saved.startTime) : null);
-        setActualClothing(saved.clothing);
-        
         // Check if it's been running too long (2+ hours)
         if (saved.startTime) {
           const elapsed = Date.now() - new Date(saved.startTime).getTime();
           const hours = elapsed / (1000 * 60 * 60);
           if (hours >= 2) {
+            // Don't restore to running - show reminder instead
+            setRunState('idle');
             setShowForgottenReminder(true);
             setForgottenDuration(formatDuration(elapsed));
+            setRunStartTime(new Date(saved.startTime));
+            setActualClothing(saved.clothing);
+            return;
           }
         }
+        
+        // Less than 2 hours - restore normally
+        setRunState('running');
+        setRunStartTime(saved.startTime ? new Date(saved.startTime) : null);
+        setActualClothing(saved.clothing);
       }
     }
   }, [activity]);
