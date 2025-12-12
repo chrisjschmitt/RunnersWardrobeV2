@@ -353,6 +353,12 @@ Test recommendations without real weather data:
 
 ## Version History
 
+- **v4.5.2**: Fix backup reminder trigger timing, show session count in History screen
+- **v4.5.1**: Change backup reminder from banner to modal popup for better visibility
+- **v4.5.0**: Periodic backup reminder after 5 sessions to protect against data loss
+- **v4.4.6**: Export button always visible (not hidden when current activity has no data)
+- **v4.4.5**: Add FAQ warning about iOS deleting data when app removed from home screen
+- **v4.4.4**: Simplify to single Export button (exports all activities)
 - **v4.4.3**: Show all clothing in similar sessions (not truncated), fix comments import from CSV
 - **v4.4.2**: Import summary shown as info (not warning), better success screen UX
 - **v4.4.1**: Import warnings stay visible until user taps Continue
