@@ -55,8 +55,56 @@ export function Settings({
   const [localTestWeather, setLocalTestWeather] = useState<TestWeatherData>(testWeather || defaultTestWeather);
   const [isCheckingUpdates, setIsCheckingUpdates] = useState(false);
   const [updateMessage, setUpdateMessage] = useState<string | null>(null);
+  const [versionTapCount, setVersionTapCount] = useState(0);
+  const [showDebugInfo, setShowDebugInfo] = useState(false);
   
   const proxyMode = isProxyMode();
+
+  // Handle version tap - show debug after 5 taps
+  const handleVersionTap = () => {
+    const newCount = versionTapCount + 1;
+    setVersionTapCount(newCount);
+    
+    if (newCount >= 5) {
+      setShowDebugInfo(true);
+      setVersionTapCount(0);
+    }
+    
+    // Reset tap count after 2 seconds of inactivity
+    setTimeout(() => {
+      setVersionTapCount(prev => prev === newCount ? 0 : prev);
+    }, 2000);
+  };
+
+  // Get debug info from localStorage
+  const getDebugInfo = () => {
+    const sessionCount = localStorage.getItem('trailkit_sessions_since_backup') || '0';
+    const dismissedUntil = localStorage.getItem('trailkit_backup_reminder_dismissed');
+    const firstLaunchTracked = localStorage.getItem('trailkit_first_launch_tracked');
+    const onboardingComplete = localStorage.getItem('onboarding_complete');
+    
+    return {
+      sessionCount,
+      dismissedUntil: dismissedUntil ? new Date(dismissedUntil).toLocaleString() : 'Not dismissed',
+      firstLaunchTracked: firstLaunchTracked || 'No',
+      onboardingComplete: onboardingComplete || 'No',
+      userAgent: navigator.userAgent,
+      screenSize: `${window.screen.width} × ${window.screen.height}`,
+      devicePixelRatio: window.devicePixelRatio,
+      standalone: (window.matchMedia('(display-mode: standalone)').matches || (navigator as unknown as { standalone?: boolean }).standalone) ? 'Yes (PWA)' : 'No (Browser)'
+    };
+  };
+
+  const clearBackupDismissal = () => {
+    localStorage.removeItem('trailkit_backup_reminder_dismissed');
+    setShowDebugInfo(false);
+    alert('Backup reminder dismissal cleared. Reload to see popup.');
+  };
+
+  const resetSessionCount = () => {
+    localStorage.setItem('trailkit_sessions_since_backup', '0');
+    alert('Session count reset to 0.');
+  };
 
   useEffect(() => {
     loadSettings();
@@ -512,9 +560,18 @@ export function Settings({
       {/* Version info and update check */}
       <div className="mt-6 glass-card p-4">
         <div className="flex items-center justify-between mb-3">
-          <div>
+          <div 
+            onClick={handleVersionTap}
+            className="cursor-pointer select-none"
+            title="Tap 5 times for debug info"
+          >
             <p className="font-medium">TrailKit</p>
-            <p className="text-sm text-[var(--color-text-muted)]">Version {version}</p>
+            <p className="text-sm text-[var(--color-text-muted)]">
+              Version {version}
+              {versionTapCount > 0 && versionTapCount < 5 && (
+                <span className="ml-2 text-xs opacity-50">({5 - versionTapCount} more...)</span>
+              )}
+            </p>
           </div>
           <button
             onClick={handleCheckForUpdates}
@@ -542,6 +599,76 @@ export function Settings({
           </p>
         )}
       </div>
+
+      {/* Debug Info Modal */}
+      {showDebugInfo && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+          <div className="w-full max-w-md bg-[var(--color-bg-card)] rounded-2xl shadow-2xl border border-[var(--color-accent)] overflow-hidden">
+            <div className="bg-[var(--color-accent)] p-4 text-center">
+              <div className="text-2xl mb-1">🔧</div>
+              <h2 className="text-lg font-bold text-white">Debug Info</h2>
+            </div>
+            
+            <div className="p-4 space-y-3 max-h-[60vh] overflow-y-auto">
+              {(() => {
+                const debug = getDebugInfo();
+                return (
+                  <>
+                    <div className="text-sm">
+                      <span className="text-[var(--color-text-muted)]">Sessions since backup:</span>
+                      <span className="ml-2 font-mono font-bold">{debug.sessionCount}</span>
+                    </div>
+                    <div className="text-sm">
+                      <span className="text-[var(--color-text-muted)]">Reminder dismissed until:</span>
+                      <span className="ml-2 font-mono text-xs">{debug.dismissedUntil}</span>
+                    </div>
+                    <div className="text-sm">
+                      <span className="text-[var(--color-text-muted)]">First launch tracked:</span>
+                      <span className="ml-2 font-mono">{debug.firstLaunchTracked}</span>
+                    </div>
+                    <div className="text-sm">
+                      <span className="text-[var(--color-text-muted)]">Display mode:</span>
+                      <span className="ml-2 font-mono">{debug.standalone}</span>
+                    </div>
+                    <div className="text-sm">
+                      <span className="text-[var(--color-text-muted)]">Screen:</span>
+                      <span className="ml-2 font-mono">{debug.screenSize} @{debug.devicePixelRatio}x</span>
+                    </div>
+                    <div className="text-sm break-all">
+                      <span className="text-[var(--color-text-muted)]">User Agent:</span>
+                      <span className="ml-2 font-mono text-xs">{debug.userAgent}</span>
+                    </div>
+                  </>
+                );
+              })()}
+              
+              <div className="pt-3 border-t border-[rgba(255,255,255,0.1)] space-y-2">
+                <button
+                  onClick={clearBackupDismissal}
+                  className="w-full py-2 px-4 bg-[rgba(234,179,8,0.2)] text-[var(--color-warning)] rounded-lg text-sm"
+                >
+                  Clear Backup Reminder Dismissal
+                </button>
+                <button
+                  onClick={resetSessionCount}
+                  className="w-full py-2 px-4 bg-[rgba(239,68,68,0.2)] text-[var(--color-error)] rounded-lg text-sm"
+                >
+                  Reset Session Count to 0
+                </button>
+              </div>
+            </div>
+            
+            <div className="p-4 border-t border-[rgba(255,255,255,0.1)]">
+              <button
+                onClick={() => setShowDebugInfo(false)}
+                className="w-full py-3 bg-[rgba(255,255,255,0.1)] text-[var(--color-text-primary)] rounded-xl font-medium"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
