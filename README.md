@@ -353,6 +353,8 @@ Test recommendations without real weather data:
 
 ## Version History
 
+- **v4.5.4**: Hidden developer debug mode (tap version 5x in Settings)
+- **v4.5.3**: Fix session count display in History (use state for reactivity)
 - **v4.5.2**: Fix backup reminder trigger timing, show session count in History screen
 - **v4.5.1**: Change backup reminder from banner to modal popup for better visibility
 - **v4.5.0**: Periodic backup reminder after 5 sessions to protect against data loss
