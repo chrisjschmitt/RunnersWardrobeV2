@@ -351,6 +351,20 @@ Test recommendations without real weather data:
 └── package.json
 ```
 
+## Pre-Production Checklist
+
+Before launching to production, complete these items:
+
+- [ ] **Remove beta tracking** - Delete `src/services/betaTracking.ts` and remove imports from `App.tsx`
+- [ ] **Remove debug mode** - Optional: remove hidden debug panel from `Settings.tsx`
+- [ ] **Update Terms & Privacy** - Remove "Beta Tracking Notice" from privacy policy
+- [ ] **Review Formspree** - Decide if you still need beta signup form on landing page
+- [ ] **Update version** - Bump to v5.0.0 for production release
+
+Files with TODO comments:
+- `src/services/betaTracking.ts` - Lines 4, 369
+- `src/App.tsx` - Lines 16, 69
+
 ## Version History
 
 - **v4.5.4**: Hidden developer debug mode (tap version 5x in Settings)
