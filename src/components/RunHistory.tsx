@@ -25,6 +25,12 @@ export function RunHistory({ onDataCleared, temperatureUnit, activity = 'running
   const [showConfirmClear, setShowConfirmClear] = useState(false);
   const [filter, setFilter] = useState('');
   const [sourceFilter, setSourceFilter] = useState<'all' | 'csv' | 'feedback'>('all');
+  const [sessionsSinceBackup, setSessionsSinceBackup] = useState(0);
+
+  // Load session count on mount and when activity changes
+  useEffect(() => {
+    setSessionsSinceBackup(getSessionCount());
+  }, [activity]);
 
   useEffect(() => {
     const loadRuns = async () => {
@@ -116,6 +122,7 @@ export function RunHistory({ onDataCleared, temperatureUnit, activity = 'running
       
       // Reset session count for backup reminder
       resetSessionCount();
+      setSessionsSinceBackup(0);
     } catch (error) {
       console.error('Failed to export CSV:', error);
       alert('Failed to export data');
@@ -202,19 +209,22 @@ export function RunHistory({ onDataCleared, temperatureUnit, activity = 'running
 
         {/* Export button - always visible since it exports ALL activities */}
         <div className="mb-4">
-          {getSessionCount() >= 3 && (
-            <div className={`mb-2 px-3 py-2 rounded-lg text-sm flex items-center gap-2 ${
-              getSessionCount() >= 5 
-                ? 'bg-[rgba(239,68,68,0.15)] text-[var(--color-error)]' 
-                : 'bg-[rgba(234,179,8,0.15)] text-[var(--color-warning)]'
-            }`}>
-              <span>💾</span>
-              <span>
-                {getSessionCount()} sessions since last backup
-                {getSessionCount() >= 5 && ' — time to export!'}
-              </span>
-            </div>
-          )}
+          {/* Backup status indicator */}
+          <div className={`mb-2 px-3 py-2 rounded-lg text-sm flex items-center gap-2 ${
+            sessionsSinceBackup >= 5 
+              ? 'bg-[rgba(239,68,68,0.15)] text-[var(--color-error)]' 
+              : sessionsSinceBackup >= 3
+                ? 'bg-[rgba(234,179,8,0.15)] text-[var(--color-warning)]'
+                : 'bg-[rgba(34,197,94,0.15)] text-[var(--color-success)]'
+          }`}>
+            <span>{sessionsSinceBackup >= 5 ? '🔴' : sessionsSinceBackup >= 3 ? '⚠️' : '✓'}</span>
+            <span>
+              {sessionsSinceBackup === 0 
+                ? 'Data backed up' 
+                : `${sessionsSinceBackup} session${sessionsSinceBackup !== 1 ? 's' : ''} since last backup`}
+              {sessionsSinceBackup >= 5 && ' — time to export!'}
+            </span>
+          </div>
           <button
             onClick={handleExportCSV}
             className="btn-secondary flex items-center gap-2"
