@@ -82,10 +82,30 @@ export function Settings({
     const dismissedUntil = localStorage.getItem('trailkit_backup_reminder_dismissed');
     const firstLaunchTracked = localStorage.getItem('trailkit_first_launch_tracked');
     const onboardingComplete = localStorage.getItem('onboarding_complete');
+    const activityState = localStorage.getItem('trailkit_activity_state');
+    
+    let activityInfo = 'None';
+    if (activityState) {
+      try {
+        const parsed = JSON.parse(activityState);
+        if (parsed.state === 'running' && parsed.startTime) {
+          const elapsed = Date.now() - new Date(parsed.startTime).getTime();
+          const hours = Math.floor(elapsed / (1000 * 60 * 60));
+          const mins = Math.floor((elapsed % (1000 * 60 * 60)) / (1000 * 60));
+          activityInfo = `${parsed.activity} - ${parsed.state} (${hours}h ${mins}m)`;
+        } else {
+          activityInfo = `${parsed.activity} - ${parsed.state}`;
+        }
+      } catch {
+        activityInfo = 'Invalid data';
+      }
+    }
     
     return {
       sessionCount,
       dismissedUntil: dismissedUntil ? new Date(dismissedUntil).toLocaleString() : 'Not dismissed',
+      activityState: activityInfo,
+      activityStartTime: activityState ? (JSON.parse(activityState).startTime || 'None') : 'None',
       firstLaunchTracked: firstLaunchTracked || 'No',
       onboardingComplete: onboardingComplete || 'No',
       userAgent: navigator.userAgent,
@@ -104,6 +124,24 @@ export function Settings({
   const resetSessionCount = () => {
     localStorage.setItem('trailkit_sessions_since_backup', '0');
     alert('Session count reset to 0.');
+  };
+
+  const simulateForgottenActivity = () => {
+    const threeHoursAgo = new Date(Date.now() - 3 * 60 * 60 * 1000);
+    const state = {
+      activity: 'running',
+      state: 'running',
+      startTime: threeHoursAgo.toISOString(),
+      clothing: null
+    };
+    localStorage.setItem('trailkit_activity_state', JSON.stringify(state));
+    alert('Simulated a forgotten running activity (started 3h ago). Go to Home to see the reminder.');
+    setShowDebugInfo(false);
+  };
+
+  const clearActivityState = () => {
+    localStorage.removeItem('trailkit_activity_state');
+    alert('Activity state cleared.');
   };
 
   useEffect(() => {
@@ -623,6 +661,14 @@ export function Settings({
                       <span className="ml-2 font-mono text-xs">{debug.dismissedUntil}</span>
                     </div>
                     <div className="text-sm">
+                      <span className="text-[var(--color-text-muted)]">Activity state:</span>
+                      <span className="ml-2 font-mono text-xs">{debug.activityState}</span>
+                    </div>
+                    <div className="text-sm">
+                      <span className="text-[var(--color-text-muted)]">Activity start time:</span>
+                      <span className="ml-2 font-mono text-xs break-all">{debug.activityStartTime}</span>
+                    </div>
+                    <div className="text-sm">
                       <span className="text-[var(--color-text-muted)]">First launch tracked:</span>
                       <span className="ml-2 font-mono">{debug.firstLaunchTracked}</span>
                     </div>
@@ -654,6 +700,18 @@ export function Settings({
                   className="w-full py-2 px-4 bg-[rgba(239,68,68,0.2)] text-[var(--color-error)] rounded-lg text-sm"
                 >
                   Reset Session Count to 0
+                </button>
+                <button
+                  onClick={simulateForgottenActivity}
+                  className="w-full py-2 px-4 bg-[rgba(249,115,22,0.2)] text-[var(--color-accent)] rounded-lg text-sm"
+                >
+                  Simulate Forgotten Activity (3h ago)
+                </button>
+                <button
+                  onClick={clearActivityState}
+                  className="w-full py-2 px-4 bg-[rgba(255,255,255,0.1)] text-[var(--color-text-muted)] rounded-lg text-sm"
+                >
+                  Clear Activity State
                 </button>
               </div>
             </div>
