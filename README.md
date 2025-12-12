@@ -367,6 +367,9 @@ Files with TODO comments:
 
 ## Version History
 
+- **v4.6.2**: Fix forgotten activity reminder to show banner instead of resuming
+- **v4.6.1**: Add activity state to debug panel with simulate/clear actions
+- **v4.6.0**: Forgotten activity reminder - persists state, shows banner after 2 hours
 - **v4.5.4**: Hidden developer debug mode (tap version 5x in Settings)
 - **v4.5.3**: Fix session count display in History (use state for reactivity)
 - **v4.5.2**: Fix backup reminder trigger timing, show session count in History screen
