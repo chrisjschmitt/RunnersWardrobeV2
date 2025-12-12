@@ -178,15 +178,33 @@ As you use the app and give feedback, recommendations become tailored to YOU.`
 
 **To Export (from your current device)**
 1. Go to the History tab
-2. Tap "Export CSV" at the top
+2. Tap "Export" at the top
 3. Save the file (email it to yourself, save to Files, etc.)
 
 **To Import (on your new device)**
-1. Go to the Upload tab
+1. Go to Settings → Import Data
 2. Select your exported file
 3. Your history is restored!
 
 This is the only way to transfer data since everything is stored on your device, not in the cloud.`
+  },
+  {
+    question: "⚠️ Will I lose data if I delete the app?",
+    answer: `**Yes, on iPhone/iPad!**
+
+If you remove TrailKit from your home screen, iOS deletes all app data including your activity history and preferences.
+
+**Before deleting or reinstalling:**
+1. Go to History → tap "Export"
+2. Save the CSV file somewhere safe
+3. After reinstalling, import it back
+
+**This also applies when:**
+• Switching to a new iPhone
+• Clearing Safari data
+• Resetting your device
+
+💡 **Tip:** Export your data periodically as a backup!`
   },
   {
     question: "Does the app work offline?",
