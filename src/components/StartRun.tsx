@@ -22,6 +22,39 @@ interface StartRunProps {
   activity?: ActivityType;
 }
 
+// Activity state persistence helpers
+const ACTIVITY_STATE_KEY = 'trailkit_activity_state';
+
+interface PersistedActivityState {
+  activity: ActivityType;
+  state: RunState;
+  startTime: string | null;
+  clothing: ClothingItems | null;
+}
+
+function saveActivityState(activity: ActivityType, state: RunState, startTime: Date | null, clothing: ClothingItems | null) {
+  const data: PersistedActivityState = {
+    activity,
+    state,
+    startTime: startTime?.toISOString() || null,
+    clothing
+  };
+  localStorage.setItem(ACTIVITY_STATE_KEY, JSON.stringify(data));
+}
+
+function loadActivityState(): PersistedActivityState | null {
+  try {
+    const data = localStorage.getItem(ACTIVITY_STATE_KEY);
+    return data ? JSON.parse(data) : null;
+  } catch {
+    return null;
+  }
+}
+
+function clearActivityState() {
+  localStorage.removeItem(ACTIVITY_STATE_KEY);
+}
+
 export function StartRun({ apiKey, hasApiKey, temperatureUnit, onNeedApiKey, testMode = false, testWeather, activity = 'running' }: StartRunProps) {
   const activityConfig = ACTIVITY_CONFIGS[activity];
   const [weather, setWeather] = useState<WeatherData | null>(null);
@@ -40,6 +73,67 @@ export function StartRun({ apiKey, hasApiKey, temperatureUnit, onNeedApiKey, tes
   const [updateAvailable, setUpdateAvailable] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
   const [isCheckingUpdate, setIsCheckingUpdate] = useState(false);
+  const [showForgottenReminder, setShowForgottenReminder] = useState(false);
+  const [forgottenDuration, setForgottenDuration] = useState('');
+
+  // Restore activity state from localStorage on mount
+  useEffect(() => {
+    const saved = loadActivityState();
+    if (saved && saved.state === 'running') {
+      // Check if this is for the current activity
+      if (saved.activity === activity) {
+        setRunState('running');
+        setRunStartTime(saved.startTime ? new Date(saved.startTime) : null);
+        setActualClothing(saved.clothing);
+        
+        // Check if it's been running too long (2+ hours)
+        if (saved.startTime) {
+          const elapsed = Date.now() - new Date(saved.startTime).getTime();
+          const hours = elapsed / (1000 * 60 * 60);
+          if (hours >= 2) {
+            setShowForgottenReminder(true);
+            setForgottenDuration(formatDuration(elapsed));
+          }
+        }
+      }
+    }
+  }, [activity]);
+
+  // Check for forgotten activity on focus/visibility change
+  useEffect(() => {
+    const checkForgotten = () => {
+      const saved = loadActivityState();
+      if (saved && saved.state === 'running' && saved.startTime && saved.activity === activity) {
+        const elapsed = Date.now() - new Date(saved.startTime).getTime();
+        const hours = elapsed / (1000 * 60 * 60);
+        if (hours >= 2) {
+          setShowForgottenReminder(true);
+          setForgottenDuration(formatDuration(elapsed));
+        }
+      }
+    };
+
+    window.addEventListener('focus', checkForgotten);
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible') {
+        checkForgotten();
+      }
+    });
+
+    return () => {
+      window.removeEventListener('focus', checkForgotten);
+    };
+  }, [activity]);
+
+  // Format duration for display
+  function formatDuration(ms: number): string {
+    const hours = Math.floor(ms / (1000 * 60 * 60));
+    const minutes = Math.floor((ms % (1000 * 60 * 60)) / (1000 * 60));
+    if (hours > 0) {
+      return `${hours}h ${minutes}m`;
+    }
+    return `${minutes} minutes`;
+  }
 
   // Check for service worker updates
   const checkForUpdates = async () => {
@@ -241,8 +335,12 @@ export function StartRun({ apiKey, hasApiKey, temperatureUnit, onNeedApiKey, tes
   };
 
   const handleStartRun = () => {
+    const startTime = new Date();
     setRunState('running');
-    setRunStartTime(new Date());
+    setRunStartTime(startTime);
+    setShowForgottenReminder(false);
+    // Persist state so it survives app close
+    saveActivityState(activity, 'running', startTime, actualClothing);
   };
 
   const handleEndRun = () => {
@@ -275,6 +373,10 @@ export function StartRun({ apiKey, hasApiKey, temperatureUnit, onNeedApiKey, tes
     setFeedbackCount(prev => prev + 1);
     setRunState('idle');
     setHasUserEdits(false); // Reset edits flag after submitting feedback
+    setShowForgottenReminder(false);
+    
+    // Clear persisted activity state
+    clearActivityState();
     
     // Track session for backup reminder
     incrementSessionCount();
@@ -285,6 +387,9 @@ export function StartRun({ apiKey, hasApiKey, temperatureUnit, onNeedApiKey, tes
 
   const handleFeedbackCancel = () => {
     setRunState('idle');
+    setShowForgottenReminder(false);
+    // Clear persisted activity state
+    clearActivityState();
   };
 
   if (!hasApiKey) {
@@ -366,6 +471,61 @@ export function StartRun({ apiKey, hasApiKey, temperatureUnit, onNeedApiKey, tes
           onCancel={handleFeedbackCancel}
           activityName={activityConfig.name.toLowerCase()}
         />
+      )}
+
+      {/* Forgotten activity reminder */}
+      {showForgottenReminder && runState === 'idle' && (
+        <div className="glass-card p-4 border-2 border-[var(--color-warning)] animate-fade-in">
+          <div className="flex items-start gap-3">
+            <span className="text-2xl">⏰</span>
+            <div className="flex-1">
+              <p className="font-semibold text-[var(--color-warning)] mb-1">
+                Did you forget to end your {activityConfig.name.toLowerCase()}?
+              </p>
+              <p className="text-sm text-[var(--color-text-muted)] mb-3">
+                You started {forgottenDuration} ago. What would you like to do?
+              </p>
+              <div className="flex flex-wrap gap-2">
+                <button
+                  onClick={() => {
+                    // Resume the activity - go back to running state
+                    const saved = loadActivityState();
+                    if (saved) {
+                      setRunState('running');
+                      setRunStartTime(saved.startTime ? new Date(saved.startTime) : new Date());
+                      setActualClothing(saved.clothing);
+                    }
+                    setShowForgottenReminder(false);
+                  }}
+                  className="px-4 py-2 bg-[var(--color-accent)] text-white rounded-lg text-sm font-medium"
+                >
+                  I'm still going!
+                </button>
+                <button
+                  onClick={() => {
+                    // End and give feedback
+                    setRunState('feedback');
+                    setShowForgottenReminder(false);
+                  }}
+                  className="px-4 py-2 bg-[var(--color-success)] text-white rounded-lg text-sm font-medium"
+                >
+                  End & Give Feedback
+                </button>
+                <button
+                  onClick={() => {
+                    // Discard the activity
+                    clearActivityState();
+                    setShowForgottenReminder(false);
+                    setRunState('idle');
+                  }}
+                  className="px-4 py-2 bg-[rgba(255,255,255,0.1)] text-[var(--color-text-muted)] rounded-lg text-sm"
+                >
+                  Discard
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
       )}
 
       {/* Header with refresh */}
