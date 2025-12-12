@@ -225,18 +225,15 @@ function App() {
       {/* Main content */}
       <main className="flex-1 px-4 py-6 overflow-y-auto" onClick={() => setShowActivityPicker(false)}>
         {view === 'home' && (
-          <>
-            <BackupReminder onExport={handleBackupExport} />
-            <StartRun 
-              apiKey={apiKey}
-              hasApiKey={!!apiKey || isProxyMode() || testMode}
-              temperatureUnit={temperatureUnit}
-              onNeedApiKey={() => setView('settings')}
-              testMode={testMode}
-              testWeather={testWeather}
-              activity={selectedActivity}
-            />
-          </>
+          <StartRun 
+            apiKey={apiKey}
+            hasApiKey={!!apiKey || isProxyMode() || testMode}
+            temperatureUnit={temperatureUnit}
+            onNeedApiKey={() => setView('settings')}
+            testMode={testMode}
+            testWeather={testWeather}
+            activity={selectedActivity}
+          />
         )}
         {view === 'upload' && (
           <FileUpload 
@@ -314,6 +311,9 @@ function App() {
           />
         </div>
       </nav>
+
+      {/* Backup reminder modal - shows after 5 sessions */}
+      <BackupReminder onExport={handleBackupExport} />
     </div>
   );
 }
