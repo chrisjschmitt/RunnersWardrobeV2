@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import type { RunRecord, RunFeedback, ActivityType } from '../types';
 import { ACTIVITY_CONFIGS } from '../types';
 import { getAllRuns, clearAllRuns, getAllFeedback, clearAllFeedback, deleteRun, deleteFeedback, exportAllHistoryAsCSV } from '../services/database';
+import { resetSessionCount } from './BackupReminder';
 import { formatTemperature, formatWindSpeed, type TemperatureUnit } from '../services/temperatureUtils';
 
 // Extended type to track source
@@ -112,6 +113,9 @@ export function RunHistory({ onDataCleared, temperatureUnit, activity = 'running
       
       const filename = `all-activities-history-${new Date().toISOString().split('T')[0]}.csv`;
       await downloadCSV(csv, filename);
+      
+      // Reset session count for backup reminder
+      resetSessionCount();
     } catch (error) {
       console.error('Failed to export CSV:', error);
       alert('Failed to export data');

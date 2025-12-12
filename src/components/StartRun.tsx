@@ -4,6 +4,7 @@ import { ACTIVITY_CONFIGS } from '../types';
 import { getCurrentPosition, fetchWeather, clearWeatherCache } from '../services/weatherApi';
 import { getClothingRecommendation, getFallbackRecommendation, calculateComfortAdjustment } from '../services/recommendationEngine';
 import { getAllRuns, getAllFeedback, addFeedback } from '../services/database';
+import { incrementSessionCount } from './BackupReminder';
 import { WeatherDisplay } from './WeatherDisplay';
 import { ClothingRecommendation } from './ClothingRecommendation';
 import { FeedbackModal } from './FeedbackModal';
@@ -274,6 +275,9 @@ export function StartRun({ apiKey, hasApiKey, temperatureUnit, onNeedApiKey, tes
     setFeedbackCount(prev => prev + 1);
     setRunState('idle');
     setHasUserEdits(false); // Reset edits flag after submitting feedback
+    
+    // Track session for backup reminder
+    incrementSessionCount();
     
     // Refresh recommendations with new feedback
     loadWeatherAndRecommendations(false);

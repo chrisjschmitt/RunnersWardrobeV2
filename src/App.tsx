@@ -9,8 +9,10 @@ import { Settings } from './components/Settings';
 import { Help } from './components/Help';
 import { Onboarding } from './components/Onboarding';
 import { TermsPrivacy } from './components/TermsPrivacy';
+import { BackupReminder } from './components/BackupReminder';
 import type { TemperatureUnit } from './services/temperatureUtils';
 import { isProxyMode } from './services/weatherApi';
+import { exportAllHistoryAsCSV } from './services/database';
 // TODO: Remove beta tracking before production release
 import { trackFirstLaunch } from './services/betaTracking';
 
@@ -107,6 +109,48 @@ function App() {
     setRunCount(0);
   };
 
+  const handleBackupExport = async () => {
+    try {
+      const csv = await exportAllHistoryAsCSV();
+      if (!csv) {
+        alert('No data to export');
+        return;
+      }
+      
+      const filename = `trailkit-backup-${new Date().toISOString().split('T')[0]}.csv`;
+      const blob = new Blob([csv], { type: 'application/octet-stream' });
+      
+      // Try Web Share API first (works best on iOS)
+      if (navigator.share && navigator.canShare) {
+        const file = new File([blob], filename, { type: 'application/octet-stream' });
+        const shareData = { files: [file] };
+        
+        if (navigator.canShare(shareData)) {
+          try {
+            await navigator.share(shareData);
+            return;
+          } catch (err) {
+            // User cancelled or share failed, fall through to download
+            if ((err as Error).name === 'AbortError') return;
+          }
+        }
+      }
+      
+      // Fallback to download link
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Failed to export:', error);
+      alert('Failed to export data');
+    }
+  };
+
   const activityConfig = ACTIVITY_CONFIGS[selectedActivity];
 
   if (isLoading) {
@@ -181,15 +225,18 @@ function App() {
       {/* Main content */}
       <main className="flex-1 px-4 py-6 overflow-y-auto" onClick={() => setShowActivityPicker(false)}>
         {view === 'home' && (
-          <StartRun 
-            apiKey={apiKey}
-            hasApiKey={!!apiKey || isProxyMode() || testMode}
-            temperatureUnit={temperatureUnit}
-            onNeedApiKey={() => setView('settings')}
-            testMode={testMode}
-            testWeather={testWeather}
-            activity={selectedActivity}
-          />
+          <>
+            <BackupReminder onExport={handleBackupExport} />
+            <StartRun 
+              apiKey={apiKey}
+              hasApiKey={!!apiKey || isProxyMode() || testMode}
+              temperatureUnit={temperatureUnit}
+              onNeedApiKey={() => setView('settings')}
+              testMode={testMode}
+              testWeather={testWeather}
+              activity={selectedActivity}
+            />
+          </>
         )}
         {view === 'upload' && (
           <FileUpload 
