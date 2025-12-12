@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import type { RunRecord, RunFeedback, ActivityType } from '../types';
 import { ACTIVITY_CONFIGS } from '../types';
 import { getAllRuns, clearAllRuns, getAllFeedback, clearAllFeedback, deleteRun, deleteFeedback, exportAllHistoryAsCSV } from '../services/database';
-import { resetSessionCount } from './BackupReminder';
+import { resetSessionCount, getSessionCount } from './BackupReminder';
 import { formatTemperature, formatWindSpeed, type TemperatureUnit } from '../services/temperatureUtils';
 
 // Extended type to track source
@@ -201,7 +201,20 @@ export function RunHistory({ onDataCleared, temperatureUnit, activity = 'running
         </div>
 
         {/* Export button - always visible since it exports ALL activities */}
-        <div className="flex flex-wrap gap-2 mb-4">
+        <div className="mb-4">
+          {getSessionCount() >= 3 && (
+            <div className={`mb-2 px-3 py-2 rounded-lg text-sm flex items-center gap-2 ${
+              getSessionCount() >= 5 
+                ? 'bg-[rgba(239,68,68,0.15)] text-[var(--color-error)]' 
+                : 'bg-[rgba(234,179,8,0.15)] text-[var(--color-warning)]'
+            }`}>
+              <span>💾</span>
+              <span>
+                {getSessionCount()} sessions since last backup
+                {getSessionCount() >= 5 && ' — time to export!'}
+              </span>
+            </div>
+          )}
           <button
             onClick={handleExportCSV}
             className="btn-secondary flex items-center gap-2"

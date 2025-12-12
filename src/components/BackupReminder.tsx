@@ -1,9 +1,10 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 
 const STORAGE_KEY_SESSION_COUNT = 'trailkit_sessions_since_backup';
 const STORAGE_KEY_DISMISSED_UNTIL = 'trailkit_backup_reminder_dismissed';
 const SESSIONS_BEFORE_REMINDER = 5;
 const DISMISS_DAYS = 7;
+const BACKUP_CHECK_EVENT = 'trailkit_check_backup';
 
 interface BackupReminderProps {
   onExport: () => void;
@@ -13,25 +14,44 @@ export function BackupReminder({ onExport }: BackupReminderProps) {
   const [showReminder, setShowReminder] = useState(false);
   const [sessionCount, setSessionCount] = useState(0);
 
-  useEffect(() => {
-    checkShouldShowReminder();
-  }, []);
-
-  const checkShouldShowReminder = () => {
+  const checkShouldShowReminder = useCallback(() => {
     // Check if dismissed recently
     const dismissedUntil = localStorage.getItem(STORAGE_KEY_DISMISSED_UNTIL);
     if (dismissedUntil && new Date(dismissedUntil) > new Date()) {
+      console.log('[BackupReminder] Dismissed until:', dismissedUntil);
       return; // Still dismissed
     }
 
     // Check session count
     const count = parseInt(localStorage.getItem(STORAGE_KEY_SESSION_COUNT) || '0', 10);
+    console.log('[BackupReminder] Checking - sessions:', count, 'threshold:', SESSIONS_BEFORE_REMINDER);
     setSessionCount(count);
 
     if (count >= SESSIONS_BEFORE_REMINDER) {
+      console.log('[BackupReminder] Showing reminder!');
       setShowReminder(true);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    // Check on mount
+    checkShouldShowReminder();
+
+    // Listen for session completion events
+    const handleSessionComplete = () => {
+      checkShouldShowReminder();
+    };
+
+    window.addEventListener(BACKUP_CHECK_EVENT, handleSessionComplete);
+    
+    // Also check when app regains focus (user might have been away)
+    window.addEventListener('focus', checkShouldShowReminder);
+
+    return () => {
+      window.removeEventListener(BACKUP_CHECK_EVENT, handleSessionComplete);
+      window.removeEventListener('focus', checkShouldShowReminder);
+    };
+  }, [checkShouldShowReminder]);
 
   const handleDismiss = () => {
     // Dismiss for 7 days
@@ -97,11 +117,22 @@ export function BackupReminder({ onExport }: BackupReminderProps) {
 // Call this when a session is completed (feedback submitted)
 export function incrementSessionCount() {
   const count = parseInt(localStorage.getItem(STORAGE_KEY_SESSION_COUNT) || '0', 10);
-  localStorage.setItem(STORAGE_KEY_SESSION_COUNT, String(count + 1));
+  const newCount = count + 1;
+  localStorage.setItem(STORAGE_KEY_SESSION_COUNT, String(newCount));
+  
+  // Dispatch event to trigger reminder check
+  window.dispatchEvent(new CustomEvent('trailkit_check_backup'));
+  
+  console.log(`[BackupReminder] Session count: ${newCount}`); // Debug log
 }
 
 // Call this after a successful export to reset the counter
 export function resetSessionCount() {
   localStorage.setItem(STORAGE_KEY_SESSION_COUNT, '0');
+}
+
+// Get current session count (for display in UI)
+export function getSessionCount(): number {
+  return parseInt(localStorage.getItem(STORAGE_KEY_SESSION_COUNT) || '0', 10);
 }
 
