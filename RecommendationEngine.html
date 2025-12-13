@@ -1,0 +1,612 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TrailKit - Recommendation Engine</title>
+    <style>
+        :root {
+            --bg-primary: #0f172a;
+            --bg-secondary: #1e293b;
+            --bg-tertiary: #334155;
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --accent-orange: #f97316;
+            --accent-blue: #3b82f6;
+            --accent-green: #22c55e;
+            --accent-yellow: #eab308;
+            --accent-purple: #a855f7;
+            --accent-red: #ef4444;
+            --accent-cyan: #06b6d4;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+            padding: 2rem;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+            color: var(--accent-orange);
+        }
+
+        .subtitle {
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+            margin-bottom: 2rem;
+        }
+
+        h2 {
+            font-size: 1.5rem;
+            margin: 2rem 0 1rem;
+            color: var(--accent-blue);
+            border-bottom: 2px solid var(--bg-tertiary);
+            padding-bottom: 0.5rem;
+        }
+
+        h3 {
+            font-size: 1.2rem;
+            margin: 1.5rem 0 0.75rem;
+            color: var(--accent-cyan);
+        }
+
+        /* Flow diagram */
+        .flow-diagram {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            margin: 1.5rem 0;
+        }
+
+        .flow-step {
+            background: var(--bg-secondary);
+            border-radius: 12px;
+            padding: 1.25rem;
+            border-left: 4px solid var(--accent-orange);
+            position: relative;
+        }
+
+        .flow-step::after {
+            content: '↓';
+            position: absolute;
+            bottom: -1.5rem;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 1.5rem;
+            color: var(--accent-orange);
+        }
+
+        .flow-step:last-child::after {
+            display: none;
+        }
+
+        .flow-step.input {
+            border-left-color: var(--accent-blue);
+            background: linear-gradient(135deg, var(--bg-secondary) 0%, rgba(59, 130, 246, 0.1) 100%);
+        }
+
+        .flow-step.primary {
+            border-left-color: var(--accent-green);
+        }
+
+        .flow-step.secondary {
+            border-left-color: var(--accent-purple);
+        }
+
+        .flow-step.safety {
+            border-left-color: var(--accent-red);
+        }
+
+        .flow-step.fallback {
+            border-left-color: var(--accent-yellow);
+            background: linear-gradient(135deg, var(--bg-secondary) 0%, rgba(234, 179, 8, 0.1) 100%);
+        }
+
+        .step-number {
+            display: inline-block;
+            background: var(--accent-orange);
+            color: var(--bg-primary);
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 28px;
+            font-weight: bold;
+            margin-right: 0.75rem;
+        }
+
+        .flow-step.input .step-number { background: var(--accent-blue); }
+        .flow-step.primary .step-number { background: var(--accent-green); }
+        .flow-step.secondary .step-number { background: var(--accent-purple); }
+        .flow-step.safety .step-number { background: var(--accent-red); }
+        .flow-step.fallback .step-number { background: var(--accent-yellow); color: var(--bg-primary); }
+
+        .step-title {
+            font-weight: 600;
+            font-size: 1.1rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .step-description {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+        }
+
+        .step-detail {
+            margin-top: 0.75rem;
+            padding-left: 1rem;
+            border-left: 2px solid var(--bg-tertiary);
+        }
+
+        .step-detail li {
+            margin: 0.25rem 0;
+            color: var(--text-secondary);
+        }
+
+        .confidence-badge {
+            display: inline-block;
+            background: var(--accent-green);
+            color: var(--bg-primary);
+            padding: 0.2rem 0.6rem;
+            border-radius: 1rem;
+            font-size: 0.8rem;
+            font-weight: 600;
+            margin-left: 0.5rem;
+        }
+
+        /* Tables */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1rem 0;
+            background: var(--bg-secondary);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        th, td {
+            padding: 0.75rem 1rem;
+            text-align: left;
+            border-bottom: 1px solid var(--bg-tertiary);
+        }
+
+        th {
+            background: var(--bg-tertiary);
+            font-weight: 600;
+            color: var(--accent-orange);
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        tr:hover {
+            background: rgba(255, 255, 255, 0.03);
+        }
+
+        .weight-high { color: var(--accent-green); font-weight: 600; }
+        .weight-medium { color: var(--accent-yellow); }
+        .weight-low { color: var(--text-secondary); }
+
+        /* Key takeaways */
+        .takeaways {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1rem;
+            margin: 1.5rem 0;
+        }
+
+        .takeaway {
+            background: var(--bg-secondary);
+            border-radius: 12px;
+            padding: 1.25rem;
+            display: flex;
+            gap: 1rem;
+            align-items: flex-start;
+        }
+
+        .takeaway-icon {
+            font-size: 1.5rem;
+            flex-shrink: 0;
+        }
+
+        .takeaway-content strong {
+            display: block;
+            margin-bottom: 0.25rem;
+            color: var(--text-primary);
+        }
+
+        .takeaway-content p {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        /* Temperature ranges */
+        .temp-ranges {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin: 1rem 0;
+        }
+
+        .temp-badge {
+            padding: 0.4rem 0.8rem;
+            border-radius: 2rem;
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+
+        .temp-freezing { background: #1e3a5f; color: #93c5fd; }
+        .temp-verycold { background: #1e3a5f; color: #60a5fa; }
+        .temp-cold { background: #164e63; color: #67e8f9; }
+        .temp-cool { background: #134e4a; color: #5eead4; }
+        .temp-mild { background: #365314; color: #bef264; }
+        .temp-warm { background: #713f12; color: #fcd34d; }
+        .temp-hot { background: #7c2d12; color: #fdba74; }
+
+        /* Safety overrides section */
+        .safety-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 0.75rem;
+            margin: 1rem 0;
+        }
+
+        .safety-item {
+            background: var(--bg-secondary);
+            border-radius: 8px;
+            padding: 0.75rem 1rem;
+            border-left: 3px solid var(--accent-red);
+            font-size: 0.9rem;
+        }
+
+        .safety-item .condition {
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+        }
+
+        .safety-item .action {
+            color: var(--accent-green);
+            margin-top: 0.25rem;
+        }
+
+        /* Footer */
+        .footer {
+            margin-top: 3rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid var(--bg-tertiary);
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            text-align: center;
+        }
+
+        .version {
+            display: inline-block;
+            background: var(--accent-orange);
+            color: var(--bg-primary);
+            padding: 0.2rem 0.6rem;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        /* Responsive */
+        @media (max-width: 600px) {
+            body {
+                padding: 1rem;
+            }
+            
+            h1 {
+                font-size: 1.75rem;
+            }
+            
+            .flow-step {
+                padding: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧠 Recommendation Engine</h1>
+        <p class="subtitle">How TrailKit decides what clothes to recommend for your outdoor activities</p>
+
+        <h2>📊 The Recommendation Flow</h2>
+        
+        <div class="flow-diagram">
+            <div class="flow-step input">
+                <div class="step-title">
+                    <span class="step-number">⬇</span>
+                    Current Weather Input
+                </div>
+                <p class="step-description">
+                    Temperature, feels like, humidity, wind speed, precipitation, UV index, and cloud cover
+                </p>
+            </div>
+
+            <div class="flow-step">
+                <div class="step-title">
+                    <span class="step-number">1</span>
+                    Comfort Adjustment
+                </div>
+                <p class="step-description">
+                    Apply user's personal "runs hot/cold" adjustments based on past feedback
+                </p>
+                <ul class="step-detail">
+                    <li><strong>Too hot</strong> → treat weather as 8°F warmer</li>
+                    <li><strong>Just right</strong> → no adjustment</li>
+                    <li><strong>Too cold</strong> → treat weather as 8°F colder</li>
+                </ul>
+            </div>
+
+            <div class="flow-step primary">
+                <div class="step-title">
+                    <span class="step-number">2</span>
+                    Exact Recent Match (Last 7 Days)
+                    <span class="confidence-badge">95% confidence</span>
+                </div>
+                <p class="step-description">
+                    If you did this activity in very similar weather (&gt;85% match) in the past week, use exactly what you wore
+                </p>
+            </div>
+
+            <div class="flow-step secondary">
+                <div class="step-title">
+                    <span class="step-number">3</span>
+                    Find Similar Sessions
+                </div>
+                <p class="step-description">
+                    Compare current weather to all past runs & feedback with &gt;40% similarity
+                </p>
+                <ul class="step-detail">
+                    <li><strong>Feedback records</strong> get 2× weight (you rated them!)</li>
+                    <li><strong>Recent sessions</strong> get a recency boost</li>
+                    <li><strong>"Just right"</strong> comfort ratings get an extra boost</li>
+                </ul>
+            </div>
+
+            <div class="flow-step secondary">
+                <div class="step-title">
+                    <span class="step-number">4</span>
+                    Vote for Each Clothing Category
+                </div>
+                <p class="step-description">
+                    For each category (tops, bottoms, gloves, head cover, etc.):
+                </p>
+                <ul class="step-detail">
+                    <li>Collect what you wore in similar conditions</li>
+                    <li>Higher similarity = more votes</li>
+                    <li>Pick the most common choice</li>
+                </ul>
+            </div>
+
+            <div class="flow-step safety">
+                <div class="step-title">
+                    <span class="step-number">5</span>
+                    Smart Safety Overrides
+                </div>
+                <p class="step-description">
+                    Prevent dangerous recommendations that could leave you freezing or unprepared
+                </p>
+            </div>
+
+            <div class="flow-step fallback">
+                <div class="step-title">
+                    <span class="step-number">✦</span>
+                    Fallback: Activity Defaults
+                </div>
+                <p class="step-description">
+                    If no similar history exists, use predefined defaults based on temperature range and activity type
+                </p>
+            </div>
+        </div>
+
+        <h2>⚖️ Weather Similarity Weights</h2>
+        <p>How much each weather factor contributes to matching past sessions:</p>
+        
+        <table>
+            <thead>
+                <tr>
+                    <th>Factor</th>
+                    <th>Weight</th>
+                    <th>Threshold</th>
+                    <th>Why It Matters</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>Temperature</strong></td>
+                    <td class="weight-high">3.0</td>
+                    <td>±5°F</td>
+                    <td>Primary driver of what you wear</td>
+                </tr>
+                <tr>
+                    <td><strong>Feels Like</strong></td>
+                    <td class="weight-high">2.5</td>
+                    <td>±7°F</td>
+                    <td>Real-world perceived temperature</td>
+                </tr>
+                <tr>
+                    <td><strong>Precipitation</strong></td>
+                    <td class="weight-medium">2.0</td>
+                    <td>Yes/No</td>
+                    <td>Rain gear decisions</td>
+                </tr>
+                <tr>
+                    <td><strong>Wind Speed</strong></td>
+                    <td class="weight-medium">1.5</td>
+                    <td>±5 mph</td>
+                    <td>Affects wind chill</td>
+                </tr>
+                <tr>
+                    <td><strong>Humidity</strong></td>
+                    <td class="weight-low">1.0</td>
+                    <td>±15%</td>
+                    <td>Comfort factor</td>
+                </tr>
+                <tr>
+                    <td><strong>Cloud Cover</strong></td>
+                    <td class="weight-low">0.5</td>
+                    <td>±20%</td>
+                    <td>Sun exposure</td>
+                </tr>
+                <tr>
+                    <td><strong>UV Index</strong></td>
+                    <td class="weight-low">0.5</td>
+                    <td>±2</td>
+                    <td>Sun protection needs</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <h2>🛡️ Safety Overrides</h2>
+        <p>The app prevents dangerous recommendations with automatic overrides:</p>
+        
+        <div class="safety-grid">
+            <div class="safety-item">
+                <div class="condition">T-shirt in &lt;25°F</div>
+                <div class="action">→ Upgrade to base layer + jacket</div>
+            </div>
+            <div class="safety-item">
+                <div class="condition">Light top in &lt;40°F</div>
+                <div class="action">→ Upgrade to long sleeve</div>
+            </div>
+            <div class="safety-item">
+                <div class="condition">No gloves in &lt;15°F</div>
+                <div class="action">→ Add heavy gloves</div>
+            </div>
+            <div class="safety-item">
+                <div class="condition">Light gloves in &lt;25°F</div>
+                <div class="action">→ Upgrade to warm gloves</div>
+            </div>
+            <div class="safety-item">
+                <div class="condition">No head cover in &lt;25°F</div>
+                <div class="action">→ Add beanie</div>
+            </div>
+            <div class="safety-item">
+                <div class="condition">Raining + no rain gear</div>
+                <div class="action">→ Add rain jacket</div>
+            </div>
+            <div class="safety-item">
+                <div class="condition">Dark/sunset</div>
+                <div class="action">→ Suggest headlamp</div>
+            </div>
+            <div class="safety-item">
+                <div class="condition">Sunny conditions</div>
+                <div class="action">→ Suggest sunglasses</div>
+            </div>
+        </div>
+
+        <h2>🌡️ Temperature Ranges (Fallback Defaults)</h2>
+        <p>When no history exists, the app uses activity-specific defaults for these temperature ranges:</p>
+        
+        <div class="temp-ranges">
+            <span class="temp-badge temp-freezing">❄️ Freezing: &lt;15°F</span>
+            <span class="temp-badge temp-verycold">🥶 Very Cold: 15-25°F</span>
+            <span class="temp-badge temp-cold">🧊 Cold: 25-40°F</span>
+            <span class="temp-badge temp-cool">🍃 Cool: 40-55°F</span>
+            <span class="temp-badge temp-mild">🌤️ Mild: 55-65°F</span>
+            <span class="temp-badge temp-warm">☀️ Warm: 65-75°F</span>
+            <span class="temp-badge temp-hot">🔥 Hot: &gt;75°F</span>
+        </div>
+        
+        <p style="color: var(--text-secondary); margin-top: 1rem;">
+            Each activity (Running, Cycling, Walking, etc.) has its own set of defaults for each temperature range.
+            For example, Cycling defaults include helmet, jersey, and cycling shoes, while Walking includes more casual options.
+        </p>
+
+        <h2>🎯 Key Takeaways</h2>
+        
+        <div class="takeaways">
+            <div class="takeaway">
+                <span class="takeaway-icon">⭐</span>
+                <div class="takeaway-content">
+                    <strong>Your Feedback Matters Most</strong>
+                    <p>Sessions where you gave feedback count 2× more than imported history</p>
+                </div>
+            </div>
+            <div class="takeaway">
+                <span class="takeaway-icon">🕐</span>
+                <div class="takeaway-content">
+                    <strong>Recent = Better</strong>
+                    <p>Sessions from the last 30 days get a recency boost in matching</p>
+                </div>
+            </div>
+            <div class="takeaway">
+                <span class="takeaway-icon">👍</span>
+                <div class="takeaway-content">
+                    <strong>"Just Right" Wins</strong>
+                    <p>If you marked a session as comfortable, those choices are prioritized</p>
+                </div>
+            </div>
+            <div class="takeaway">
+                <span class="takeaway-icon">🛡️</span>
+                <div class="takeaway-content">
+                    <strong>Safety First</strong>
+                    <p>The app won't let you freeze — safety overrides kick in for extreme temps</p>
+                </div>
+            </div>
+            <div class="takeaway">
+                <span class="takeaway-icon">🏃</span>
+                <div class="takeaway-content">
+                    <strong>Activity-Specific</strong>
+                    <p>Each of the 7 activities has its own clothing options and defaults</p>
+                </div>
+            </div>
+            <div class="takeaway">
+                <span class="takeaway-icon">📈</span>
+                <div class="takeaway-content">
+                    <strong>It Gets Smarter</strong>
+                    <p>The more you use it and give feedback, the better recommendations become</p>
+                </div>
+            </div>
+        </div>
+
+        <h2>🔧 Source Files</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>File</th>
+                    <th>Purpose</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><code>src/services/recommendationEngine.ts</code></td>
+                    <td>Main recommendation logic, similarity calculations, voting system</td>
+                </tr>
+                <tr>
+                    <td><code>src/data/activityDefaults.ts</code></td>
+                    <td>Activity-specific defaults for each temperature range</td>
+                </tr>
+                <tr>
+                    <td><code>src/types/index.ts</code></td>
+                    <td>Clothing categories, activity configurations, helper functions</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div class="footer">
+            <span class="version">v4.6.2</span>
+            <p style="margin-top: 0.5rem;">TrailKit Recommendation Engine Documentation</p>
+            <p>© 2025 TrailKit</p>
+        </div>
+    </div>
+</body>
+</html>
+
