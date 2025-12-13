@@ -367,6 +367,7 @@ Files with TODO comments:
 
 ## Version History
 
+- **v4.7.0**: Recommendation debug panel - view input, matching, voting, and safety overrides
 - **v4.6.2**: Fix forgotten activity reminder to show banner instead of resuming
 - **v4.6.1**: Add activity state to debug panel with simulate/clear actions
 - **v4.6.0**: Forgotten activity reminder - persists state, shows banner after 2 hours
