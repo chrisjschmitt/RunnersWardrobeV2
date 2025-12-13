@@ -2,7 +2,8 @@ import { useState, useEffect } from 'react';
 import { getSettings, saveSettings } from '../services/database';
 import { isValidApiKeyFormat, isProxyMode } from '../services/weatherApi';
 import { formatWindSpeed, type TemperatureUnit } from '../services/temperatureUtils';
-import type { TestWeatherData } from '../types';
+import { getLastRecommendationDebug } from '../services/recommendationEngine';
+import type { TestWeatherData, RecommendationDebugInfo } from '../types';
 import { version } from '../../package.json';
 
 interface SettingsProps {
@@ -57,6 +58,8 @@ export function Settings({
   const [updateMessage, setUpdateMessage] = useState<string | null>(null);
   const [versionTapCount, setVersionTapCount] = useState(0);
   const [showDebugInfo, setShowDebugInfo] = useState(false);
+  const [debugTab, setDebugTab] = useState<'app' | 'recommendation'>('app');
+  const [recDebug, setRecDebug] = useState<RecommendationDebugInfo | null>(null);
   
   const proxyMode = isProxyMode();
 
@@ -67,6 +70,7 @@ export function Settings({
     
     if (newCount >= 5) {
       setShowDebugInfo(true);
+      setRecDebug(getLastRecommendationDebug());
       setVersionTapCount(0);
     }
     
@@ -647,73 +651,258 @@ export function Settings({
               <h2 className="text-lg font-bold text-white">Debug Info</h2>
             </div>
             
-            <div className="p-4 space-y-3 max-h-[60vh] overflow-y-auto">
-              {(() => {
-                const debug = getDebugInfo();
-                return (
-                  <>
-                    <div className="text-sm">
-                      <span className="text-[var(--color-text-muted)]">Sessions since backup:</span>
-                      <span className="ml-2 font-mono font-bold">{debug.sessionCount}</span>
+            {/* Tab buttons */}
+            <div className="flex border-b border-[rgba(255,255,255,0.1)]">
+              <button
+                onClick={() => setDebugTab('app')}
+                className={`flex-1 py-3 text-sm font-medium transition-colors ${
+                  debugTab === 'app' 
+                    ? 'text-[var(--color-accent)] border-b-2 border-[var(--color-accent)]' 
+                    : 'text-[var(--color-text-muted)]'
+                }`}
+              >
+                App State
+              </button>
+              <button
+                onClick={() => setDebugTab('recommendation')}
+                className={`flex-1 py-3 text-sm font-medium transition-colors ${
+                  debugTab === 'recommendation' 
+                    ? 'text-[var(--color-accent)] border-b-2 border-[var(--color-accent)]' 
+                    : 'text-[var(--color-text-muted)]'
+                }`}
+              >
+                Recommendation
+              </button>
+            </div>
+            
+            <div className="p-4 space-y-3 max-h-[55vh] overflow-y-auto">
+              {debugTab === 'app' ? (
+                <>
+                  {(() => {
+                    const debug = getDebugInfo();
+                    return (
+                      <>
+                        <div className="text-sm">
+                          <span className="text-[var(--color-text-muted)]">Sessions since backup:</span>
+                          <span className="ml-2 font-mono font-bold">{debug.sessionCount}</span>
+                        </div>
+                        <div className="text-sm">
+                          <span className="text-[var(--color-text-muted)]">Reminder dismissed until:</span>
+                          <span className="ml-2 font-mono text-xs">{debug.dismissedUntil}</span>
+                        </div>
+                        <div className="text-sm">
+                          <span className="text-[var(--color-text-muted)]">Activity state:</span>
+                          <span className="ml-2 font-mono text-xs">{debug.activityState}</span>
+                        </div>
+                        <div className="text-sm">
+                          <span className="text-[var(--color-text-muted)]">Activity start time:</span>
+                          <span className="ml-2 font-mono text-xs break-all">{debug.activityStartTime}</span>
+                        </div>
+                        <div className="text-sm">
+                          <span className="text-[var(--color-text-muted)]">First launch tracked:</span>
+                          <span className="ml-2 font-mono">{debug.firstLaunchTracked}</span>
+                        </div>
+                        <div className="text-sm">
+                          <span className="text-[var(--color-text-muted)]">Display mode:</span>
+                          <span className="ml-2 font-mono">{debug.standalone}</span>
+                        </div>
+                        <div className="text-sm">
+                          <span className="text-[var(--color-text-muted)]">Screen:</span>
+                          <span className="ml-2 font-mono">{debug.screenSize} @{debug.devicePixelRatio}x</span>
+                        </div>
+                        <div className="text-sm break-all">
+                          <span className="text-[var(--color-text-muted)]">User Agent:</span>
+                          <span className="ml-2 font-mono text-xs">{debug.userAgent}</span>
+                        </div>
+                      </>
+                    );
+                  })()}
+                  
+                  <div className="pt-3 border-t border-[rgba(255,255,255,0.1)] space-y-2">
+                    <button
+                      onClick={clearBackupDismissal}
+                      className="w-full py-2 px-4 bg-[rgba(234,179,8,0.2)] text-[var(--color-warning)] rounded-lg text-sm"
+                    >
+                      Clear Backup Reminder Dismissal
+                    </button>
+                    <button
+                      onClick={resetSessionCount}
+                      className="w-full py-2 px-4 bg-[rgba(239,68,68,0.2)] text-[var(--color-error)] rounded-lg text-sm"
+                    >
+                      Reset Session Count to 0
+                    </button>
+                    <button
+                      onClick={simulateForgottenActivity}
+                      className="w-full py-2 px-4 bg-[rgba(249,115,22,0.2)] text-[var(--color-accent)] rounded-lg text-sm"
+                    >
+                      Simulate Forgotten Activity (3h ago)
+                    </button>
+                    <button
+                      onClick={clearActivityState}
+                      className="w-full py-2 px-4 bg-[rgba(255,255,255,0.1)] text-[var(--color-text-muted)] rounded-lg text-sm"
+                    >
+                      Clear Activity State
+                    </button>
+                  </div>
+                </>
+              ) : (
+                <>
+                  {recDebug ? (
+                    <>
+                      {/* Source badge */}
+                      <div className="flex items-center justify-between">
+                        <span className={`px-2 py-1 rounded text-xs font-medium ${
+                          recDebug.source === 'recent_match' ? 'bg-green-500/20 text-green-400' :
+                          recDebug.source === 'similar_sessions' ? 'bg-blue-500/20 text-blue-400' :
+                          'bg-yellow-500/20 text-yellow-400'
+                        }`}>
+                          {recDebug.source === 'recent_match' ? '✓ Recent Match' :
+                           recDebug.source === 'similar_sessions' ? '📊 Similar Sessions' :
+                           '🎯 Fallback Defaults'}
+                        </span>
+                        <span className="text-xs text-[var(--color-text-muted)]">
+                          {new Date(recDebug.timestamp).toLocaleTimeString()}
+                        </span>
+                      </div>
+
+                      {/* Input section */}
+                      <div className="bg-[rgba(255,255,255,0.05)] rounded-lg p-3">
+                        <div className="text-xs font-semibold text-[var(--color-text-muted)] mb-2">📍 INPUT</div>
+                        <div className="grid grid-cols-2 gap-1 text-xs">
+                          <div>Activity: <span className="font-mono text-[var(--color-accent)]">{recDebug.activity}</span></div>
+                          <div>Temp: <span className="font-mono">{Math.round(recDebug.inputWeather.temperature)}°F</span></div>
+                          <div>Feels: <span className="font-mono">{Math.round(recDebug.inputWeather.feelsLike)}°F</span></div>
+                          <div>Wind: <span className="font-mono">{recDebug.inputWeather.windSpeed} mph</span></div>
+                          <div>Precip: <span className="font-mono">{recDebug.inputWeather.precipitation}"</span></div>
+                          <div>UV: <span className="font-mono">{recDebug.inputWeather.uvIndex}</span></div>
+                        </div>
+                        <div className="text-xs mt-1 text-[var(--color-text-muted)]">
+                          "{recDebug.inputWeather.description}"
+                        </div>
+                        {recDebug.inputWeather.sunrise && (
+                          <div className="text-xs mt-1">
+                            🌅 {recDebug.inputWeather.sunrise} → 🌇 {recDebug.inputWeather.sunset}
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Comfort adjustment */}
+                      <div className="bg-[rgba(255,255,255,0.05)] rounded-lg p-3">
+                        <div className="text-xs font-semibold text-[var(--color-text-muted)] mb-2">🎚️ COMFORT</div>
+                        <div className="text-xs">
+                          Offset: <span className={`font-mono font-bold ${
+                            recDebug.comfortAdjustment.temperatureOffset > 0 ? 'text-blue-400' :
+                            recDebug.comfortAdjustment.temperatureOffset < 0 ? 'text-red-400' : ''
+                          }`}>
+                            {recDebug.comfortAdjustment.temperatureOffset > 0 ? '+' : ''}
+                            {recDebug.comfortAdjustment.temperatureOffset.toFixed(1)}°F
+                          </span>
+                          {recDebug.comfortAdjustment.temperatureOffset !== 0 && (
+                            <span className="text-[var(--color-text-muted)] ml-1">
+                              ({recDebug.comfortAdjustment.temperatureOffset > 0 ? 'runs cold' : 'runs hot'})
+                            </span>
+                          )}
+                        </div>
+                        <div className="text-xs">
+                          Adjusted: <span className="font-mono">{Math.round(recDebug.comfortAdjustment.adjustedTemp)}°F</span>
+                          <span className="ml-2 px-1 py-0.5 rounded bg-[rgba(255,255,255,0.1)] text-[var(--color-text-muted)]">
+                            {recDebug.comfortAdjustment.tempRange}
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Matching */}
+                      <div className="bg-[rgba(255,255,255,0.05)] rounded-lg p-3">
+                        <div className="text-xs font-semibold text-[var(--color-text-muted)] mb-2">🎯 MATCHING</div>
+                        <div className="text-xs">
+                          History: <span className="font-mono">{recDebug.totalHistory.runs} runs + {recDebug.totalHistory.feedback} feedback</span>
+                        </div>
+                        <div className="text-xs">
+                          Similar found: <span className="font-mono font-bold text-[var(--color-accent)]">{recDebug.similarMatches.length}</span>
+                        </div>
+                        {recDebug.similarMatches.length > 0 && (
+                          <div className="mt-2 space-y-1">
+                            {recDebug.similarMatches.slice(0, 5).map((m, i) => (
+                              <div key={i} className="text-xs flex items-center gap-2">
+                                <span className="w-4 text-[var(--color-text-muted)]">#{i+1}</span>
+                                <span className="font-mono">{m.date}</span>
+                                <span className={`px-1 rounded ${m.score >= 0.8 ? 'bg-green-500/20 text-green-400' : m.score >= 0.6 ? 'bg-yellow-500/20 text-yellow-400' : 'bg-gray-500/20'}`}>
+                                  {Math.round(m.score * 100)}%
+                                </span>
+                                {m.isFromFeedback && <span className="text-blue-400">📝</span>}
+                                {m.comfort === 'just_right' && <span className="text-green-400">✓</span>}
+                                {m.comfort === 'too_hot' && <span className="text-red-400">🔥</span>}
+                                {m.comfort === 'too_cold' && <span className="text-blue-400">❄️</span>}
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Voting */}
+                      {recDebug.clothingVotes.length > 0 && (
+                        <div className="bg-[rgba(255,255,255,0.05)] rounded-lg p-3">
+                          <div className="text-xs font-semibold text-[var(--color-text-muted)] mb-2">🗳️ VOTES</div>
+                          <div className="space-y-1">
+                            {recDebug.clothingVotes.filter(v => v.votes.length > 0).slice(0, 6).map((v, i) => (
+                              <div key={i} className="text-xs">
+                                <span className="text-[var(--color-text-muted)] w-20 inline-block">{v.category}:</span>
+                                <span className="font-medium text-[var(--color-accent)]">{v.winner}</span>
+                                {v.votes.length > 1 && (
+                                  <span className="text-[var(--color-text-muted)] ml-1">
+                                    ({v.votes.slice(0, 3).map(vote => `${vote.item}:${vote.count}`).join(', ')})
+                                  </span>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Safety overrides */}
+                      <div className="bg-[rgba(255,255,255,0.05)] rounded-lg p-3">
+                        <div className="text-xs font-semibold text-[var(--color-text-muted)] mb-2">🛡️ SAFETY</div>
+                        <div className="space-y-1">
+                          {recDebug.safetyOverrides.map((s, i) => (
+                            <div key={i} className={`text-xs flex items-center gap-2 ${s.triggered ? '' : 'opacity-50'}`}>
+                              <span className={`w-4 h-4 flex items-center justify-center rounded ${s.triggered ? 'bg-green-500/20 text-green-400' : 'bg-gray-500/20'}`}>
+                                {s.triggered ? '✓' : '·'}
+                              </span>
+                              <span>{s.name}</span>
+                              {s.triggered && s.action && (
+                                <span className="text-[var(--color-accent)]">{s.action}</span>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Final recommendation */}
+                      <div className="bg-[var(--color-accent)]/10 border border-[var(--color-accent)]/30 rounded-lg p-3">
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="text-xs font-semibold text-[var(--color-accent)]">✅ FINAL</span>
+                          <span className="text-xs font-mono">Confidence: {recDebug.confidence}%</span>
+                        </div>
+                        <div className="flex flex-wrap gap-1">
+                          {Object.entries(recDebug.finalRecommendation)
+                            .filter(([, v]) => v && v.toLowerCase() !== 'none')
+                            .map(([k, v]) => (
+                              <span key={k} className="px-2 py-0.5 bg-[rgba(255,255,255,0.1)] rounded text-xs">
+                                {v}
+                              </span>
+                            ))}
+                        </div>
+                      </div>
+                    </>
+                  ) : (
+                    <div className="text-center text-[var(--color-text-muted)] py-8">
+                      <div className="text-3xl mb-2">🤷</div>
+                      <p>No recommendation data yet</p>
+                      <p className="text-xs mt-1">Go to Home and get a recommendation first</p>
                     </div>
-                    <div className="text-sm">
-                      <span className="text-[var(--color-text-muted)]">Reminder dismissed until:</span>
-                      <span className="ml-2 font-mono text-xs">{debug.dismissedUntil}</span>
-                    </div>
-                    <div className="text-sm">
-                      <span className="text-[var(--color-text-muted)]">Activity state:</span>
-                      <span className="ml-2 font-mono text-xs">{debug.activityState}</span>
-                    </div>
-                    <div className="text-sm">
-                      <span className="text-[var(--color-text-muted)]">Activity start time:</span>
-                      <span className="ml-2 font-mono text-xs break-all">{debug.activityStartTime}</span>
-                    </div>
-                    <div className="text-sm">
-                      <span className="text-[var(--color-text-muted)]">First launch tracked:</span>
-                      <span className="ml-2 font-mono">{debug.firstLaunchTracked}</span>
-                    </div>
-                    <div className="text-sm">
-                      <span className="text-[var(--color-text-muted)]">Display mode:</span>
-                      <span className="ml-2 font-mono">{debug.standalone}</span>
-                    </div>
-                    <div className="text-sm">
-                      <span className="text-[var(--color-text-muted)]">Screen:</span>
-                      <span className="ml-2 font-mono">{debug.screenSize} @{debug.devicePixelRatio}x</span>
-                    </div>
-                    <div className="text-sm break-all">
-                      <span className="text-[var(--color-text-muted)]">User Agent:</span>
-                      <span className="ml-2 font-mono text-xs">{debug.userAgent}</span>
-                    </div>
-                  </>
-                );
-              })()}
-              
-              <div className="pt-3 border-t border-[rgba(255,255,255,0.1)] space-y-2">
-                <button
-                  onClick={clearBackupDismissal}
-                  className="w-full py-2 px-4 bg-[rgba(234,179,8,0.2)] text-[var(--color-warning)] rounded-lg text-sm"
-                >
-                  Clear Backup Reminder Dismissal
-                </button>
-                <button
-                  onClick={resetSessionCount}
-                  className="w-full py-2 px-4 bg-[rgba(239,68,68,0.2)] text-[var(--color-error)] rounded-lg text-sm"
-                >
-                  Reset Session Count to 0
-                </button>
-                <button
-                  onClick={simulateForgottenActivity}
-                  className="w-full py-2 px-4 bg-[rgba(249,115,22,0.2)] text-[var(--color-accent)] rounded-lg text-sm"
-                >
-                  Simulate Forgotten Activity (3h ago)
-                </button>
-                <button
-                  onClick={clearActivityState}
-                  className="w-full py-2 px-4 bg-[rgba(255,255,255,0.1)] text-[var(--color-text-muted)] rounded-lg text-sm"
-                >
-                  Clear Activity State
-                </button>
-              </div>
+                  )}
+                </>
+              )}
             </div>
             
             <div className="p-4 border-t border-[rgba(255,255,255,0.1)]">

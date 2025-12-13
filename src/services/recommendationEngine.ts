@@ -1,6 +1,36 @@
-import type { WeatherData, RunRecord, ClothingItems, ClothingRecommendation, RunFeedback, ComfortAdjustment, ActivityType, ClothingCategory } from '../types';
+import type { WeatherData, RunRecord, ClothingItems, ClothingRecommendation, RunFeedback, ComfortAdjustment, ActivityType, ClothingCategory, RecommendationDebugInfo, SimilarMatchDebug, ClothingVoteDebug, SafetyOverrideDebug } from '../types';
 import { getDefaultClothing, getClothingCategories, isDarkOutside, isSunny } from '../types';
 import { ACTIVITY_TEMP_DEFAULTS, getTempRange, getWeatherOverrides, type WeatherModifiers } from '../data/activityDefaults';
+
+// ============ DEBUG STORAGE ============
+const DEBUG_STORAGE_KEY = 'trailkit_recommendation_debug';
+
+let lastDebugInfo: RecommendationDebugInfo | null = null;
+
+export function getLastRecommendationDebug(): RecommendationDebugInfo | null {
+  // Try to get from memory first
+  if (lastDebugInfo) return lastDebugInfo;
+  
+  // Fall back to localStorage
+  try {
+    const stored = localStorage.getItem(DEBUG_STORAGE_KEY);
+    if (stored) {
+      return JSON.parse(stored);
+    }
+  } catch {
+    // Ignore parsing errors
+  }
+  return null;
+}
+
+function saveDebugInfo(info: RecommendationDebugInfo): void {
+  lastDebugInfo = info;
+  try {
+    localStorage.setItem(DEBUG_STORAGE_KEY, JSON.stringify(info));
+  } catch {
+    // Ignore storage errors
+  }
+}
 
 // Weather similarity thresholds
 const THRESHOLDS = {
@@ -334,6 +364,10 @@ export function getClothingRecommendation(
 ): ClothingRecommendation {
   const comfortAdjustment = calculateComfortAdjustment(currentWeather, feedbackHistory);
   const categories = getClothingCategories(activity);
+  const adjustedTemp = currentWeather.temperature - comfortAdjustment.temperatureOffset;
+  
+  // Initialize debug info
+  const debugSafetyOverrides: SafetyOverrideDebug[] = [];
   
   const adjustedWeather: WeatherData = {
     ...currentWeather,
@@ -345,6 +379,46 @@ export function getClothingRecommendation(
   const recentMatch = findRecentSimilarFeedback(currentWeather, feedbackHistory);
   if (recentMatch) {
     const clothing = applyAccessoryLogic(recentMatch.clothing, currentWeather, activity);
+    
+    // Save debug info for recent match case
+    const debugInfo: RecommendationDebugInfo = {
+      timestamp: new Date(),
+      activity,
+      inputWeather: {
+        temperature: currentWeather.temperature,
+        feelsLike: currentWeather.feelsLike,
+        humidity: currentWeather.humidity,
+        windSpeed: currentWeather.windSpeed,
+        precipitation: currentWeather.precipitation,
+        cloudCover: currentWeather.cloudCover,
+        uvIndex: currentWeather.uvIndex,
+        description: currentWeather.description,
+        sunrise: currentWeather.sunrise?.toLocaleTimeString() || undefined,
+        sunset: currentWeather.sunset?.toLocaleTimeString() || undefined,
+      },
+      comfortAdjustment: {
+        temperatureOffset: comfortAdjustment.temperatureOffset,
+        confidence: comfortAdjustment.confidence,
+        adjustedTemp,
+        tempRange: getTempRange(adjustedTemp),
+      },
+      recentExactMatch: true,
+      similarMatches: [{
+        date: recentMatch.date,
+        score: 0.95,
+        isFromFeedback: true,
+        comfort: recentMatch.comfort,
+        clothing: recentMatch.clothing,
+      }],
+      totalHistory: { runs: runs.length, feedback: feedbackHistory.length },
+      clothingVotes: [],
+      safetyOverrides: [],
+      finalRecommendation: clothing,
+      confidence: 95,
+      source: 'recent_match',
+    };
+    saveDebugInfo(debugInfo);
+    
     return {
       clothing,
       confidence: 95,
@@ -387,7 +461,6 @@ export function getClothingRecommendation(
   // Apply smart overrides
   // TODO: Consider consolidating weather detection logic with getFallbackRecommendation
   // and getWeatherOverrides() in activityDefaults.ts to reduce duplication
-  const adjustedTemp = currentWeather.temperature - comfortAdjustment.temperatureOffset;
   const description = currentWeather.description.toLowerCase();
   
   // Check if it's snowing (below freezing OR snow in description)
@@ -407,7 +480,13 @@ export function getClothingRecommendation(
   // Rain gear override - only for actual rain, not snow
   // TODO: This duplicates logic in getWeatherOverrides() - consider using that instead
   const rainKey = categories.find(c => c.key === 'rainGear' || c.key === 'outerLayer');
-  if (rainKey && isRaining && clothing[rainKey.key]?.toLowerCase() === 'none') {
+  const rainOverrideTriggered = rainKey && isRaining && clothing[rainKey.key]?.toLowerCase() === 'none';
+  debugSafetyOverrides.push({
+    name: '🌧️ Rain gear',
+    triggered: !!rainOverrideTriggered,
+    action: rainOverrideTriggered ? `→ ${adjustedTemp < 50 ? 'Waterproof jacket' : 'Light rain jacket'}` : undefined,
+  });
+  if (rainOverrideTriggered && rainKey) {
     clothing[rainKey.key] = adjustedTemp < 50 ? 'Waterproof jacket' : 'Light rain jacket';
   }
 
@@ -629,6 +708,96 @@ export function getClothingRecommendation(
     (Math.min(similarRuns.length, 10) / 10) * 50 +
     avgSimilarity * 50
   ));
+
+  // Build clothing votes debug info
+  const clothingVotesDebug: ClothingVoteDebug[] = [];
+  for (const cat of categories) {
+    const voteCounts = new Map<string, number>();
+    for (const vote of clothingVotes[cat.key]) {
+      const normalized = vote.toLowerCase();
+      voteCounts.set(normalized, (voteCounts.get(normalized) || 0) + 1);
+    }
+    const sortedVotes = Array.from(voteCounts.entries())
+      .map(([item, count]) => ({ item: item.charAt(0).toUpperCase() + item.slice(1), count }))
+      .sort((a, b) => b.count - a.count);
+    clothingVotesDebug.push({
+      category: cat.key,
+      votes: sortedVotes.slice(0, 5),
+      winner: finalClothing[cat.key] || cat.defaultValue,
+    });
+  }
+
+  // Build similar matches debug info
+  const similarMatchesDebug: SimilarMatchDebug[] = similarRuns.slice(0, 10).map(s => ({
+    date: s.record.date,
+    score: Math.round(s.score * 100) / 100,
+    isFromFeedback: s.isFromFeedback || false,
+    comfort: (s.record as RunRecord & { comfort?: string }).comfort,
+    clothing: s.record.clothing,
+  }));
+
+  // Track additional safety overrides by comparing voted winners vs final
+  const needsSunglasses = isSunny(currentWeather);
+  const needsHeadlamp = isDarkOutside(currentWeather);
+  
+  debugSafetyOverrides.push({
+    name: '❄️ Cold tops (<40°F)',
+    triggered: adjustedTemp < 40,
+    action: adjustedTemp < 40 ? `Temp: ${Math.round(adjustedTemp)}°F` : undefined,
+  });
+  debugSafetyOverrides.push({
+    name: '🧤 Gloves (<35°F)',
+    triggered: adjustedTemp < 35,
+    action: adjustedTemp < 35 ? `→ ${adjustedTemp < 25 ? 'Heavy' : 'Light'} gloves` : undefined,
+  });
+  debugSafetyOverrides.push({
+    name: '🧢 Head cover (<40°F)',
+    triggered: adjustedTemp < 40,
+    action: adjustedTemp < 40 ? `→ ${adjustedTemp < 25 ? 'Beanie' : 'Headband'}` : undefined,
+  });
+  debugSafetyOverrides.push({
+    name: '☀️ Sunglasses',
+    triggered: needsSunglasses,
+    action: needsSunglasses ? '→ Sunglasses' : undefined,
+  });
+  debugSafetyOverrides.push({
+    name: '🔦 Headlamp/dark',
+    triggered: needsHeadlamp,
+    action: needsHeadlamp ? '→ Headlamp' : undefined,
+  });
+
+  // Save debug info
+  const debugInfo: RecommendationDebugInfo = {
+    timestamp: new Date(),
+    activity,
+    inputWeather: {
+      temperature: currentWeather.temperature,
+      feelsLike: currentWeather.feelsLike,
+      humidity: currentWeather.humidity,
+      windSpeed: currentWeather.windSpeed,
+      precipitation: currentWeather.precipitation,
+      cloudCover: currentWeather.cloudCover,
+      uvIndex: currentWeather.uvIndex,
+      description: currentWeather.description,
+      sunrise: currentWeather.sunrise?.toLocaleTimeString() || undefined,
+      sunset: currentWeather.sunset?.toLocaleTimeString() || undefined,
+    },
+    comfortAdjustment: {
+      temperatureOffset: comfortAdjustment.temperatureOffset,
+      confidence: comfortAdjustment.confidence,
+      adjustedTemp,
+      tempRange: getTempRange(adjustedTemp),
+    },
+    recentExactMatch: false,
+    similarMatches: similarMatchesDebug,
+    totalHistory: { runs: runs.length, feedback: feedbackHistory.length },
+    clothingVotes: clothingVotesDebug,
+    safetyOverrides: debugSafetyOverrides,
+    finalRecommendation: finalClothing,
+    confidence,
+    source: similarRuns.length > 0 ? 'similar_sessions' : 'fallback_defaults',
+  };
+  saveDebugInfo(debugInfo);
 
   return {
     clothing: finalClothing,

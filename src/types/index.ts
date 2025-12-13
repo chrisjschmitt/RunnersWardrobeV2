@@ -381,3 +381,65 @@ export function isSunny(weather: WeatherData): boolean {
   const clearWithUV = weather.cloudCover < 50 && weather.uvIndex > 3;
   return veryClear || clearWithUV;
 }
+
+// ============ RECOMMENDATION DEBUG ============
+
+export interface SimilarMatchDebug {
+  date: string;
+  score: number;
+  isFromFeedback: boolean;
+  comfort?: string;
+  clothing: ClothingItems;
+}
+
+export interface SafetyOverrideDebug {
+  name: string;
+  triggered: boolean;
+  action?: string;
+}
+
+export interface ClothingVoteDebug {
+  category: string;
+  votes: { item: string; count: number }[];
+  winner: string;
+}
+
+export interface RecommendationDebugInfo {
+  timestamp: Date;
+  activity: ActivityType;
+  // Input
+  inputWeather: {
+    temperature: number;
+    feelsLike: number;
+    humidity: number;
+    windSpeed: number;
+    precipitation: number;
+    cloudCover: number;
+    uvIndex: number;
+    description: string;
+    sunrise?: string;
+    sunset?: string;
+  };
+  // Comfort adjustment
+  comfortAdjustment: {
+    temperatureOffset: number;
+    confidence: number;
+    adjustedTemp: number;
+    tempRange: string;
+  };
+  // Matching
+  recentExactMatch: boolean;
+  similarMatches: SimilarMatchDebug[];
+  totalHistory: {
+    runs: number;
+    feedback: number;
+  };
+  // Voting
+  clothingVotes: ClothingVoteDebug[];
+  // Safety
+  safetyOverrides: SafetyOverrideDebug[];
+  // Final
+  finalRecommendation: ClothingItems;
+  confidence: number;
+  source: 'recent_match' | 'similar_sessions' | 'fallback_defaults';
+}
