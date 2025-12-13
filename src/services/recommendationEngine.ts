@@ -32,26 +32,54 @@ function saveDebugInfo(info: RecommendationDebugInfo): void {
   }
 }
 
-// Weather similarity thresholds
+// ============ SIMILARITY MATCHING ============
+//
+// How Activity Matching Works:
+// 
+// 1. FILTER BY ACTIVITY TYPE
+//    Only history from the SAME activity is considered. If you're getting a 
+//    recommendation for Running, only Running history is used (not Cycling, Walking, etc.).
+//
+// 2. CALCULATE SIMILARITY SCORE (0-100%)
+//    For each historical session, we calculate a weighted similarity score by 
+//    comparing 7 weather factors. The formula for each factor is:
+//      score = 1 - (difference / (threshold * 2))
+//    This gives a score of 1.0 for a perfect match, 0.0 if difference exceeds 2x threshold.
+//
+// 3. MINIMUM THRESHOLD
+//    Only sessions with ≥40% similarity are included in the analysis.
+//
+// 4. FEEDBACK BOOSTS (for sessions from user feedback, not CSV imports)
+//    - Recency boost: up to +30% for recent sessions (30 / days_ago × 0.1)
+//    - Comfort boost: +10% if the session was marked "just right"
+//
+// 5. VOTING
+//    Higher-scoring matches get more "votes" when determining clothing.
+//    Feedback sessions get 2x voting weight compared to CSV imports.
+
+// Weather similarity thresholds - the "threshold" in the similarity formula
+// A difference equal to the threshold gives a 50% score for that factor
 const THRESHOLDS = {
-  temperature: 5,      // ±5°F
-  feelsLike: 7,        // ±7°F
-  humidity: 15,        // ±15%
-  windSpeed: 5,        // ±5 mph
-  precipitation: 0.1,  // ±0.1 inches
-  cloudCover: 20,      // ±20%
-  uvIndex: 2           // ±2
+  temperature: 5,      // ±5°F  → perfect match if within 5°F, 0% if >10°F different
+  feelsLike: 7,        // ±7°F  → perfect match if within 7°F, 0% if >14°F different
+  humidity: 15,        // ±15%  → perfect match if within 15%, 0% if >30% different
+  windSpeed: 5,        // ±5 mph → perfect match if within 5mph, 0% if >10mph different
+  precipitation: 0.1,  // Binary comparison (rain/no-rain), not continuous
+  cloudCover: 20,      // ±20%  → perfect match if within 20%, 0% if >40% different
+  uvIndex: 2           // ±2    → perfect match if within 2, 0% if >4 different
 };
 
 // Weights for similarity scoring (higher = more important)
+// These determine how much each weather factor contributes to the final match percentage.
+// Example: With these weights, temperature (3.0) matters 6x more than cloud cover (0.5)
 const WEIGHTS = {
-  temperature: 3.0,
-  feelsLike: 2.5,
-  humidity: 1.0,
-  windSpeed: 1.5,
-  precipitation: 2.0,
-  cloudCover: 0.5,
-  uvIndex: 0.5
+  temperature: 3.0,    // Most important - primary driver of clothing choices
+  feelsLike: 2.5,      // Very important - accounts for wind chill / heat index
+  humidity: 1.0,       // Moderate - affects comfort but less than temp
+  windSpeed: 1.5,      // Important - affects perceived temperature
+  precipitation: 2.0,  // Important - rain/no-rain is a major clothing decision
+  cloudCover: 0.5,     // Minor - affects sun exposure
+  uvIndex: 0.5         // Minor - affects sunglasses/sun protection
 };
 
 // Temperature adjustment per feedback type (in °F)
@@ -67,7 +95,20 @@ interface SimilarityScore {
   isFromFeedback?: boolean;
 }
 
-// Calculate how similar two weather conditions are (0-1, higher = more similar)
+/**
+ * Calculate how similar two weather conditions are (0-1, higher = more similar)
+ * 
+ * Example calculation for 42°F current vs 45°F historical:
+ *   Temperature:   diff=3°F  → score = 1 - (3/10) = 0.70 × 3.0 weight = 2.10
+ *   Feels Like:    diff=4°F  → score = 1 - (4/14) = 0.71 × 2.5 weight = 1.78
+ *   Wind:          diff=3mph → score = 1 - (3/10) = 0.70 × 1.5 weight = 1.05
+ *   Precipitation: match     → score = 1.0        × 2.0 weight = 2.00
+ *   Humidity:      diff=5%   → score = 1 - (5/30) = 0.83 × 1.0 weight = 0.83
+ *   Cloud Cover:   diff=10%  → score = 1 - (10/40) = 0.75 × 0.5 weight = 0.38
+ *   UV Index:      diff=1    → score = 1 - (1/4) = 0.75 × 0.5 weight = 0.38
+ *   
+ *   Total = 8.52 / 11.0 = 77% match
+ */
 function calculateSimilarity(current: WeatherData, historical: RunRecord): number {
   let totalWeight = 0;
   let weightedScore = 0;
@@ -244,7 +285,23 @@ function feedbackToRunRecord(feedback: RunFeedback): RunRecord & { comfort?: str
   };
 }
 
-// Find runs with similar weather conditions
+/**
+ * Find runs with similar weather conditions
+ * 
+ * This function:
+ * 1. Calculates similarity scores for all historical sessions (both CSV imports and feedback)
+ * 2. Filters out sessions below the minimum similarity threshold (default 40%)
+ * 3. Applies boosts to feedback sessions:
+ *    - Recency boost: up to +30% for sessions from the last 30 days
+ *    - Comfort boost: +10% if the user marked the session as "just right"
+ * 4. Returns sessions sorted by score (highest first)
+ * 
+ * @param currentWeather - Current weather conditions to match against
+ * @param runs - Historical runs from CSV imports
+ * @param feedbackHistory - Historical sessions from user feedback
+ * @param minSimilarity - Minimum similarity threshold (default 0.4 = 40%)
+ * @returns Array of similar sessions with scores, sorted highest to lowest
+ */
 function findSimilarRuns(
   currentWeather: WeatherData,
   runs: RunRecord[],
@@ -253,7 +310,7 @@ function findSimilarRuns(
 ): SimilarityScore[] {
   const similarities: SimilarityScore[] = [];
 
-  // Add CSV runs
+  // Add CSV runs (no boosts applied - these are historical imports)
   for (const run of runs) {
     const score = calculateSimilarity(currentWeather, run);
     if (score >= minSimilarity) {
@@ -261,21 +318,29 @@ function findSimilarRuns(
     }
   }
 
-  // Add ALL feedback records as runs
+  // Add ALL feedback records as runs (with boosts for recency and comfort)
   for (const feedback of feedbackHistory) {
     const runRecord = feedbackToRunRecord(feedback);
     const score = calculateSimilarity(currentWeather, runRecord);
     
     if (score >= minSimilarity) {
+      // Recency boost: more recent = higher boost
+      // Formula: 30 / days_ago × 0.1, capped at 0.3 (30%)
+      // Examples: 1 day ago = +30%, 3 days ago = +10%, 30 days ago = +1%
       const daysSince = Math.max(1, (Date.now() - new Date(feedback.timestamp).getTime()) / (1000 * 60 * 60 * 24));
       const recencyBoost = Math.min(0.3, 30 / daysSince * 0.1);
+      
+      // Comfort boost: +10% if user said this session was "just right"
       const comfortBoost = feedback.comfort === 'just_right' ? 0.1 : 0;
+      
+      // Apply boosts, but cap at 100%
       const boostedScore = Math.min(1, score + recencyBoost + comfortBoost);
       
       similarities.push({ record: runRecord, score: boostedScore, isFromFeedback: true });
     }
   }
 
+  // Sort by score, highest first
   return similarities.sort((a, b) => b.score - a.score);
 }
 
@@ -430,16 +495,36 @@ export function getClothingRecommendation(
 
   const similarRuns = findSimilarRuns(adjustedWeather, runs, feedbackHistory, 0.4);
   
-  // Build clothing from similar runs for each category
+  // ============ VOTING SYSTEM ============
+  // Build clothing votes from similar runs for each category
+  // 
+  // How it works:
+  // 1. Each similar session "votes" for the clothing it used
+  // 2. Higher similarity = more votes (score × 3, rounded up)
+  // 3. Feedback sessions get 2× voting weight vs CSV imports
+  // 4. The item with the most votes wins for each category
+  //
+  // Example with 3 similar sessions:
+  //   Session A: 80% match, feedback → votes = ceil(0.8 × 3) × 2 = 6 votes
+  //   Session B: 60% match, CSV     → votes = ceil(0.6 × 3) × 1 = 2 votes
+  //   Session C: 50% match, feedback → votes = ceil(0.5 × 3) × 2 = 4 votes
+  //
+  // If A wore "Long sleeve", B wore "T-shirt", C wore "Long sleeve":
+  //   Long sleeve: 6 + 4 = 10 votes → WINNER
+  //   T-shirt: 2 votes
+  
   const clothingVotes: Record<string, string[]> = {};
   for (const cat of categories) {
     clothingVotes[cat.key] = [];
   }
 
   for (const { record, score, isFromFeedback } of similarRuns) {
+    // Higher similarity = more votes (1-3 votes based on score)
     const baseRepeat = Math.ceil(score * 3);
+    // Feedback sessions get 2× voting weight
     const repeatCount = isFromFeedback ? baseRepeat * 2 : baseRepeat;
     
+    // Add votes for each clothing category
     for (let i = 0; i < repeatCount; i++) {
       for (const cat of categories) {
         if (record.clothing[cat.key]) {
@@ -458,7 +543,29 @@ export function getClothingRecommendation(
     clothing[cat.key] = results[cat.key].item;
   }
 
-  // Apply smart overrides
+  // ============ SAFETY OVERRIDES ============
+  // These overrides prevent dangerous recommendations that could leave the user
+  // freezing or unprepared. They fire AFTER voting, so they can override
+  // historical patterns when safety is at stake.
+  //
+  // Safety overrides only trigger if:
+  // 1. The temperature is below a threshold, AND
+  // 2. The voted recommendation is inadequate (e.g., "None" for gloves in freezing weather)
+  //
+  // Override thresholds:
+  // - Tops:      <25°F → upgrade from t-shirt to warm layers
+  //              <40°F → upgrade from t-shirt to long sleeve
+  // - Gloves:    <35°F → add gloves if "None" voted
+  //              <25°F → use heavy gloves instead of light
+  // - Head:      <40°F → add head cover if "None" voted
+  //              <25°F → use beanie instead of headband
+  // - Bottoms:   <25°F → upgrade from shorts to insulated pants
+  //              <45°F → upgrade from shorts to tights
+  // - Shoes:     <32°F or rain/snow → recommend waterproof footwear
+  // - Rain gear: if raining → add rain jacket
+  // - Sunglasses: if sunny → add to accessories
+  // - Headlamp:  if dark/near sunset → add to accessories
+  //
   // TODO: Consider consolidating weather detection logic with getFallbackRecommendation
   // and getWeatherOverrides() in activityDefaults.ts to reduce duplication
   const description = currentWeather.description.toLowerCase();
