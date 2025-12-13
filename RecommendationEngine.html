@@ -425,7 +425,7 @@
                     <th>Factor</th>
                     <th>Weight</th>
                     <th>Threshold</th>
-                    <th>Why It Matters</th>
+                    <th>Score Formula</th>
                 </tr>
             </thead>
             <tbody>
@@ -433,84 +433,277 @@
                     <td><strong>Temperature</strong></td>
                     <td class="weight-high">3.0</td>
                     <td>±5°F</td>
-                    <td>Primary driver of what you wear</td>
+                    <td>Perfect if ≤5°F diff, 0% if &gt;10°F diff</td>
                 </tr>
                 <tr>
                     <td><strong>Feels Like</strong></td>
                     <td class="weight-high">2.5</td>
                     <td>±7°F</td>
-                    <td>Real-world perceived temperature</td>
+                    <td>Perfect if ≤7°F diff, 0% if &gt;14°F diff</td>
                 </tr>
                 <tr>
                     <td><strong>Precipitation</strong></td>
                     <td class="weight-medium">2.0</td>
                     <td>Yes/No</td>
-                    <td>Rain gear decisions</td>
+                    <td>100% if both match, 30% if different</td>
                 </tr>
                 <tr>
                     <td><strong>Wind Speed</strong></td>
                     <td class="weight-medium">1.5</td>
                     <td>±5 mph</td>
-                    <td>Affects wind chill</td>
+                    <td>Perfect if ≤5mph diff, 0% if &gt;10mph diff</td>
                 </tr>
                 <tr>
                     <td><strong>Humidity</strong></td>
                     <td class="weight-low">1.0</td>
                     <td>±15%</td>
-                    <td>Comfort factor</td>
+                    <td>Perfect if ≤15% diff, 0% if &gt;30% diff</td>
                 </tr>
                 <tr>
                     <td><strong>Cloud Cover</strong></td>
                     <td class="weight-low">0.5</td>
                     <td>±20%</td>
-                    <td>Sun exposure</td>
+                    <td>Perfect if ≤20% diff, 0% if &gt;40% diff</td>
                 </tr>
                 <tr>
                     <td><strong>UV Index</strong></td>
                     <td class="weight-low">0.5</td>
                     <td>±2</td>
-                    <td>Sun protection needs</td>
+                    <td>Perfect if ≤2 diff, 0% if &gt;4 diff</td>
                 </tr>
             </tbody>
         </table>
 
-        <h2>🛡️ Safety Overrides</h2>
-        <p>The app prevents dangerous recommendations with automatic overrides:</p>
+        <h3>📐 Example Calculation</h3>
+        <p style="color: var(--text-secondary); margin-bottom: 1rem;">
+            Current weather: <strong>42°F</strong>, feels like 38°F, 8 mph wind, no rain<br>
+            Historical session: <strong>45°F</strong>, feels like 42°F, 5 mph wind, no rain
+        </p>
+        <table>
+            <thead>
+                <tr>
+                    <th>Factor</th>
+                    <th>Difference</th>
+                    <th>Score</th>
+                    <th>× Weight</th>
+                    <th>= Weighted</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Temperature</td>
+                    <td>3°F</td>
+                    <td>1 - (3/10) = 0.70</td>
+                    <td>× 3.0</td>
+                    <td class="weight-high">2.10</td>
+                </tr>
+                <tr>
+                    <td>Feels Like</td>
+                    <td>4°F</td>
+                    <td>1 - (4/14) = 0.71</td>
+                    <td>× 2.5</td>
+                    <td class="weight-high">1.78</td>
+                </tr>
+                <tr>
+                    <td>Precipitation</td>
+                    <td>match</td>
+                    <td>1.00</td>
+                    <td>× 2.0</td>
+                    <td class="weight-medium">2.00</td>
+                </tr>
+                <tr>
+                    <td>Wind Speed</td>
+                    <td>3 mph</td>
+                    <td>1 - (3/10) = 0.70</td>
+                    <td>× 1.5</td>
+                    <td class="weight-medium">1.05</td>
+                </tr>
+                <tr>
+                    <td>Humidity</td>
+                    <td>5%</td>
+                    <td>1 - (5/30) = 0.83</td>
+                    <td>× 1.0</td>
+                    <td class="weight-low">0.83</td>
+                </tr>
+                <tr>
+                    <td>Cloud Cover</td>
+                    <td>10%</td>
+                    <td>1 - (10/40) = 0.75</td>
+                    <td>× 0.5</td>
+                    <td class="weight-low">0.38</td>
+                </tr>
+                <tr>
+                    <td>UV Index</td>
+                    <td>1</td>
+                    <td>1 - (1/4) = 0.75</td>
+                    <td>× 0.5</td>
+                    <td class="weight-low">0.38</td>
+                </tr>
+                <tr style="background: var(--bg-tertiary);">
+                    <td colspan="4"><strong>Total</strong></td>
+                    <td><strong style="color: var(--accent-green);">8.52 / 11.0 = 77%</strong></td>
+                </tr>
+            </tbody>
+        </table>
+
+        <h2>🗳️ Voting System</h2>
+        <p>Once similar sessions are found, the app uses a voting system to pick clothing:</p>
         
-        <div class="safety-grid">
-            <div class="safety-item">
-                <div class="condition">T-shirt in &lt;25°F</div>
-                <div class="action">→ Upgrade to base layer + jacket</div>
-            </div>
-            <div class="safety-item">
-                <div class="condition">Light top in &lt;40°F</div>
-                <div class="action">→ Upgrade to long sleeve</div>
-            </div>
-            <div class="safety-item">
-                <div class="condition">No gloves in &lt;15°F</div>
-                <div class="action">→ Add heavy gloves</div>
-            </div>
-            <div class="safety-item">
-                <div class="condition">Light gloves in &lt;25°F</div>
-                <div class="action">→ Upgrade to warm gloves</div>
-            </div>
-            <div class="safety-item">
-                <div class="condition">No head cover in &lt;25°F</div>
-                <div class="action">→ Add beanie</div>
-            </div>
-            <div class="safety-item">
-                <div class="condition">Raining + no rain gear</div>
-                <div class="action">→ Add rain jacket</div>
-            </div>
-            <div class="safety-item">
-                <div class="condition">Dark/sunset</div>
-                <div class="action">→ Suggest headlamp</div>
-            </div>
-            <div class="safety-item">
-                <div class="condition">Sunny conditions</div>
-                <div class="action">→ Suggest sunglasses</div>
-            </div>
+        <div class="flow-step secondary" style="margin: 1rem 0;">
+            <div class="step-title">How Votes Work</div>
+            <ul class="step-detail">
+                <li>Each similar session "votes" for the clothing items it used</li>
+                <li><strong>Higher similarity = more votes:</strong> <code>votes = ceil(score × 3)</code></li>
+                <li><strong>Feedback sessions get 2× votes</strong> compared to CSV imports</li>
+                <li>The item with the most votes wins for each clothing category</li>
+            </ul>
         </div>
+
+        <h3>📊 Voting Example</h3>
+        <p style="color: var(--text-secondary); margin-bottom: 0.5rem;">3 similar sessions found for "tops" category:</p>
+        <table>
+            <thead>
+                <tr>
+                    <th>Session</th>
+                    <th>Match %</th>
+                    <th>Source</th>
+                    <th>Wore</th>
+                    <th>Votes</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Session A</td>
+                    <td>80%</td>
+                    <td>📝 Feedback</td>
+                    <td>Long sleeve</td>
+                    <td class="weight-high">ceil(0.8 × 3) × 2 = 6</td>
+                </tr>
+                <tr>
+                    <td>Session B</td>
+                    <td>60%</td>
+                    <td>📄 CSV</td>
+                    <td>T-shirt</td>
+                    <td class="weight-low">ceil(0.6 × 3) × 1 = 2</td>
+                </tr>
+                <tr>
+                    <td>Session C</td>
+                    <td>50%</td>
+                    <td>📝 Feedback</td>
+                    <td>Long sleeve</td>
+                    <td class="weight-medium">ceil(0.5 × 3) × 2 = 4</td>
+                </tr>
+            </tbody>
+        </table>
+        <p style="margin-top: 0.5rem;">
+            <strong style="color: var(--accent-green);">Result:</strong> Long sleeve (10 votes) beats T-shirt (2 votes) → <strong>Long sleeve wins!</strong>
+        </p>
+
+        <h3>🚀 Feedback Boosts</h3>
+        <p style="color: var(--text-secondary);">Sessions from user feedback get additional score boosts before voting:</p>
+        <table>
+            <thead>
+                <tr>
+                    <th>Boost Type</th>
+                    <th>Amount</th>
+                    <th>Formula</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>Recency Boost</strong></td>
+                    <td>Up to +30%</td>
+                    <td><code>min(0.3, 30 / days_ago × 0.1)</code></td>
+                </tr>
+                <tr>
+                    <td><strong>Comfort Boost</strong></td>
+                    <td>+10%</td>
+                    <td>If session was marked "just right"</td>
+                </tr>
+            </tbody>
+        </table>
+        <p style="color: var(--text-secondary); margin-top: 0.5rem; font-size: 0.9rem;">
+            Example: A "just right" session from yesterday gets: base score + 30% recency + 10% comfort = up to 40% boost!
+        </p>
+
+        <h2>🛡️ Safety Overrides</h2>
+        <p>Safety overrides fire <strong>after voting</strong> to prevent dangerous recommendations. They only trigger if the voted result is inadequate (e.g., "None" for gloves when it's freezing).</p>
+        
+        <table>
+            <thead>
+                <tr>
+                    <th>Category</th>
+                    <th>Condition</th>
+                    <th>Override Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>Tops</strong></td>
+                    <td>&lt;25°F + t-shirt/tank</td>
+                    <td>→ Base layer + jacket</td>
+                </tr>
+                <tr>
+                    <td></td>
+                    <td>&lt;40°F + t-shirt/tank</td>
+                    <td>→ Long sleeve</td>
+                </tr>
+                <tr>
+                    <td><strong>Gloves</strong></td>
+                    <td>&lt;35°F + "None"</td>
+                    <td>→ Light gloves</td>
+                </tr>
+                <tr>
+                    <td></td>
+                    <td>&lt;25°F + "None"</td>
+                    <td>→ Heavy gloves</td>
+                </tr>
+                <tr>
+                    <td><strong>Head Cover</strong></td>
+                    <td>&lt;40°F + "None"</td>
+                    <td>→ Headband</td>
+                </tr>
+                <tr>
+                    <td></td>
+                    <td>&lt;25°F + "None"</td>
+                    <td>→ Beanie</td>
+                </tr>
+                <tr>
+                    <td><strong>Bottoms</strong></td>
+                    <td>&lt;45°F + shorts</td>
+                    <td>→ Tights</td>
+                </tr>
+                <tr>
+                    <td></td>
+                    <td>&lt;25°F + shorts</td>
+                    <td>→ Insulated pants</td>
+                </tr>
+                <tr>
+                    <td><strong>Shoes</strong></td>
+                    <td>&lt;32°F or rain/snow</td>
+                    <td>→ Waterproof footwear</td>
+                </tr>
+                <tr>
+                    <td><strong>Rain Gear</strong></td>
+                    <td>Raining + "None"</td>
+                    <td>→ Rain jacket</td>
+                </tr>
+                <tr>
+                    <td><strong>Accessories</strong></td>
+                    <td>Sunny conditions</td>
+                    <td>→ Sunglasses</td>
+                </tr>
+                <tr>
+                    <td></td>
+                    <td>Dark / near sunset</td>
+                    <td>→ Headlamp</td>
+                </tr>
+            </tbody>
+        </table>
+        
+        <p style="color: var(--text-secondary); margin-top: 1rem; font-size: 0.9rem;">
+            <strong>Note:</strong> Overrides only kick in if the voted result is inadequate. If your history says you wore gloves at 38°F, the override won't change that — it respects your personal preference.
+        </p>
 
         <h2>🌡️ Temperature Ranges (Fallback Defaults)</h2>
         <p>When no history exists, the app uses activity-specific defaults for these temperature ranges:</p>
@@ -602,7 +795,7 @@
         </table>
 
         <div class="footer">
-            <span class="version">v4.6.2</span>
+            <span class="version">v4.7.0</span>
             <p style="margin-top: 0.5rem;">TrailKit Recommendation Engine Documentation</p>
             <p>© 2025 TrailKit</p>
         </div>
