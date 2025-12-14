@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
-import type { WeatherData, ClothingRecommendation as ClothingRec, ClothingItems, RunFeedback, ComfortLevel, TestWeatherData, ActivityType } from '../types';
-import { ACTIVITY_CONFIGS } from '../types';
+import type { WeatherData, ClothingRecommendation as ClothingRec, ClothingItems, RunFeedback, ComfortLevel, TestWeatherData, ActivityType, ThermalPreference } from '../types';
+import { ACTIVITY_CONFIGS, THERMAL_OFFSETS } from '../types';
 import { getCurrentPosition, fetchWeather, clearWeatherCache } from '../services/weatherApi';
-import { getClothingRecommendation, getFallbackRecommendation, calculateComfortAdjustment } from '../services/recommendationEngine';
+import { getClothingRecommendation, getFallbackRecommendation } from '../services/recommendationEngine';
 import { getAllRuns, getAllFeedback, addFeedback } from '../services/database';
 import { incrementSessionCount } from './BackupReminder';
 import { WeatherDisplay } from './WeatherDisplay';
@@ -16,6 +16,7 @@ interface StartRunProps {
   apiKey: string;
   hasApiKey: boolean;
   temperatureUnit: TemperatureUnit;
+  thermalPreference?: ThermalPreference;
   onNeedApiKey: () => void;
   testMode?: boolean;
   testWeather?: TestWeatherData | null;
@@ -55,7 +56,7 @@ function clearActivityState() {
   localStorage.removeItem(ACTIVITY_STATE_KEY);
 }
 
-export function StartRun({ apiKey, hasApiKey, temperatureUnit, onNeedApiKey, testMode = false, testWeather, activity = 'running' }: StartRunProps) {
+export function StartRun({ apiKey, hasApiKey, temperatureUnit, thermalPreference = 'average', onNeedApiKey, testMode = false, testWeather, activity = 'running' }: StartRunProps) {
   const activityConfig = ACTIVITY_CONFIGS[activity];
   const [weather, setWeather] = useState<WeatherData | null>(null);
   const [recommendation, setRecommendation] = useState<ClothingRec | null>(null);
@@ -274,17 +275,17 @@ export function StartRun({ apiKey, hasApiKey, temperatureUnit, onNeedApiKey, tes
       
       setFeedbackCount(feedbackHistory.length);
       
-      // Calculate and display comfort adjustment
-      const adjustment = calculateComfortAdjustment(weatherData, feedbackHistory);
-      setComfortAdjustment(adjustment.temperatureOffset);
+      // Use thermal preference setting for comfort adjustment
+      const thermalOffset = THERMAL_OFFSETS[thermalPreference];
+      setComfortAdjustment(thermalOffset);
       
       if (runs.length > 0 || feedbackHistory.length > 0) {
-        const rec = getClothingRecommendation(weatherData, runs, feedbackHistory, activity);
+        const rec = getClothingRecommendation(weatherData, runs, feedbackHistory, activity, thermalPreference);
         
         // If no similar runs found (confidence would be 0), use fallback instead
         // This shows "Using activity defaults" message instead of "0% confidence"
         if (rec.matchingRuns === 0) {
-          const fallbackRec = getFallbackRecommendation(weatherData, feedbackHistory, activity);
+          const fallbackRec = getFallbackRecommendation(weatherData, feedbackHistory, activity, thermalPreference);
           setFallback(fallbackRec);
           setRecommendation(null);
           if (!hasUserEdits) {
@@ -299,7 +300,7 @@ export function StartRun({ apiKey, hasApiKey, temperatureUnit, onNeedApiKey, tes
           }
         }
       } else {
-        const fallbackRec = getFallbackRecommendation(weatherData, feedbackHistory, activity);
+        const fallbackRec = getFallbackRecommendation(weatherData, feedbackHistory, activity, thermalPreference);
         setFallback(fallbackRec);
         setRecommendation(null);
         // Only update actualClothing if user hasn't made edits
@@ -353,8 +354,8 @@ export function StartRun({ apiKey, hasApiKey, temperatureUnit, onNeedApiKey, tes
     setRunState('feedback');
   };
 
-  const handleFeedbackSubmit = async (comfort: ComfortLevel, comments?: string) => {
-    if (!weather || !actualClothing) return;
+  const handleFeedbackSubmit = async (comfort: ComfortLevel, clothing: ClothingItems, comments?: string) => {
+    if (!weather) return;
 
     // Use local date instead of UTC to avoid timezone issues
     const now = new Date();
@@ -368,7 +369,7 @@ export function StartRun({ apiKey, hasApiKey, temperatureUnit, onNeedApiKey, tes
       windSpeed: weather.windSpeed,
       precipitation: weather.precipitation,
       cloudCover: weather.cloudCover,
-      clothing: actualClothing, // Store what they actually wore, not what was recommended
+      clothing: clothing, // Store what they actually wore (possibly adjusted)
       comfort,
       timestamp: new Date(),
       activity,
@@ -471,11 +472,13 @@ export function StartRun({ apiKey, hasApiKey, temperatureUnit, onNeedApiKey, tes
   return (
     <div className="space-y-6">
       {/* Feedback modal */}
-      {runState === 'feedback' && (
+      {runState === 'feedback' && actualClothing && (
         <FeedbackModal
           onSubmit={handleFeedbackSubmit}
           onCancel={handleFeedbackCancel}
           activityName={activityConfig.name.toLowerCase()}
+          clothing={actualClothing}
+          activity={activity}
         />
       )}
 

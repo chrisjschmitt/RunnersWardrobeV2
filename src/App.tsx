@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import type { AppView, TestWeatherData, ActivityType } from './types';
+import type { AppView, TestWeatherData, ActivityType, ThermalPreference } from './types';
 import { ACTIVITY_CONFIGS } from './types';
 import { getSettings, getRunCount, saveSettings, isOnboardingComplete, setOnboardingComplete } from './services/database';
 import { StartRun } from './components/StartRun';
@@ -20,6 +20,7 @@ function App() {
   const [view, setView] = useState<AppView>('home');
   const [apiKey, setApiKey] = useState<string>('');
   const [temperatureUnit, setTemperatureUnit] = useState<TemperatureUnit>('celsius');
+  const [thermalPreference, setThermalPreference] = useState<ThermalPreference>('average');
   const [runCount, setRunCount] = useState<number>(0);
   const [isLoading, setIsLoading] = useState(true);
   const [testMode, setTestMode] = useState(false);
@@ -45,6 +46,9 @@ function App() {
       }
       if (settings?.temperatureUnit) {
         setTemperatureUnit(settings.temperatureUnit);
+      }
+      if (settings?.thermalPreference) {
+        setThermalPreference(settings.thermalPreference);
       }
       if (settings?.selectedActivity) {
         setSelectedActivity(settings.selectedActivity);
@@ -102,6 +106,9 @@ function App() {
     }
     if (settings?.temperatureUnit) {
       setTemperatureUnit(settings.temperatureUnit);
+    }
+    if (settings?.thermalPreference) {
+      setThermalPreference(settings.thermalPreference);
     }
   };
 
@@ -229,6 +236,7 @@ function App() {
             apiKey={apiKey}
             hasApiKey={!!apiKey || isProxyMode() || testMode}
             temperatureUnit={temperatureUnit}
+            thermalPreference={thermalPreference}
             onNeedApiKey={() => setView('settings')}
             testMode={testMode}
             testWeather={testWeather}
@@ -254,6 +262,8 @@ function App() {
             onSettingsSaved={handleSettingsSaved}
             initialApiKey={apiKey}
             initialUnit={temperatureUnit}
+            initialThermalPreference={thermalPreference}
+            onThermalPreferenceChange={setThermalPreference}
             onUploadClick={() => setView('upload')}
             testMode={testMode}
             onTestModeChange={setTestMode}

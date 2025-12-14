@@ -248,11 +248,24 @@ export interface ClothingRecommendation {
   similarConditions: RunRecord[];
 }
 
+// Thermal preference - how the user typically feels during outdoor activity
+export type ThermalPreference = 'cold' | 'average' | 'warm';
+
+// Temperature offsets for thermal preferences (in °F)
+// 'cold' = user runs cold, recommend warmer clothes (positive offset)
+// 'warm' = user runs hot, recommend lighter clothes (negative offset)
+export const THERMAL_OFFSETS: Record<ThermalPreference, number> = {
+  cold: 8,     // Treat weather as 8°F colder → warmer recommendations
+  average: 0,  // No adjustment
+  warm: -8     // Treat weather as 8°F warmer → lighter recommendations
+};
+
 // App settings stored in IndexedDB
 export interface AppSettings {
   id?: number;
   weatherApiKey: string;
   temperatureUnit: 'fahrenheit' | 'celsius';
+  thermalPreference?: ThermalPreference;  // How user feels during activity
   lastLocation?: {
     lat: number;
     lon: number;
@@ -284,7 +297,9 @@ export interface GeoPosition {
 }
 
 // Comfort feedback after a run
-export type ComfortLevel = 'too_cold' | 'just_right' | 'too_hot';
+// New values: 'satisfied' (wore as-is), 'adjusted' (made changes before saving)
+// Legacy values: 'too_cold', 'just_right', 'too_hot' (for backward compatibility with old data)
+export type ComfortLevel = 'satisfied' | 'adjusted' | 'too_cold' | 'just_right' | 'too_hot';
 
 // Feedback record stored after each run
 export interface RunFeedback {

@@ -3,13 +3,16 @@ import { getSettings, saveSettings } from '../services/database';
 import { isValidApiKeyFormat, isProxyMode } from '../services/weatherApi';
 import { formatTemperature, formatTemperatureDelta, formatWindSpeed, formatPrecipitation, type TemperatureUnit } from '../services/temperatureUtils';
 import { getLastRecommendationDebug } from '../services/recommendationEngine';
-import type { TestWeatherData, RecommendationDebugInfo } from '../types';
+import type { TestWeatherData, RecommendationDebugInfo, ThermalPreference } from '../types';
+import { THERMAL_OFFSETS } from '../types';
 import { version } from '../../package.json';
 
 interface SettingsProps {
   onSettingsSaved: () => void;
   initialApiKey?: string;
   initialUnit?: TemperatureUnit;
+  initialThermalPreference?: ThermalPreference;
+  onThermalPreferenceChange?: (pref: ThermalPreference) => void;
   onUploadClick?: () => void;
   testMode?: boolean;
   onTestModeChange?: (enabled: boolean) => void;
@@ -41,7 +44,9 @@ const weatherPresets: { name: string; data: TestWeatherData }[] = [
 export function Settings({ 
   onSettingsSaved, 
   initialApiKey = '', 
-  initialUnit = 'celsius', 
+  initialUnit = 'celsius',
+  initialThermalPreference = 'average',
+  onThermalPreferenceChange,
   onUploadClick,
   testMode = false,
   onTestModeChange,
@@ -50,6 +55,7 @@ export function Settings({
 }: SettingsProps) {
   const [apiKey, setApiKey] = useState(initialApiKey);
   const [temperatureUnit, setTemperatureUnit] = useState<TemperatureUnit>(initialUnit);
+  const [thermalPreference, setThermalPreference] = useState<ThermalPreference>(initialThermalPreference);
   const [isSaving, setIsSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -164,6 +170,7 @@ export function Settings({
       if (settings) {
         setApiKey(settings.weatherApiKey || '');
         setTemperatureUnit(settings.temperatureUnit || 'celsius');
+        setThermalPreference(settings.thermalPreference || 'average');
       }
     } catch (err) {
       console.error('Failed to load settings:', err);
@@ -227,10 +234,12 @@ export function Settings({
       await saveSettings({
         weatherApiKey: apiKey.trim(),
         temperatureUnit: temperatureUnit,
+        thermalPreference: thermalPreference,
         testMode: testMode
       });
       setSaved(true);
       onSettingsSaved();
+      onThermalPreferenceChange?.(thermalPreference);
       setTimeout(() => setSaved(false), 3000);
     } catch {
       setError('Failed to save settings');
@@ -297,6 +306,87 @@ export function Settings({
               >
                 <span className="text-lg">Metric</span>
                 <span className="block text-xs mt-1 opacity-80">°C, km/h, mm</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Thermal Preference Section */}
+          <div>
+            <label className="block text-sm font-medium mb-2">
+              When you're active outdoors, you usually feel:
+            </label>
+            <p className="text-xs text-[var(--color-text-muted)] mb-3">
+              This adjusts clothing recommendations to match your body
+            </p>
+            <div className="space-y-2">
+              <button
+                onClick={() => setThermalPreference('cold')}
+                className={`w-full p-3 rounded-lg text-left flex items-center justify-between transition-all ${
+                  thermalPreference === 'cold'
+                    ? 'bg-[var(--color-accent)] text-white'
+                    : 'bg-[rgba(255,255,255,0.1)] hover:bg-[rgba(255,255,255,0.15)]'
+                }`}
+              >
+                <div className="flex items-center gap-3">
+                  <span className="text-2xl">🥶</span>
+                  <div>
+                    <div className="font-medium">Colder than most people</div>
+                    <div className={`text-xs ${thermalPreference === 'cold' ? 'text-white/70' : 'text-[var(--color-text-muted)]'}`}>
+                      Warmer clothing recommendations (+{THERMAL_OFFSETS.cold}°F offset)
+                    </div>
+                  </div>
+                </div>
+                {thermalPreference === 'cold' && (
+                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                  </svg>
+                )}
+              </button>
+              <button
+                onClick={() => setThermalPreference('average')}
+                className={`w-full p-3 rounded-lg text-left flex items-center justify-between transition-all ${
+                  thermalPreference === 'average'
+                    ? 'bg-[var(--color-accent)] text-white'
+                    : 'bg-[rgba(255,255,255,0.1)] hover:bg-[rgba(255,255,255,0.15)]'
+                }`}
+              >
+                <div className="flex items-center gap-3">
+                  <span className="text-2xl">😊</span>
+                  <div>
+                    <div className="font-medium">About average</div>
+                    <div className={`text-xs ${thermalPreference === 'average' ? 'text-white/70' : 'text-[var(--color-text-muted)]'}`}>
+                      Standard recommendations (no adjustment)
+                    </div>
+                  </div>
+                </div>
+                {thermalPreference === 'average' && (
+                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                  </svg>
+                )}
+              </button>
+              <button
+                onClick={() => setThermalPreference('warm')}
+                className={`w-full p-3 rounded-lg text-left flex items-center justify-between transition-all ${
+                  thermalPreference === 'warm'
+                    ? 'bg-[var(--color-accent)] text-white'
+                    : 'bg-[rgba(255,255,255,0.1)] hover:bg-[rgba(255,255,255,0.15)]'
+                }`}
+              >
+                <div className="flex items-center gap-3">
+                  <span className="text-2xl">🥵</span>
+                  <div>
+                    <div className="font-medium">Warmer than most people</div>
+                    <div className={`text-xs ${thermalPreference === 'warm' ? 'text-white/70' : 'text-[var(--color-text-muted)]'}`}>
+                      Lighter clothing recommendations ({THERMAL_OFFSETS.warm}°F offset)
+                    </div>
+                  </div>
+                </div>
+                {thermalPreference === 'warm' && (
+                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                  </svg>
+                )}
               </button>
             </div>
           </div>

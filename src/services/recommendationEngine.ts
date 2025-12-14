@@ -1,5 +1,5 @@
-import type { WeatherData, RunRecord, ClothingItems, ClothingRecommendation, RunFeedback, ComfortAdjustment, ActivityType, ClothingCategory, RecommendationDebugInfo, SimilarMatchDebug, ClothingVoteDebug, SafetyOverrideDebug } from '../types';
-import { getDefaultClothing, getClothingCategories, isDarkOutside, isSunny } from '../types';
+import type { WeatherData, RunRecord, ClothingItems, ClothingRecommendation, RunFeedback, ComfortAdjustment, ActivityType, ClothingCategory, RecommendationDebugInfo, SimilarMatchDebug, ClothingVoteDebug, SafetyOverrideDebug, ThermalPreference } from '../types';
+import { getDefaultClothing, getClothingCategories, isDarkOutside, isSunny, THERMAL_OFFSETS } from '../types';
 import { ACTIVITY_TEMP_DEFAULTS, getTempRange, getWeatherOverrides, type WeatherModifiers } from '../data/activityDefaults';
 
 // ============ DEBUG STORAGE ============
@@ -83,10 +83,14 @@ const WEIGHTS = {
 };
 
 // Temperature adjustment per feedback type (in °F)
-const FEEDBACK_ADJUSTMENT = {
-  too_cold: 8,    // If too cold, treat weather as 8°F colder for clothing selection
-  just_right: 0,  // No adjustment needed
-  too_hot: -8     // If too hot, treat weather as 8°F warmer for clothing selection
+// Note: New feedback types (satisfied/adjusted) have no temp adjustment - 
+// thermal preference is now handled via Settings
+const FEEDBACK_ADJUSTMENT: Record<string, number> = {
+  too_cold: 8,    // Legacy: If too cold, treat weather as 8°F colder
+  just_right: 0,  // Legacy: No adjustment needed
+  too_hot: -8,    // Legacy: If too hot, treat weather as 8°F warmer
+  satisfied: 0,   // New: User was happy with outfit, no adjustment
+  adjusted: 0     // New: User made clothing changes before saving, no temp adjustment
 };
 
 interface SimilarityScore {
@@ -425,19 +429,25 @@ export function getClothingRecommendation(
   currentWeather: WeatherData,
   runs: RunRecord[],
   feedbackHistory: RunFeedback[] = [],
-  activity: ActivityType = 'running'
+  activity: ActivityType = 'running',
+  thermalPreference: ThermalPreference = 'average'
 ): ClothingRecommendation {
-  const comfortAdjustment = calculateComfortAdjustment(currentWeather, feedbackHistory);
+  // Use thermal preference setting for temperature offset (replaces calculated comfort adjustment)
+  const thermalOffset = THERMAL_OFFSETS[thermalPreference];
+  const comfortAdjustment: ComfortAdjustment = {
+    temperatureOffset: thermalOffset,
+    confidence: 100  // Static setting, not calculated
+  };
   const categories = getClothingCategories(activity);
-  const adjustedTemp = currentWeather.temperature - comfortAdjustment.temperatureOffset;
+  const adjustedTemp = currentWeather.temperature - thermalOffset;
   
   // Initialize debug info
   const debugSafetyOverrides: SafetyOverrideDebug[] = [];
   
   const adjustedWeather: WeatherData = {
     ...currentWeather,
-    temperature: currentWeather.temperature - comfortAdjustment.temperatureOffset,
-    feelsLike: currentWeather.feelsLike - comfortAdjustment.temperatureOffset
+    temperature: currentWeather.temperature - thermalOffset,
+    feelsLike: currentWeather.feelsLike - thermalOffset
   };
 
   // Check for recent similar feedback first
@@ -893,7 +903,8 @@ export function getClothingRecommendation(
 export function getFallbackRecommendation(
   weather: WeatherData,
   feedbackHistory: RunFeedback[] = [],
-  activity: ActivityType = 'running'
+  activity: ActivityType = 'running',
+  thermalPreference: ThermalPreference = 'average'
 ): ClothingItems {
   // Check if we have any feedback with similar temperature
   const relevantFeedback = feedbackHistory.filter(f => {
@@ -903,8 +914,10 @@ export function getFallbackRecommendation(
 
   if (relevantFeedback.length > 0) {
     relevantFeedback.sort((a, b) => {
-      if (a.comfort === 'just_right' && b.comfort !== 'just_right') return -1;
-      if (b.comfort === 'just_right' && a.comfort !== 'just_right') return 1;
+      // Prioritize "satisfied" over "adjusted" feedback
+      if (a.comfort === 'satisfied' && b.comfort !== 'satisfied') return -1;
+      if (b.comfort === 'satisfied' && a.comfort !== 'satisfied') return 1;
+      // Then prioritize by recency
       return new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime();
     });
     return applyAccessoryLogic(relevantFeedback[0].clothing, weather, activity);
@@ -914,9 +927,9 @@ export function getFallbackRecommendation(
   const clothing = getDefaultClothing(activity);
   const categories = getClothingCategories(activity);
   
-  // Calculate adjusted temperature based on comfort history
-  const comfortAdjustment = calculateComfortAdjustment(weather, feedbackHistory);
-  const adjustedTemp = weather.temperature - comfortAdjustment.temperatureOffset;
+  // Use thermal preference setting for temperature offset
+  const thermalOffset = THERMAL_OFFSETS[thermalPreference];
+  const adjustedTemp = weather.temperature - thermalOffset;
   
   // Get temperature range
   const tempRange = getTempRange(adjustedTemp);
