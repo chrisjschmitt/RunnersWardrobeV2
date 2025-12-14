@@ -649,16 +649,6 @@
                     <td>→ Long sleeve</td>
                 </tr>
                 <tr>
-                    <td><strong>Gloves</strong></td>
-                    <td>&lt;35°F + "None"</td>
-                    <td>→ Light gloves</td>
-                </tr>
-                <tr>
-                    <td></td>
-                    <td>&lt;25°F + "None"</td>
-                    <td>→ Heavy gloves</td>
-                </tr>
-                <tr>
                     <td><strong>Head Cover</strong></td>
                     <td>&lt;40°F + "None"</td>
                     <td>→ Headband</td>
@@ -702,7 +692,10 @@
         </table>
         
         <p style="color: var(--text-secondary); margin-top: 1rem; font-size: 0.9rem;">
-            <strong>Note:</strong> Overrides only kick in if the voted result is inadequate. If your history says you wore gloves at 38°F, the override won't change that — it respects your personal preference.
+            <strong>Note:</strong> Overrides only kick in if the voted result is inadequate. Your personal preferences from history are respected — overrides are a last-resort safety net.
+        </p>
+        <p style="color: var(--text-secondary); margin-top: 0.5rem; font-size: 0.85rem;">
+            <strong>Why no gloves override?</strong> Activity defaults already recommend appropriate gloves based on temperature, and users may have valid preferences (mittens, light gloves, etc.) that shouldn't be overridden.
         </p>
 
         <h2>🌡️ Temperature Ranges (Fallback Defaults)</h2>
@@ -795,7 +788,7 @@
         </table>
 
         <div class="footer">
-            <span class="version">v4.7.0</span>
+            <span class="version">v4.8.2</span>
             <p style="margin-top: 0.5rem;">TrailKit Recommendation Engine Documentation</p>
             <p>© 2025 TrailKit</p>
         </div>

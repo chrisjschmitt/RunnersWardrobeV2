@@ -555,8 +555,6 @@ export function getClothingRecommendation(
   // Override thresholds:
   // - Tops:      <25°F → upgrade from t-shirt to warm layers
   //              <40°F → upgrade from t-shirt to long sleeve
-  // - Gloves:    <35°F → add gloves if "None" voted
-  //              <25°F → use heavy gloves instead of light
   // - Head:      <40°F → add head cover if "None" voted
   //              <25°F → use beanie instead of headband
   // - Bottoms:   <25°F → upgrade from shorts to insulated pants
@@ -639,22 +637,7 @@ export function getClothingRecommendation(
     'Hardshell', 'Heavy puffy', 'Softshell'
   ];
 
-  const VERY_COLD_GLOVES = [
-    // Standard
-    'Heavy gloves', 'Warm gloves', 'Insulated gloves', 'Mittens',
-    // Specialty
-    'Heavy mittens', 'Lobster mitts', 'Lobster gloves', 'Liner + mittens',
-    // Cycling
-    'Thermal gloves'
-  ];
-
-  const COLD_GLOVES = [
-    'Light gloves', 'Warm gloves', 'Fleece gloves',
-    // Cycling
-    'Full finger light',
-    // XC Skiing
-    'XC gloves'
-  ];
+  // NOTE: VERY_COLD_GLOVES and COLD_GLOVES removed - gloves handled by activity defaults
 
   const VERY_COLD_HEAD = [
     'Beanie', 'Balaclava', 'Insulated hat', 'Light beanie'
@@ -703,14 +686,8 @@ export function getClothingRecommendation(
     if (outerLayer) clothing[outerKey.key] = outerLayer;
   }
 
-  // Gloves override for cold
-  const glovesKey = categories.find(c => c.key === 'gloves');
-  if (glovesKey && adjustedTemp < 35 && clothing[glovesKey.key]?.toLowerCase() === 'none') {
-    const gloves = adjustedTemp < 25 
-      ? findValidOption('gloves', VERY_COLD_GLOVES)
-      : findValidOption('gloves', COLD_GLOVES);
-    if (gloves) clothing[glovesKey.key] = gloves;
-  }
+  // NOTE: Gloves override removed - activity defaults already handle gloves for cold temps,
+  // and users may prefer their own choices (mittens, light gloves, etc.)
 
   // Head cover override for cold
   const headKey = categories.find(c => c.key === 'headCover' || c.key === 'helmet');
@@ -852,11 +829,7 @@ export function getClothingRecommendation(
     triggered: adjustedTemp < 40,
     action: adjustedTemp < 40 ? `Temp: ${Math.round(adjustedTemp)}°F` : undefined,
   });
-  debugSafetyOverrides.push({
-    name: '🧤 Gloves (<35°F)',
-    triggered: adjustedTemp < 35,
-    action: adjustedTemp < 35 ? `→ ${adjustedTemp < 25 ? 'Heavy' : 'Light'} gloves` : undefined,
-  });
+  // NOTE: Gloves override removed - handled by activity defaults
   debugSafetyOverrides.push({
     name: '🧢 Head cover (<40°F)',
     triggered: adjustedTemp < 40,
