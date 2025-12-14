@@ -387,6 +387,9 @@ function RunCard({ run, index, temperatureUnit, onDelete, activityName, clothing
 
   const getComfortEmoji = (comfort?: string) => {
     switch (comfort) {
+      case 'satisfied': return '✅';
+      case 'adjusted': return '✏️';
+      // Legacy values for backward compatibility
       case 'too_cold': return '🥶';
       case 'just_right': return '👍';
       case 'too_hot': return '🥵';
@@ -396,6 +399,9 @@ function RunCard({ run, index, temperatureUnit, onDelete, activityName, clothing
 
   const getComfortLabel = (comfort?: string) => {
     switch (comfort) {
+      case 'satisfied': return 'Satisfied';
+      case 'adjusted': return 'Adjusted';
+      // Legacy values for backward compatibility
       case 'too_cold': return 'Too Cold';
       case 'just_right': return 'Just Right';
       case 'too_hot': return 'Too Hot';

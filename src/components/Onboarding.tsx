@@ -27,7 +27,7 @@ const steps = [
   {
     title: "Learns Your Preferences",
     icon: "📊",
-    content: "After each activity, rate your comfort and add optional notes. We'll learn what works for YOU and improve over time!",
+    content: "After each activity, confirm your outfit worked — or adjust items before saving. Set your thermal preference in Settings if you run hot or cold!",
     highlight: "feedback"
   },
   {
@@ -163,25 +163,27 @@ export function Onboarding({ onComplete }: OnboardingProps) {
 
         {/* Feedback preview on step 4 */}
         {step.highlight === 'feedback' && (
-          <div className="mb-8 animate-fade-in">
-            <div className="flex gap-4 mb-4">
-              <div className="px-6 py-3 bg-blue-500/20 border border-blue-500/50 rounded-xl text-center">
-                <div className="text-2xl mb-1">🥶</div>
-                <div className="text-xs">Too Cold</div>
+          <div className="mb-8 animate-fade-in w-full max-w-xs">
+            <div className="text-sm text-[var(--color-text-muted)] mb-3">Were you satisfied?</div>
+            <div className="space-y-2 mb-4">
+              <div className="px-4 py-3 bg-green-500/20 border border-green-500/50 rounded-xl flex items-center gap-3">
+                <span className="text-2xl">👍</span>
+                <div className="text-left">
+                  <div className="text-sm font-medium">Yes, it was perfect!</div>
+                  <div className="text-xs text-[var(--color-text-muted)]">Save and continue</div>
+                </div>
               </div>
-              <div className="px-6 py-3 bg-green-500/20 border border-green-500/50 rounded-xl text-center scale-110">
-                <div className="text-2xl mb-1">👍</div>
-                <div className="text-xs">Just Right</div>
-              </div>
-              <div className="px-6 py-3 bg-red-500/20 border border-red-500/50 rounded-xl text-center">
-                <div className="text-2xl mb-1">🥵</div>
-                <div className="text-xs">Too Hot</div>
+              <div className="px-4 py-3 bg-[rgba(255,255,255,0.1)] rounded-xl flex items-center gap-3">
+                <span className="text-2xl">✏️</span>
+                <div className="text-left">
+                  <div className="text-sm font-medium">I'd make some changes</div>
+                  <div className="text-xs text-[var(--color-text-muted)]">Adjust items before saving</div>
+                </div>
               </div>
             </div>
-            <div className="glass-card p-3 max-w-xs mx-auto">
-              <div className="flex items-center gap-2 text-sm text-[var(--color-text-muted)]">
-                <span>📝</span>
-                <span className="italic">"Gloves were perfect!"</span>
+            <div className="glass-card p-3 text-center">
+              <div className="text-xs text-[var(--color-text-muted)]">
+                🌡️ Set thermal preference in Settings if you run hot or cold
               </div>
             </div>
           </div>
