@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { getSettings, saveSettings } from '../services/database';
 import { isValidApiKeyFormat, isProxyMode } from '../services/weatherApi';
-import { formatWindSpeed, formatPrecipitation, type TemperatureUnit } from '../services/temperatureUtils';
+import { formatTemperature, formatTemperatureDelta, formatWindSpeed, formatPrecipitation, type TemperatureUnit } from '../services/temperatureUtils';
 import { getLastRecommendationDebug } from '../services/recommendationEngine';
 import type { TestWeatherData, RecommendationDebugInfo } from '../types';
 import { version } from '../../package.json';
@@ -426,7 +426,7 @@ export function Settings({
             {/* Temperature */}
             <div>
               <label className="block text-sm font-medium mb-2">
-                Temperature: {localTestWeather.temperature}°F
+                Temperature: {formatTemperature(localTestWeather.temperature, temperatureUnit)}
               </label>
               <input
                 type="range"
@@ -437,15 +437,15 @@ export function Settings({
                 className="w-full accent-[var(--color-accent)]"
               />
               <div className="flex justify-between text-xs text-[var(--color-text-muted)]">
-                <span>-10°F</span>
-                <span>110°F</span>
+                <span>{formatTemperature(-10, temperatureUnit)}</span>
+                <span>{formatTemperature(110, temperatureUnit)}</span>
               </div>
             </div>
 
             {/* Feels Like */}
             <div>
               <label className="block text-sm font-medium mb-2">
-                Feels Like: {localTestWeather.feelsLike}°F
+                Feels Like: {formatTemperature(localTestWeather.feelsLike, temperatureUnit)}
               </label>
               <input
                 type="range"
@@ -770,8 +770,8 @@ export function Settings({
                         <div className="text-xs font-semibold text-[var(--color-text-muted)] mb-2">📍 INPUT</div>
                         <div className="grid grid-cols-2 gap-1 text-xs">
                           <div>Activity: <span className="font-mono text-[var(--color-accent)]">{recDebug.activity}</span></div>
-                          <div>Temp: <span className="font-mono">{Math.round(recDebug.inputWeather.temperature)}°F</span></div>
-                          <div>Feels: <span className="font-mono">{Math.round(recDebug.inputWeather.feelsLike)}°F</span></div>
+                          <div>Temp: <span className="font-mono">{formatTemperature(recDebug.inputWeather.temperature, temperatureUnit)}</span></div>
+                          <div>Feels: <span className="font-mono">{formatTemperature(recDebug.inputWeather.feelsLike, temperatureUnit)}</span></div>
                           <div>Wind: <span className="font-mono">{formatWindSpeed(recDebug.inputWeather.windSpeed, temperatureUnit)}</span></div>
                           <div>Precip: <span className="font-mono">{formatPrecipitation(recDebug.inputWeather.precipitation, temperatureUnit)}</span></div>
                           <div>UV: <span className="font-mono">{recDebug.inputWeather.uvIndex}</span></div>
@@ -794,8 +794,7 @@ export function Settings({
                             recDebug.comfortAdjustment.temperatureOffset > 0 ? 'text-blue-400' :
                             recDebug.comfortAdjustment.temperatureOffset < 0 ? 'text-red-400' : ''
                           }`}>
-                            {recDebug.comfortAdjustment.temperatureOffset > 0 ? '+' : ''}
-                            {recDebug.comfortAdjustment.temperatureOffset.toFixed(1)}°F
+                            {formatTemperatureDelta(recDebug.comfortAdjustment.temperatureOffset, temperatureUnit)}
                           </span>
                           {recDebug.comfortAdjustment.temperatureOffset !== 0 && (
                             <span className="text-[var(--color-text-muted)] ml-1">
@@ -804,7 +803,7 @@ export function Settings({
                           )}
                         </div>
                         <div className="text-xs">
-                          Adjusted: <span className="font-mono">{Math.round(recDebug.comfortAdjustment.adjustedTemp)}°F</span>
+                          Adjusted: <span className="font-mono">{formatTemperature(recDebug.comfortAdjustment.adjustedTemp, temperatureUnit)}</span>
                           <span className="ml-2 px-1 py-0.5 rounded bg-[rgba(255,255,255,0.1)] text-[var(--color-text-muted)]">
                             {recDebug.comfortAdjustment.tempRange}
                           </span>
