@@ -28,11 +28,12 @@ Switch between 7 different outdoor activities, each with tailored clothing categ
 - **iPhone Ready**: Install directly to your home screen - no App Store needed
 
 ### Personalization
-- **Post-Activity Feedback**: Tell the app if you were "too hot", "too cold", or "just right"
-- **Learning System**: Recommendations improve based on your feedback
+- **Thermal Preference**: Set whether you run cold, average, or warm — recommendations adjust automatically
+- **Simplified Feedback**: After an activity, answer "Satisfied?" — if not, adjust clothing before saving
+- **Learning System**: Recommendations improve based on what you actually wore
 - **Editable Clothing**: Tap any item to change it before your activity
 - **Custom Clothing Options**: Add your own items (saved per activity)
-- **Unit Preferences**: Switch between Celsius/Fahrenheit and km/h/mph
+- **Unit Preferences**: Switch between Imperial (°F, mph, in) and Metric (°C, km/h, mm)
 
 ### Smart Features
 - **Automatic Accessories**: Recommends sunglasses when sunny, headlamp when dark
@@ -367,6 +368,12 @@ Files with TODO comments:
 
 ## Version History
 
+- **v4.9.3**: Fix debug panel - show actual temp change (not raw offset), add adjusted feels-like temp
+- **v4.9.2**: Fix headlamp/sunglasses - always based on current lighting, ignores historical votes
+- **v4.9.1**: Fix thermal offset display to use selected unit system (°C or °F)
+- **v4.9.0**: Thermal preference setting (Cold/Average/Warm), simplified feedback flow (Satisfied? + clothing adjustment)
+- **v4.8.2**: Remove gloves safety override - handled by activity defaults
+- **v4.8.1**: Fix debug panel temperature units
 - **v4.8.0**: Imperial/Metric units - precipitation now shows in mm when using metric
 - **v4.7.0**: Recommendation debug panel - view input, matching, voting, and safety overrides
 - **v4.6.2**: Fix forgotten activity reminder to show banner instead of resuming

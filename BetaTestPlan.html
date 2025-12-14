@@ -241,7 +241,7 @@
         <header>
             <h1>🧪 Beta Test Plan</h1>
             <p>TrailKit - Smart Clothing Recommendations for Outdoor Activities</p>
-            <div class="version-badge">Version 4.7.0</div>
+            <div class="version-badge">Version 4.9.3</div>
         </header>
 
         <!-- Overview -->
@@ -271,7 +271,47 @@
 
         <!-- Recent Updates -->
         <section>
-            <h2>🆕 Recent Updates (v4.6.x)</h2>
+            <h2>🆕 Recent Updates (v4.9.x)</h2>
+            
+            <h3>🌡️ Thermal Preference Setting</h3>
+            <ul>
+                <li><strong>New Setting:</strong> "When you're active outdoors, you usually feel: Colder / Average / Warmer than most people"</li>
+                <li><strong>Effect:</strong> Adjusts temperature by ±8°F (±4.4°C) for clothing selection</li>
+                <li><strong>Replaces:</strong> Old calculated comfort offset from "Too Hot/Too Cold" feedback</li>
+                <li><strong>Location:</strong> Settings → below Units selector</li>
+            </ul>
+
+            <h3>✅ Simplified Feedback Flow</h3>
+            <ul>
+                <li><strong>New Question:</strong> "Were you satisfied with your outfit?" → Yes / No</li>
+                <li><strong>If No:</strong> User can tap any clothing item to adjust before saving</li>
+                <li><strong>Benefit:</strong> App learns <em>what</em> to change, not just "it was wrong"</li>
+                <li><strong>Notes:</strong> Optional comments field still available</li>
+            </ul>
+
+            <h3>💡 Lighting-Based Accessories Fix</h3>
+            <ul>
+                <li><strong>Issue:</strong> Headlamp was recommended during daytime (from historical votes)</li>
+                <li><strong>Fix:</strong> Headlamp/sunglasses now ALWAYS based on current lighting conditions</li>
+                <li><strong>Logic:</strong> Sunny → Sunglasses, Dark → Headlamp, Neither → None</li>
+            </ul>
+
+            <h3>🔍 Debug Panel Improvements</h3>
+            <ul>
+                <li><strong>Offset Display:</strong> Shows actual temp change (negative for "runs cold")</li>
+                <li><strong>Adjusted Feels Like:</strong> Now shown alongside adjusted temp</li>
+                <li><strong>Renamed:</strong> Section now called "THERMAL PREFERENCE"</li>
+            </ul>
+
+            <h2>📦 Updates (v4.8.x)</h2>
+            
+            <h3>🌐 Imperial/Metric Units</h3>
+            <ul>
+                <li><strong>Full unit system:</strong> Temperature (°F/°C), Wind (mph/km/h), Precipitation (in/mm)</li>
+                <li><strong>Gloves override removed:</strong> Activity defaults now handle glove recommendations</li>
+            </ul>
+
+            <h2>📦 Updates (v4.6.x - v4.7.x)</h2>
             
             <h3>⏰ Forgotten Activity Reminder</h3>
             <ul>

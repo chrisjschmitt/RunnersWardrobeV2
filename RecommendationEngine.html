@@ -342,16 +342,19 @@
             <div class="flow-step">
                 <div class="step-title">
                     <span class="step-number">1</span>
-                    Comfort Adjustment
+                    Thermal Preference
                 </div>
                 <p class="step-description">
-                    Apply user's personal "runs hot/cold" adjustments based on past feedback
+                    Apply user's personal "runs hot/cold" setting from Settings
                 </p>
                 <ul class="step-detail">
-                    <li><strong>Too hot</strong> → treat weather as 8°F warmer</li>
-                    <li><strong>Just right</strong> → no adjustment</li>
-                    <li><strong>Too cold</strong> → treat weather as 8°F colder</li>
+                    <li><strong>Runs warm</strong> → treat weather as 8°F warmer (lighter clothing)</li>
+                    <li><strong>Average</strong> → no adjustment</li>
+                    <li><strong>Runs cold</strong> → treat weather as 8°F colder (warmer clothing)</li>
                 </ul>
+                <p class="step-description" style="margin-top: 0.75rem; font-size: 0.9rem; color: var(--text-secondary);">
+                    <em>Note: This is a one-time setting, not calculated from each activity's feedback.</em>
+                </p>
             </div>
 
             <div class="flow-step primary">
@@ -616,14 +619,24 @@
                     <td><code>min(0.3, 30 / days_ago × 0.1)</code></td>
                 </tr>
                 <tr>
-                    <td><strong>Comfort Boost</strong></td>
+                    <td><strong>Satisfaction Boost</strong></td>
                     <td>+10%</td>
-                    <td>If session was marked "just right"</td>
+                    <td>If session was marked "satisfied" (v4.9+) or "just right" (legacy)</td>
                 </tr>
             </tbody>
         </table>
         <p style="color: var(--text-secondary); margin-top: 0.5rem; font-size: 0.9rem;">
-            Example: A "just right" session from yesterday gets: base score + 30% recency + 10% comfort = up to 40% boost!
+            Example: A "satisfied" session from yesterday gets: base score + 30% recency + 10% satisfaction = up to 40% boost!
+        </p>
+        
+        <h3>✅ New Feedback Flow (v4.9+)</h3>
+        <p style="color: var(--text-secondary);">After each activity, users answer "Were you satisfied with your outfit?":</p>
+        <ul class="step-detail">
+            <li><strong>Yes</strong> → Outfit saved as "satisfied", gets boost in future recommendations</li>
+            <li><strong>No, make changes</strong> → User edits clothing items → Adjusted outfit saved</li>
+        </ul>
+        <p style="color: var(--text-secondary); margin-top: 0.5rem; font-size: 0.9rem;">
+            <em>The app learns from what you actually wore, especially when you adjust the recommendation before saving.</em>
         </p>
 
         <h2>🛡️ Safety Overrides</h2>

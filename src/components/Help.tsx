@@ -15,10 +15,10 @@ const faqs: FAQItem[] = [
     answer: `The app learns from your activities over time:
 
 **Your Recent Choices Matter Most**
-If you did the same activity in similar weather recently, the app remembers what you wore and how you felt. Tap the green "Based on X similar sessions" banner to see which past activities influenced the recommendation.
+If you did the same activity in similar weather recently, the app remembers what you wore. Tap the green "Based on X similar sessions" banner to see which past activities influenced the recommendation.
 
-**It Learns Your Preferences**
-Every time you give feedback ("too cold", "just right", "too hot"), the app adjusts. If you tend to run cold, it'll suggest warmer clothes. If you run hot, it'll suggest lighter options.
+**Thermal Preference Setting**
+In Settings, tell the app if you usually run cold, average, or warm. This adjusts all recommendations to match how YOUR body feels temperature.
 
 **Starting Fresh?**
 No worries! The app has sensible defaults based on temperature for each activity. As you use it and provide feedback, it gets smarter about YOUR preferences.`
@@ -41,7 +41,7 @@ This lets you understand why the app made its recommendation and reminds you of 
 You can change any clothing item to match what you're actually wearing. The app saves your actual choice, not just what it recommended.
 
 **After You Finish**
-The app asks how you felt - too cold, just right, or too hot. You can also add optional notes like "gloves were too heavy" or "perfect outfit!"
+The app asks "Were you satisfied with your outfit?" If not, you can adjust individual clothing items before saving. You can also add optional notes!
 
 **Building Your History**
 Each session creates a record that helps future recommendations. The more you use it, the smarter it gets!
@@ -81,21 +81,19 @@ This is especially helpful if you're new to an activity and want to understand w
   },
   {
     question: "What does the feedback actually do?",
-    answer: `Your feedback is gold! Here's what happens:
+    answer: `Your feedback helps the app learn what works for you:
 
-**"Too Cold" 🥶**
-Next time in similar weather, the app suggests warmer layers.
+**"Yes, it was perfect!" ✅**
+Your outfit is saved as-is and gets priority in future similar conditions.
 
-**"Just Right" 👍**
-Your clothing choice gets remembered and prioritized for similar conditions.
-
-**"Too Hot" 🥵**
-Next time, the app suggests lighter clothing.
+**"I'd make some changes" ✏️**
+Tap any clothing item to adjust it before saving. The app learns from your adjusted outfit!
 
 **Notes (Optional)**
-Add comments like "should have worn heavier gloves" - these are saved with your history and shown in similar sessions.
+Add comments like "perfect for a morning run" - these are saved with your history and shown in similar sessions.
 
-The app weighs recent feedback more heavily than older feedback, so it adapts as your preferences change (or as you get fitter!).`
+**Thermal Preference (in Settings)**
+If you consistently run hot or cold, set your thermal preference in Settings instead of adjusting after each activity. This shifts all recommendations to match how your body feels.`
   },
   {
     question: "How do I install this on my phone?",
@@ -175,7 +173,7 @@ These are mutually exclusive - you won't see both sunglasses and headlamp sugges
 **Every activity has its own defaults!**
 Cycling suggests jerseys and bibs. Hiking suggests layers and boots. XC Skiing suggests Nordic-specific gear. The app picks appropriate items for YOUR activity.
 
-As you use the app and give feedback, recommendations become tailored to YOU.`
+As you use the app, recommendations become tailored to YOUR preferences and history.`
   },
   {
     question: "How do I move my data to a new phone?",
@@ -322,8 +320,8 @@ export function Help({ onTermsClick }: HelpProps) {
             Tap the Start button when you head out. This saves what you're actually wearing.
           </Step>
 
-          <Step number={5} title="Give Feedback">
-            When you're done, tap End and tell the app how you felt. This helps it learn!
+          <Step number={5} title="Save Your Session">
+            When you're done, tap End and confirm your outfit was good — or adjust items before saving.
           </Step>
         </div>
       </div>
