@@ -476,8 +476,10 @@ export function getClothingRecommendation(
       },
       comfortAdjustment: {
         temperatureOffset: comfortAdjustment.temperatureOffset,
+        appliedOffset: -thermalOffset,  // Negative because we subtract it
         confidence: comfortAdjustment.confidence,
         adjustedTemp,
+        adjustedFeelsLike: currentWeather.feelsLike - thermalOffset,
         tempRange: getTempRange(adjustedTemp),
       },
       recentExactMatch: true,
@@ -877,8 +879,10 @@ export function getClothingRecommendation(
     },
     comfortAdjustment: {
       temperatureOffset: comfortAdjustment.temperatureOffset,
+      appliedOffset: -thermalOffset,  // Negative because we subtract it
       confidence: comfortAdjustment.confidence,
       adjustedTemp,
+      adjustedFeelsLike: currentWeather.feelsLike - thermalOffset,
       tempRange: getTempRange(adjustedTemp),
     },
     recentExactMatch: false,

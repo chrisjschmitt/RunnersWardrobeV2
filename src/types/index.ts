@@ -435,11 +435,13 @@ export interface RecommendationDebugInfo {
     sunrise?: string;
     sunset?: string;
   };
-  // Comfort adjustment
+  // Comfort adjustment (thermal preference)
   comfortAdjustment: {
-    temperatureOffset: number;
+    temperatureOffset: number;      // Raw offset value (positive for "runs cold")
+    appliedOffset: number;          // Actual change to temp (negative for "runs cold")
     confidence: number;
     adjustedTemp: number;
+    adjustedFeelsLike: number;
     tempRange: string;
   };
   // Matching
