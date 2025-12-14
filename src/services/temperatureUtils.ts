@@ -33,3 +33,28 @@ export function formatWindSpeed(mph: number, unit: TemperatureUnit): string {
   return `${mph} mph`;
 }
 
+// Precipitation conversion (stored in inches, display in mm for metric)
+// 1 inch = 25.4 mm
+export function convertPrecipitation(inches: number, unit: TemperatureUnit): number {
+  if (unit === 'celsius') {
+    return Math.round(inches * 25.4 * 10) / 10; // Round to 1 decimal
+  }
+  return inches;
+}
+
+export function formatPrecipitation(inches: number, unit: TemperatureUnit): string {
+  if (inches === 0) {
+    return 'None';
+  }
+  if (unit === 'celsius') {
+    const mm = Math.round(inches * 25.4 * 10) / 10;
+    return `${mm} mm`;
+  }
+  return `${inches}"`;
+}
+
+// Helper to check if using metric system
+export function isMetric(unit: TemperatureUnit): boolean {
+  return unit === 'celsius';
+}
+

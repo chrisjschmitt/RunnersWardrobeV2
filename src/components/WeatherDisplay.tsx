@@ -1,6 +1,6 @@
 import type { WeatherData, WeatherAlert } from '../types';
 import { getWeatherIconUrl, getWeatherAlerts } from '../services/weatherApi';
-import { formatTemperature, getUnitSymbol, formatWindSpeed, type TemperatureUnit } from '../services/temperatureUtils';
+import { formatTemperature, getUnitSymbol, formatWindSpeed, formatPrecipitation, type TemperatureUnit } from '../services/temperatureUtils';
 
 interface WeatherDisplayProps {
   weather: WeatherData;
@@ -86,7 +86,7 @@ export function WeatherDisplay({ weather, unit, compact = false }: WeatherDispla
           <WeatherStat 
             icon={<RainIcon />}
             label="Precipitation"
-            value={weather.precipitation > 0 ? `${weather.precipitation}"` : 'None'}
+            value={formatPrecipitation(weather.precipitation, unit)}
           />
           <WeatherStat 
             icon={<SunriseIcon />}

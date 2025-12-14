@@ -367,6 +367,7 @@ Files with TODO comments:
 
 ## Version History
 
+- **v4.8.0**: Imperial/Metric units - precipitation now shows in mm when using metric
 - **v4.7.0**: Recommendation debug panel - view input, matching, voting, and safety overrides
 - **v4.6.2**: Fix forgotten activity reminder to show banner instead of resuming
 - **v4.6.1**: Add activity state to debug panel with simulate/clear actions

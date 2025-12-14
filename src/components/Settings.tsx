@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { getSettings, saveSettings } from '../services/database';
 import { isValidApiKeyFormat, isProxyMode } from '../services/weatherApi';
-import { formatWindSpeed, type TemperatureUnit } from '../services/temperatureUtils';
+import { formatWindSpeed, formatPrecipitation, type TemperatureUnit } from '../services/temperatureUtils';
 import { getLastRecommendationDebug } from '../services/recommendationEngine';
 import type { TestWeatherData, RecommendationDebugInfo } from '../types';
 import { version } from '../../package.json';
@@ -270,10 +270,10 @@ export function Settings({
         </h2>
 
         <div className="space-y-6">
-          {/* Temperature Unit Section */}
+          {/* Unit System Section */}
           <div>
             <label className="block text-sm font-medium mb-3">
-              Temperature Unit
+              Units
             </label>
             <div className="flex gap-2">
               <button
@@ -284,8 +284,8 @@ export function Settings({
                     : 'bg-[rgba(255,255,255,0.1)] text-[var(--color-text-muted)] hover:bg-[rgba(255,255,255,0.15)]'
                 }`}
               >
-                <span className="text-lg">°F</span>
-                <span className="block text-xs mt-1 opacity-80">Fahrenheit</span>
+                <span className="text-lg">Imperial</span>
+                <span className="block text-xs mt-1 opacity-80">°F, mph, in</span>
               </button>
               <button
                 onClick={() => setTemperatureUnit('celsius')}
@@ -295,8 +295,8 @@ export function Settings({
                     : 'bg-[rgba(255,255,255,0.1)] text-[var(--color-text-muted)] hover:bg-[rgba(255,255,255,0.15)]'
                 }`}
               >
-                <span className="text-lg">°C</span>
-                <span className="block text-xs mt-1 opacity-80">Celsius</span>
+                <span className="text-lg">Metric</span>
+                <span className="block text-xs mt-1 opacity-80">°C, km/h, mm</span>
               </button>
             </div>
           </div>
@@ -490,7 +490,7 @@ export function Settings({
             {/* Precipitation */}
             <div>
               <label className="block text-sm font-medium mb-2">
-                Precipitation: {localTestWeather.precipitation}" per hour
+                Precipitation: {formatPrecipitation(localTestWeather.precipitation, temperatureUnit)} per hour
               </label>
               <input
                 type="range"
@@ -772,8 +772,8 @@ export function Settings({
                           <div>Activity: <span className="font-mono text-[var(--color-accent)]">{recDebug.activity}</span></div>
                           <div>Temp: <span className="font-mono">{Math.round(recDebug.inputWeather.temperature)}°F</span></div>
                           <div>Feels: <span className="font-mono">{Math.round(recDebug.inputWeather.feelsLike)}°F</span></div>
-                          <div>Wind: <span className="font-mono">{recDebug.inputWeather.windSpeed} mph</span></div>
-                          <div>Precip: <span className="font-mono">{recDebug.inputWeather.precipitation}"</span></div>
+                          <div>Wind: <span className="font-mono">{formatWindSpeed(recDebug.inputWeather.windSpeed, temperatureUnit)}</span></div>
+                          <div>Precip: <span className="font-mono">{formatPrecipitation(recDebug.inputWeather.precipitation, temperatureUnit)}</span></div>
                           <div>UV: <span className="font-mono">{recDebug.inputWeather.uvIndex}</span></div>
                         </div>
                         <div className="text-xs mt-1 text-[var(--color-text-muted)]">

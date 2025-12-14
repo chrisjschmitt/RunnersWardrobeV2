@@ -135,13 +135,18 @@ Once installed, the app appears on your home screen and opens in full screen - j
 These browsers block features the app needs: location access for weather, localStorage for saving your history, and third-party requests for weather data.`
   },
   {
-    question: "Can I switch between Celsius and Fahrenheit?",
-    answer: `Yes! Go to Settings and tap °C or °F. Your preference is saved automatically.
+    question: "Can I switch between Imperial and Metric units?",
+    answer: `Yes! Go to Settings and tap Imperial or Metric. Your preference is saved automatically.
 
-**What changes:**
-• All temperatures display in your chosen unit
-• Wind speed switches too: mph for Fahrenheit, km/h for Celsius
-• Weather alerts show differences in the correct unit`
+**Imperial (US):**
+• Temperature in °F
+• Wind speed in mph
+• Precipitation in inches
+
+**Metric:**
+• Temperature in °C
+• Wind speed in km/h
+• Precipitation in mm`
   },
   {
     question: "How do sunglasses and headlamp suggestions work?",
