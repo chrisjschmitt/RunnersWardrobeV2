@@ -332,7 +332,7 @@ export function Settings({
                   <div>
                     <div className="font-medium">Colder than most people</div>
                     <div className={`text-xs ${thermalPreference === 'cold' ? 'text-white/70' : 'text-[var(--color-text-muted)]'}`}>
-                      Warmer clothing recommendations (+{THERMAL_OFFSETS.cold}°F offset)
+                      Warmer clothing recommendations ({formatTemperatureDelta(THERMAL_OFFSETS.cold, temperatureUnit)} offset)
                     </div>
                   </div>
                 </div>
@@ -378,7 +378,7 @@ export function Settings({
                   <div>
                     <div className="font-medium">Warmer than most people</div>
                     <div className={`text-xs ${thermalPreference === 'warm' ? 'text-white/70' : 'text-[var(--color-text-muted)]'}`}>
-                      Lighter clothing recommendations ({THERMAL_OFFSETS.warm}°F offset)
+                      Lighter clothing recommendations ({formatTemperatureDelta(THERMAL_OFFSETS.warm, temperatureUnit)} offset)
                     </div>
                   </div>
                 </div>
