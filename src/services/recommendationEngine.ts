@@ -388,7 +388,7 @@ function applyAccessoryLogic(
   const result = { ...clothing };
   const categories = getClothingCategories(activity);
   
-  // Determine what's needed based on conditions
+  // Determine what's needed based on CURRENT conditions
   const needsSunglasses = isSunny(weather);
   const needsHeadlamp = isDarkOutside(weather);
   
@@ -396,12 +396,15 @@ function applyAccessoryLogic(
   const hasEyewear = categories.some(c => c.key === 'eyewear');
   if (hasEyewear) {
     const currentEyewear = result.eyewear?.toLowerCase() || 'none';
-    if (currentEyewear === 'none' || currentEyewear === '') {
-      if (needsSunglasses) {
-        result.eyewear = 'Sunglasses';
-      } else if (needsHeadlamp) {
-        result.eyewear = 'Clear glasses'; // For visibility at dusk/night
-      }
+    
+    // Override based on current lighting - don't trust historical votes for lighting-dependent items
+    if (needsSunglasses) {
+      result.eyewear = 'Sunglasses';
+    } else if (needsHeadlamp) {
+      result.eyewear = 'Clear glasses'; // For visibility at dusk/night
+    } else if (currentEyewear === 'sunglasses' || currentEyewear === 'clear glasses') {
+      // It's neither sunny nor dark - remove lighting-specific eyewear from historical vote
+      result.eyewear = 'None';
     }
   }
   
@@ -410,14 +413,14 @@ function applyAccessoryLogic(
   if (hasAccessories) {
     const currentAccessory = result.accessories?.toLowerCase() || 'none';
     
-    // Only override if current is "none" or empty
-    // Note: needsSunglasses and needsHeadlamp are mutually exclusive (can't be sunny when dark)
-    if (currentAccessory === 'none' || currentAccessory === '') {
-      if (needsSunglasses) {
-        result.accessories = 'Sunglasses';
-      } else if (needsHeadlamp) {
-        result.accessories = 'Headlamp';
-      }
+    // Override based on current lighting - headlamp/sunglasses depend on NOW, not history
+    if (needsSunglasses) {
+      result.accessories = 'Sunglasses';
+    } else if (needsHeadlamp) {
+      result.accessories = 'Headlamp';
+    } else if (currentAccessory === 'headlamp' || currentAccessory === 'sunglasses') {
+      // It's neither sunny nor dark - remove lighting-specific accessory from historical vote
+      result.accessories = 'None';
     }
   }
   
