@@ -1,5 +1,5 @@
 import type { WeatherData, RunRecord, ClothingItems, ClothingRecommendation, RunFeedback, ComfortAdjustment, ActivityType, ClothingCategory, RecommendationDebugInfo, SimilarMatchDebug, ClothingVoteDebug, SafetyOverrideDebug, ThermalPreference } from '../types';
-import { getDefaultClothing, getClothingCategories, isDarkOutside, isSunny, THERMAL_OFFSETS } from '../types';
+import { getDefaultClothing, getClothingCategories, isDarkOutside, isSunny, THERMAL_OFFSETS, ACTIVITY_THERMAL_PARAMS } from '../types';
 import { ACTIVITY_TEMP_DEFAULTS, getTempRange, getWeatherOverrides, type WeatherModifiers } from '../data/activityDefaults';
 
 // ============ DEBUG STORAGE ============
@@ -32,6 +32,73 @@ function saveDebugInfo(info: RecommendationDebugInfo): void {
   }
 }
 
+// ============ T_COMFORT CALCULATION ============
+// T_comfort = T_actual + B(activity) + wΔ(activity) × Δ + thermal_offset
+// Where Δ = clamp(FeelsLike − Actual, −15°C, +8°C)
+
+export interface ComfortTemperatureBreakdown {
+  actualTempC: number;        // T_actual in °C
+  feelsLikeTempC: number;     // Feels-like in °C
+  delta: number;              // Clamped Δ
+  B: number;                  // Activity base adjustment
+  wDelta: number;             // Activity feels-like weight
+  thermalOffset: number;      // User's thermal preference offset
+  comfortTempC: number;       // Final T_comfort in °C
+}
+
+/**
+ * Calculate the comfort-adjusted temperature (T_comfort)
+ * 
+ * Formula: T_comfort = T_actual + B(activity) + wΔ(activity) × Δ + thermal_offset
+ * Where: Δ = clamp(FeelsLike − Actual, −15°C, +8°C)
+ * 
+ * @param weather Current weather data (temps in °F from API)
+ * @param activity The activity type
+ * @param thermalPreference User's thermal preference setting
+ * @returns ComfortTemperatureBreakdown with all intermediate values
+ */
+export function calculateComfortTemperature(
+  weather: WeatherData,
+  activity: ActivityType,
+  thermalPreference: ThermalPreference = 'average'
+): ComfortTemperatureBreakdown {
+  // Convert from °F (API) to °C for calculation
+  const actualTempC = (weather.temperature - 32) * 5 / 9;
+  const feelsLikeTempC = (weather.feelsLike - 32) * 5 / 9;
+  
+  // Get activity-specific parameters
+  const params = ACTIVITY_THERMAL_PARAMS[activity];
+  const B = params.B;
+  const wDelta = params.wDelta;
+  
+  // Calculate clamped delta: Δ = clamp(FeelsLike − Actual, −15, +8)
+  const rawDelta = feelsLikeTempC - actualTempC;
+  const delta = Math.max(-15, Math.min(8, rawDelta));
+  
+  // Get thermal preference offset (already in °C)
+  const thermalOffset = THERMAL_OFFSETS[thermalPreference];
+  
+  // Calculate T_comfort
+  const comfortTempC = actualTempC + B + (wDelta * delta) + thermalOffset;
+  
+  return {
+    actualTempC,
+    feelsLikeTempC,
+    delta,
+    B,
+    wDelta,
+    thermalOffset,
+    comfortTempC
+  };
+}
+
+/**
+ * Convert T_comfort from °C to °F for use with existing temp range logic
+ */
+export function comfortTempToFahrenheit(comfortTempC: number): number {
+  return (comfortTempC * 9 / 5) + 32;
+}
+
 // ============ SIMILARITY MATCHING ============
 //
 // How Activity Matching Works:
@@ -57,30 +124,30 @@ function saveDebugInfo(info: RecommendationDebugInfo): void {
 //    Higher-scoring matches get more "votes" when determining clothing.
 //    Feedback sessions get 2x voting weight compared to CSV imports.
 
-// Weather similarity thresholds - the "threshold" in the similarity formula
-// A difference equal to the threshold gives a 50% score for that factor
+// ============ T_COMFORT-BASED SIMILARITY ============
+// Since T_comfort = T_actual + B(activity) + wΔ × Δ + thermal_offset,
+// we use T_comfort as the PRIMARY matching metric. It already captures:
+// - Temperature
+// - Feels-like (via Δ = FeelsLike - Actual, clamped and weighted by wΔ)
+// - Activity-specific body heat (B)
+// - User thermal preference
+//
+// We still separately match on precipitation (rain/no-rain) and UV.
+
+// T_comfort-based thresholds
 const THRESHOLDS = {
-  temperature: 5,      // ±5°F  → perfect match if within 5°F, 0% if >10°F different
-  feelsLike: 7,        // ±7°F  → perfect match if within 7°F, 0% if >14°F different
-  humidity: 15,        // ±15%  → perfect match if within 15%, 0% if >30% different
-  windSpeed: 5,        // ±5 mph → perfect match if within 5mph, 0% if >10mph different
+  comfortTemp: 3,      // ±3°C T_comfort → perfect match if within 3°C, 0% if >6°C different
   precipitation: 0.1,  // Binary comparison (rain/no-rain), not continuous
-  cloudCover: 20,      // ±20%  → perfect match if within 20%, 0% if >40% different
-  uvIndex: 2           // ±2    → perfect match if within 2, 0% if >4 different
+  uvIndex: 2           // ±2 → perfect match if within 2, 0% if >4 different
 };
 
-// Weights for similarity scoring (higher = more important)
-// These determine how much each weather factor contributes to the final match percentage.
-// Example: With these weights, temperature (3.0) matters 6x more than cloud cover (0.5)
+// Weights for T_comfort-based similarity scoring
 const WEIGHTS = {
-  temperature: 3.0,    // Most important - primary driver of clothing choices
-  feelsLike: 2.5,      // Very important - accounts for wind chill / heat index
-  humidity: 1.0,       // Moderate - affects comfort but less than temp
-  windSpeed: 1.5,      // Important - affects perceived temperature
-  precipitation: 2.0,  // Important - rain/no-rain is a major clothing decision
-  cloudCover: 0.5,     // Minor - affects sun exposure
+  comfortTemp: 5.0,    // Primary driver - T_comfort encapsulates temp/feels-like/activity
+  precipitation: 2.5,  // Important - rain/no-rain is a major clothing decision
   uvIndex: 0.5         // Minor - affects sunglasses/sun protection
 };
+
 
 // Temperature adjustment per feedback type (in °F)
 // Note: New feedback types (satisfied/adjusted) have no temp adjustment - 
@@ -100,46 +167,56 @@ interface SimilarityScore {
 }
 
 /**
- * Calculate how similar two weather conditions are (0-1, higher = more similar)
+ * Calculate how similar two weather conditions are using T_comfort (0-1, higher = more similar)
  * 
- * Example calculation for 42°F current vs 45°F historical:
- *   Temperature:   diff=3°F  → score = 1 - (3/10) = 0.70 × 3.0 weight = 2.10
- *   Feels Like:    diff=4°F  → score = 1 - (4/14) = 0.71 × 2.5 weight = 1.78
- *   Wind:          diff=3mph → score = 1 - (3/10) = 0.70 × 1.5 weight = 1.05
- *   Precipitation: match     → score = 1.0        × 2.0 weight = 2.00
- *   Humidity:      diff=5%   → score = 1 - (5/30) = 0.83 × 1.0 weight = 0.83
- *   Cloud Cover:   diff=10%  → score = 1 - (10/40) = 0.75 × 0.5 weight = 0.38
+ * Uses T_comfort as the primary metric since it already encapsulates:
+ * - Actual temperature
+ * - Feels-like (via Δ)
+ * - Activity-specific body heat (B)
+ * 
+ * Also considers precipitation and UV separately.
+ * 
+ * Example calculation for 10°C T_comfort current vs 12°C T_comfort historical:
+ *   T_comfort:     diff=2°C  → score = 1 - (2/6) = 0.67 × 5.0 weight = 3.33
+ *   Precipitation: match     → score = 1.0       × 2.5 weight = 2.50
  *   UV Index:      diff=1    → score = 1 - (1/4) = 0.75 × 0.5 weight = 0.38
  *   
- *   Total = 8.52 / 11.0 = 77% match
+ *   Total = 6.21 / 8.0 = 78% match
  */
-function calculateSimilarity(current: WeatherData, historical: RunRecord): number {
+function calculateSimilarity(
+  current: WeatherData, 
+  historical: RunRecord,
+  activity: ActivityType = 'running',
+  thermalPreference: ThermalPreference = 'average'
+): number {
   let totalWeight = 0;
   let weightedScore = 0;
 
-  // Temperature similarity
-  const tempDiff = Math.abs(current.temperature - historical.temperature);
-  const tempScore = Math.max(0, 1 - tempDiff / (THRESHOLDS.temperature * 2));
-  weightedScore += tempScore * WEIGHTS.temperature;
-  totalWeight += WEIGHTS.temperature;
+  // Calculate T_comfort for both current and historical weather
+  const currentComfort = calculateComfortTemperature(current, activity, thermalPreference);
+  
+  // For historical, create a WeatherData-like object
+  const historicalWeather: WeatherData = {
+    temperature: historical.temperature,
+    feelsLike: historical.feelsLike,
+    humidity: historical.humidity,
+    pressure: 0, // Not stored in RunRecord
+    windSpeed: historical.windSpeed,
+    precipitation: historical.precipitation,
+    cloudCover: historical.cloudCover,
+    uvIndex: historical.uvIndex,
+    icon: '',
+    description: '',
+    location: '',
+    timestamp: new Date()
+  };
+  const historicalComfort = calculateComfortTemperature(historicalWeather, activity, thermalPreference);
 
-  // Feels like similarity
-  const feelsLikeDiff = Math.abs(current.feelsLike - historical.feelsLike);
-  const feelsLikeScore = Math.max(0, 1 - feelsLikeDiff / (THRESHOLDS.feelsLike * 2));
-  weightedScore += feelsLikeScore * WEIGHTS.feelsLike;
-  totalWeight += WEIGHTS.feelsLike;
-
-  // Humidity similarity
-  const humidityDiff = Math.abs(current.humidity - historical.humidity);
-  const humidityScore = Math.max(0, 1 - humidityDiff / (THRESHOLDS.humidity * 2));
-  weightedScore += humidityScore * WEIGHTS.humidity;
-  totalWeight += WEIGHTS.humidity;
-
-  // Wind speed similarity
-  const windDiff = Math.abs(current.windSpeed - historical.windSpeed);
-  const windScore = Math.max(0, 1 - windDiff / (THRESHOLDS.windSpeed * 2));
-  weightedScore += windScore * WEIGHTS.windSpeed;
-  totalWeight += WEIGHTS.windSpeed;
+  // T_comfort similarity (in °C)
+  const comfortDiff = Math.abs(currentComfort.comfortTempC - historicalComfort.comfortTempC);
+  const comfortScore = Math.max(0, 1 - comfortDiff / (THRESHOLDS.comfortTemp * 2));
+  weightedScore += comfortScore * WEIGHTS.comfortTemp;
+  totalWeight += WEIGHTS.comfortTemp;
 
   // Precipitation similarity (binary-ish: both have or don't have)
   const currentHasRain = current.precipitation > 0;
@@ -147,12 +224,6 @@ function calculateSimilarity(current: WeatherData, historical: RunRecord): numbe
   const precipScore = currentHasRain === historicalHasRain ? 1 : 0.3;
   weightedScore += precipScore * WEIGHTS.precipitation;
   totalWeight += WEIGHTS.precipitation;
-
-  // Cloud cover similarity
-  const cloudDiff = Math.abs(current.cloudCover - historical.cloudCover);
-  const cloudScore = Math.max(0, 1 - cloudDiff / (THRESHOLDS.cloudCover * 2));
-  weightedScore += cloudScore * WEIGHTS.cloudCover;
-  totalWeight += WEIGHTS.cloudCover;
 
   // UV index similarity
   const uvDiff = Math.abs(current.uvIndex - historical.uvIndex);
@@ -164,33 +235,43 @@ function calculateSimilarity(current: WeatherData, historical: RunRecord): numbe
 }
 
 // Calculate similarity between current weather and feedback weather
-function calculateFeedbackSimilarity(current: WeatherData, feedback: RunFeedback): number {
+/**
+ * Calculate similarity between current weather and feedback weather using T_comfort
+ */
+function calculateFeedbackSimilarity(
+  current: WeatherData, 
+  feedback: RunFeedback,
+  activity: ActivityType = 'running',
+  thermalPreference: ThermalPreference = 'average'
+): number {
   let totalWeight = 0;
   let weightedScore = 0;
 
-  // Temperature similarity (most important for feedback)
-  const tempDiff = Math.abs(current.temperature - feedback.temperature);
-  const tempScore = Math.max(0, 1 - tempDiff / (THRESHOLDS.temperature * 2));
-  weightedScore += tempScore * 3.5;
-  totalWeight += 3.5;
+  // Calculate T_comfort for both current and feedback weather
+  const currentComfort = calculateComfortTemperature(current, activity, thermalPreference);
+  
+  // For feedback, create a WeatherData-like object
+  const feedbackWeather: WeatherData = {
+    temperature: feedback.temperature,
+    feelsLike: feedback.feelsLike,
+    humidity: feedback.humidity,
+    pressure: 0, // Not stored in feedback
+    windSpeed: feedback.windSpeed,
+    precipitation: 0, // Not stored in feedback
+    cloudCover: 0,
+    uvIndex: 0,
+    icon: '',
+    description: '',
+    location: '',
+    timestamp: new Date()
+  };
+  const feedbackComfort = calculateComfortTemperature(feedbackWeather, activity, thermalPreference);
 
-  // Feels like similarity
-  const feelsLikeDiff = Math.abs(current.feelsLike - feedback.feelsLike);
-  const feelsLikeScore = Math.max(0, 1 - feelsLikeDiff / (THRESHOLDS.feelsLike * 2));
-  weightedScore += feelsLikeScore * 2.5;
-  totalWeight += 2.5;
-
-  // Wind similarity
-  const windDiff = Math.abs(current.windSpeed - feedback.windSpeed);
-  const windScore = Math.max(0, 1 - windDiff / (THRESHOLDS.windSpeed * 2));
-  weightedScore += windScore * 1.5;
-  totalWeight += 1.5;
-
-  // Humidity similarity
-  const humidityDiff = Math.abs(current.humidity - feedback.humidity);
-  const humidityScore = Math.max(0, 1 - humidityDiff / (THRESHOLDS.humidity * 2));
-  weightedScore += humidityScore * 1.0;
-  totalWeight += 1.0;
+  // T_comfort similarity (in °C)
+  const comfortDiff = Math.abs(currentComfort.comfortTempC - feedbackComfort.comfortTempC);
+  const comfortScore = Math.max(0, 1 - comfortDiff / (THRESHOLDS.comfortTemp * 2));
+  weightedScore += comfortScore * WEIGHTS.comfortTemp;
+  totalWeight += WEIGHTS.comfortTemp;
 
   return weightedScore / totalWeight;
 }
@@ -310,13 +391,15 @@ function findSimilarRuns(
   currentWeather: WeatherData,
   runs: RunRecord[],
   feedbackHistory: RunFeedback[],
-  minSimilarity: number = 0.5
+  minSimilarity: number = 0.5,
+  activity: ActivityType = 'running',
+  thermalPreference: ThermalPreference = 'average'
 ): SimilarityScore[] {
   const similarities: SimilarityScore[] = [];
 
   // Add CSV runs (no boosts applied - these are historical imports)
   for (const run of runs) {
-    const score = calculateSimilarity(currentWeather, run);
+    const score = calculateSimilarity(currentWeather, run, activity, thermalPreference);
     if (score >= minSimilarity) {
       similarities.push({ record: run, score, isFromFeedback: false });
     }
@@ -325,7 +408,7 @@ function findSimilarRuns(
   // Add ALL feedback records as runs (with boosts for recency and comfort)
   for (const feedback of feedbackHistory) {
     const runRecord = feedbackToRunRecord(feedback);
-    const score = calculateSimilarity(currentWeather, runRecord);
+    const score = calculateSimilarity(currentWeather, runRecord, activity, thermalPreference);
     
     if (score >= minSimilarity) {
       // Recency boost: more recent = higher boost
@@ -334,8 +417,8 @@ function findSimilarRuns(
       const daysSince = Math.max(1, (Date.now() - new Date(feedback.timestamp).getTime()) / (1000 * 60 * 60 * 24));
       const recencyBoost = Math.min(0.3, 30 / daysSince * 0.1);
       
-      // Comfort boost: +10% if user said this session was "just right"
-      const comfortBoost = feedback.comfort === 'just_right' ? 0.1 : 0;
+      // Comfort boost: +10% if user said this session was "just right" or "satisfied"
+      const comfortBoost = (feedback.comfort === 'just_right' || feedback.comfort === 'satisfied') ? 0.1 : 0;
       
       // Apply boosts, but cap at 100%
       const boostedScore = Math.min(1, score + recencyBoost + comfortBoost);
@@ -435,22 +518,21 @@ export function getClothingRecommendation(
   activity: ActivityType = 'running',
   thermalPreference: ThermalPreference = 'average'
 ): ClothingRecommendation {
-  // Use thermal preference setting for temperature offset (replaces calculated comfort adjustment)
-  const thermalOffset = THERMAL_OFFSETS[thermalPreference];
-  const comfortAdjustment: ComfortAdjustment = {
-    temperatureOffset: thermalOffset,
-    confidence: 100  // Static setting, not calculated
-  };
+  // Calculate T_comfort using new formula
+  const comfortBreakdown = calculateComfortTemperature(currentWeather, activity, thermalPreference);
+  const adjustedTempF = comfortTempToFahrenheit(comfortBreakdown.comfortTempC);
+  
   const categories = getClothingCategories(activity);
-  const adjustedTemp = currentWeather.temperature - thermalOffset;
+  const adjustedTemp = adjustedTempF;  // Now using T_comfort in °F
   
   // Initialize debug info
   const debugSafetyOverrides: SafetyOverrideDebug[] = [];
   
+  // Create adjusted weather using T_comfort for temperature-based decisions
   const adjustedWeather: WeatherData = {
     ...currentWeather,
-    temperature: currentWeather.temperature - thermalOffset,
-    feelsLike: currentWeather.feelsLike - thermalOffset
+    temperature: adjustedTempF,
+    feelsLike: adjustedTempF  // T_comfort already incorporates feels-like
   };
 
   // Check for recent similar feedback first
@@ -475,12 +557,15 @@ export function getClothingRecommendation(
         sunset: currentWeather.sunset?.toLocaleTimeString() || undefined,
       },
       comfortAdjustment: {
-        temperatureOffset: comfortAdjustment.temperatureOffset,
-        appliedOffset: -thermalOffset,  // Negative because we subtract it
-        confidence: comfortAdjustment.confidence,
-        adjustedTemp,
-        adjustedFeelsLike: currentWeather.feelsLike - thermalOffset,
-        tempRange: getTempRange(adjustedTemp),
+        actualTempC: comfortBreakdown.actualTempC,
+        feelsLikeTempC: comfortBreakdown.feelsLikeTempC,
+        delta: comfortBreakdown.delta,
+        B: comfortBreakdown.B,
+        wDelta: comfortBreakdown.wDelta,
+        thermalOffset: comfortBreakdown.thermalOffset,
+        comfortTempC: comfortBreakdown.comfortTempC,
+        comfortTempF: adjustedTempF,
+        tempRange: getTempRange(adjustedTempF),
       },
       recentExactMatch: true,
       similarMatches: [{
@@ -508,7 +593,7 @@ export function getClothingRecommendation(
     };
   }
 
-  const similarRuns = findSimilarRuns(adjustedWeather, runs, feedbackHistory, 0.4);
+  const similarRuns = findSimilarRuns(adjustedWeather, runs, feedbackHistory, 0.4, activity, thermalPreference);
   
   // ============ VOTING SYSTEM ============
   // Build clothing votes from similar runs for each category
@@ -878,12 +963,15 @@ export function getClothingRecommendation(
       sunset: currentWeather.sunset?.toLocaleTimeString() || undefined,
     },
     comfortAdjustment: {
-      temperatureOffset: comfortAdjustment.temperatureOffset,
-      appliedOffset: -thermalOffset,  // Negative because we subtract it
-      confidence: comfortAdjustment.confidence,
-      adjustedTemp,
-      adjustedFeelsLike: currentWeather.feelsLike - thermalOffset,
-      tempRange: getTempRange(adjustedTemp),
+      actualTempC: comfortBreakdown.actualTempC,
+      feelsLikeTempC: comfortBreakdown.feelsLikeTempC,
+      delta: comfortBreakdown.delta,
+      B: comfortBreakdown.B,
+      wDelta: comfortBreakdown.wDelta,
+      thermalOffset: comfortBreakdown.thermalOffset,
+      comfortTempC: comfortBreakdown.comfortTempC,
+      comfortTempF: adjustedTempF,
+      tempRange: getTempRange(adjustedTempF),
     },
     recentExactMatch: false,
     similarMatches: similarMatchesDebug,
@@ -913,8 +1001,13 @@ export function getFallbackRecommendation(
   activity: ActivityType = 'running',
   thermalPreference: ThermalPreference = 'average'
 ): ClothingItems {
-  // Check if we have any feedback with similar temperature
+  // Calculate T_comfort for this activity
+  const comfortBreakdown = calculateComfortTemperature(weather, activity, thermalPreference);
+  const adjustedTempF = comfortTempToFahrenheit(comfortBreakdown.comfortTempC);
+  
+  // Check if we have any feedback with similar T_comfort
   const relevantFeedback = feedbackHistory.filter(f => {
+    // Compare using T_comfort difference (in °F for now)
     const tempDiff = Math.abs(weather.temperature - f.temperature);
     return tempDiff <= 10;
   });
@@ -934,9 +1027,8 @@ export function getFallbackRecommendation(
   const clothing = getDefaultClothing(activity);
   const categories = getClothingCategories(activity);
   
-  // Use thermal preference setting for temperature offset
-  const thermalOffset = THERMAL_OFFSETS[thermalPreference];
-  const adjustedTemp = weather.temperature - thermalOffset;
+  // Use T_comfort for temperature band selection
+  const adjustedTemp = adjustedTempF;
   
   // Get temperature range
   const tempRange = getTempRange(adjustedTemp);

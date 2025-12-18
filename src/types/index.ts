@@ -254,10 +254,33 @@ export type ThermalPreference = 'cold' | 'average' | 'warm';
 // Temperature offsets for thermal preferences (in °F)
 // 'cold' = user runs cold, recommend warmer clothes (positive offset)
 // 'warm' = user runs hot, recommend lighter clothes (negative offset)
+// Thermal preference offsets in °C
+// Positive = user runs cold, needs warmer clothes
+// Negative = user runs warm, needs lighter clothes
 export const THERMAL_OFFSETS: Record<ThermalPreference, number> = {
-  cold: 8,     // Treat weather as 8°F colder → warmer recommendations
-  average: 0,  // No adjustment
-  warm: -8     // Treat weather as 8°F warmer → lighter recommendations
+  cold: 4.4,    // +4.4°C offset → warmer recommendations
+  average: 0,   // No adjustment
+  warm: -4.4    // -4.4°C offset → lighter recommendations
+};
+
+// Activity-specific thermal parameters for T_comfort calculation
+// B = base body heat generation (°C), higher = more heat = lighter clothes
+// wΔ = feels-like weight, higher = more affected by wind/humidity
+export interface ActivityThermalParams {
+  B: number;   // Base adjustment in °C
+  wDelta: number;  // Feels-like weight (0-1)
+}
+
+// T_comfort = T_actual + B(activity) + wΔ(activity) × Δ + thermal_offset
+// Where Δ = clamp(FeelsLike − Actual, −15°C, +8°C)
+export const ACTIVITY_THERMAL_PARAMS: Record<ActivityType, ActivityThermalParams> = {
+  walking:             { B: 0.5,  wDelta: 0.80 },  // Low heat, high wind impact
+  hiking:              { B: 2.0,  wDelta: 0.65 },  // Moderate heat, moderate wind
+  snowshoeing:         { B: 3.0,  wDelta: 0.60 },  // Good heat, some wind buffer
+  cycling:             { B: 4.0,  wDelta: 0.50 },  // High heat, consistent wind
+  cross_country_skiing: { B: 4.5,  wDelta: 0.50 },  // Very high heat, good protection
+  trail_running:       { B: 5.5,  wDelta: 0.40 },  // Very high heat, wind matters less
+  running:             { B: 6.0,  wDelta: 0.35 },  // Highest heat, least wind impact
 };
 
 // App settings stored in IndexedDB
@@ -435,14 +458,20 @@ export interface RecommendationDebugInfo {
     sunrise?: string;
     sunset?: string;
   };
-  // Comfort adjustment (thermal preference)
+  // T_comfort calculation breakdown
   comfortAdjustment: {
-    temperatureOffset: number;      // Raw offset value (positive for "runs cold")
-    appliedOffset: number;          // Actual change to temp (negative for "runs cold")
-    confidence: number;
-    adjustedTemp: number;
-    adjustedFeelsLike: number;
-    tempRange: string;
+    // Input values (in °C)
+    actualTempC: number;           // Raw temperature
+    feelsLikeTempC: number;        // Feels-like temperature
+    // Calculation components
+    delta: number;                 // Clamped Δ = clamp(FeelsLike - Actual, -15, +8)
+    B: number;                     // Activity base adjustment
+    wDelta: number;                // Activity feels-like weight
+    thermalOffset: number;         // User thermal preference offset
+    // Result
+    comfortTempC: number;          // Final T_comfort in °C
+    comfortTempF: number;          // Final T_comfort in °F (for display)
+    tempRange: string;             // Temperature band
   };
   // Matching
   recentExactMatch: boolean;

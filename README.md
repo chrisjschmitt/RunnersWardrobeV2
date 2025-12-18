@@ -368,6 +368,7 @@ Files with TODO comments:
 
 ## Version History
 
+- **v4.10.0**: T_comfort formula - activity-specific temperature calculation using B(activity), wΔ(activity), and thermal offset
 - **v4.9.3**: Fix debug panel - show actual temp change (not raw offset), add adjusted feels-like temp
 - **v4.9.2**: Fix headlamp/sunglasses - always based on current lighting, ignores historical votes
 - **v4.9.1**: Fix thermal offset display to use selected unit system (°C or °F)

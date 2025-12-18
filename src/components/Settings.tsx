@@ -876,30 +876,30 @@ export function Settings({
                         )}
                       </div>
 
-                      {/* Thermal preference adjustment */}
+                      {/* T_comfort calculation */}
                       <div className="bg-[rgba(255,255,255,0.05)] rounded-lg p-3">
-                        <div className="text-xs font-semibold text-[var(--color-text-muted)] mb-2">🎚️ THERMAL PREFERENCE</div>
-                        <div className="text-xs">
-                          Offset: <span className={`font-mono font-bold ${
-                            recDebug.comfortAdjustment.appliedOffset < 0 ? 'text-blue-400' :
-                            recDebug.comfortAdjustment.appliedOffset > 0 ? 'text-red-400' : ''
-                          }`}>
-                            {formatTemperatureDelta(recDebug.comfortAdjustment.appliedOffset, temperatureUnit)}
-                          </span>
-                          {recDebug.comfortAdjustment.appliedOffset !== 0 && (
-                            <span className="text-[var(--color-text-muted)] ml-1">
-                              ({recDebug.comfortAdjustment.appliedOffset < 0 ? 'runs cold' : 'runs hot'})
-                            </span>
-                          )}
+                        <div className="text-xs font-semibold text-[var(--color-text-muted)] mb-2">🌡️ T_COMFORT CALCULATION</div>
+                        <div className="text-xs mb-2 text-[var(--color-text-muted)]">
+                          T = Actual + B + (wΔ × Δ) + Thermal
                         </div>
-                        <div className="text-xs">
-                          Adjusted Temp: <span className="font-mono">{formatTemperature(recDebug.comfortAdjustment.adjustedTemp, temperatureUnit)}</span>
+                        <div className="grid grid-cols-2 gap-1 text-xs">
+                          <div>Actual: <span className="font-mono">{recDebug.comfortAdjustment.actualTempC.toFixed(1)}°C</span></div>
+                          <div>Feels Like: <span className="font-mono">{recDebug.comfortAdjustment.feelsLikeTempC.toFixed(1)}°C</span></div>
+                          <div>Δ (clamped): <span className="font-mono">{recDebug.comfortAdjustment.delta >= 0 ? '+' : ''}{recDebug.comfortAdjustment.delta.toFixed(1)}°C</span></div>
+                          <div>B (activity): <span className="font-mono text-[var(--color-accent)]">+{recDebug.comfortAdjustment.B.toFixed(1)}°C</span></div>
+                          <div>wΔ: <span className="font-mono">{recDebug.comfortAdjustment.wDelta.toFixed(2)}</span></div>
+                          <div>wΔ × Δ: <span className="font-mono">{(recDebug.comfortAdjustment.wDelta * recDebug.comfortAdjustment.delta) >= 0 ? '+' : ''}{(recDebug.comfortAdjustment.wDelta * recDebug.comfortAdjustment.delta).toFixed(1)}°C</span></div>
+                          <div>Thermal: <span className={`font-mono ${
+                            recDebug.comfortAdjustment.thermalOffset > 0 ? 'text-blue-400' :
+                            recDebug.comfortAdjustment.thermalOffset < 0 ? 'text-red-400' : ''
+                          }`}>{recDebug.comfortAdjustment.thermalOffset >= 0 ? '+' : ''}{recDebug.comfortAdjustment.thermalOffset.toFixed(1)}°C</span></div>
+                        </div>
+                        <div className="text-xs mt-2 pt-2 border-t border-[rgba(255,255,255,0.1)]">
+                          <strong>T_comfort:</strong> <span className="font-mono text-lg text-[var(--color-success)]">{recDebug.comfortAdjustment.comfortTempC.toFixed(1)}°C</span>
+                          <span className="text-[var(--color-text-muted)] ml-2">({recDebug.comfortAdjustment.comfortTempF.toFixed(0)}°F)</span>
                           <span className="ml-2 px-1 py-0.5 rounded bg-[rgba(255,255,255,0.1)] text-[var(--color-text-muted)]">
                             {recDebug.comfortAdjustment.tempRange}
                           </span>
-                        </div>
-                        <div className="text-xs">
-                          Adjusted Feels Like: <span className="font-mono">{formatTemperature(recDebug.comfortAdjustment.adjustedFeelsLike, temperatureUnit)}</span>
                         </div>
                       </div>
 

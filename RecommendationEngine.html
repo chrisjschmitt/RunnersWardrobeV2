@@ -342,18 +342,22 @@
             <div class="flow-step">
                 <div class="step-title">
                     <span class="step-number">1</span>
-                    Thermal Preference
+                    Calculate T_comfort
                 </div>
                 <p class="step-description">
-                    Apply user's personal "runs hot/cold" setting from Settings
+                    Calculate a comfort-adjusted temperature based on activity, weather, and preferences
                 </p>
+                <div class="formula-box" style="background: var(--bg-tertiary); padding: 1rem; border-radius: 8px; margin: 0.75rem 0; font-family: monospace;">
+                    <strong>T_comfort = T_actual + B(activity) + wΔ × Δ + thermal_offset</strong>
+                    <br><span style="color: var(--text-secondary); font-size: 0.9rem;">Where Δ = clamp(FeelsLike − Actual, −15°C, +8°C)</span>
+                </div>
                 <ul class="step-detail">
-                    <li><strong>Runs warm</strong> → treat weather as 8°F warmer (lighter clothing)</li>
-                    <li><strong>Average</strong> → no adjustment</li>
-                    <li><strong>Runs cold</strong> → treat weather as 8°F colder (warmer clothing)</li>
+                    <li><strong>B(activity)</strong> — Body heat adjustment: +0.5°C walking → +6°C running</li>
+                    <li><strong>wΔ × Δ</strong> — Weighted feels-like effect: 0.35 (running) → 0.80 (walking)</li>
+                    <li><strong>thermal_offset</strong> — User preference: −4.4°C (warm) / 0 / +4.4°C (cold)</li>
                 </ul>
                 <p class="step-description" style="margin-top: 0.75rem; font-size: 0.9rem; color: var(--text-secondary);">
-                    <em>Note: This is a one-time setting, not calculated from each activity's feedback.</em>
+                    <em>Higher B = more body heat = lighter clothing. Higher wΔ = more affected by wind chill.</em>
                 </p>
             </div>
 
@@ -419,8 +423,8 @@
             </div>
         </div>
 
-        <h2>⚖️ Weather Similarity Weights</h2>
-        <p>How much each weather factor contributes to matching past sessions:</p>
+        <h2>⚖️ T_comfort-Based Matching</h2>
+        <p>Similarity matching uses T_comfort as the primary metric (replaces separate temp/feels-like/wind matching):</p>
         
         <table>
             <thead>
@@ -433,40 +437,16 @@
             </thead>
             <tbody>
                 <tr>
-                    <td><strong>Temperature</strong></td>
-                    <td class="weight-high">3.0</td>
-                    <td>±5°F</td>
-                    <td>Perfect if ≤5°F diff, 0% if &gt;10°F diff</td>
-                </tr>
-                <tr>
-                    <td><strong>Feels Like</strong></td>
-                    <td class="weight-high">2.5</td>
-                    <td>±7°F</td>
-                    <td>Perfect if ≤7°F diff, 0% if &gt;14°F diff</td>
+                    <td><strong>T_comfort</strong></td>
+                    <td class="weight-high">5.0</td>
+                    <td>±3°C</td>
+                    <td>Perfect if ≤3°C diff, 0% if &gt;6°C diff</td>
                 </tr>
                 <tr>
                     <td><strong>Precipitation</strong></td>
-                    <td class="weight-medium">2.0</td>
+                    <td class="weight-medium">2.5</td>
                     <td>Yes/No</td>
                     <td>100% if both match, 30% if different</td>
-                </tr>
-                <tr>
-                    <td><strong>Wind Speed</strong></td>
-                    <td class="weight-medium">1.5</td>
-                    <td>±5 mph</td>
-                    <td>Perfect if ≤5mph diff, 0% if &gt;10mph diff</td>
-                </tr>
-                <tr>
-                    <td><strong>Humidity</strong></td>
-                    <td class="weight-low">1.0</td>
-                    <td>±15%</td>
-                    <td>Perfect if ≤15% diff, 0% if &gt;30% diff</td>
-                </tr>
-                <tr>
-                    <td><strong>Cloud Cover</strong></td>
-                    <td class="weight-low">0.5</td>
-                    <td>±20%</td>
-                    <td>Perfect if ≤20% diff, 0% if &gt;40% diff</td>
                 </tr>
                 <tr>
                     <td><strong>UV Index</strong></td>
@@ -477,10 +457,118 @@
             </tbody>
         </table>
 
-        <h3>📐 Example Calculation</h3>
+        <h2>🏃 Activity Thermal Parameters</h2>
+        <p>Each activity has specific parameters for T_comfort calculation:</p>
+        
+        <table>
+            <thead>
+                <tr>
+                    <th>Activity</th>
+                    <th>B (Base) °C</th>
+                    <th>wΔ (Feels-Like Weight)</th>
+                    <th>Logic</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>Walking</strong></td>
+                    <td>+0.5</td>
+                    <td>0.80</td>
+                    <td>Low body heat, high wind impact</td>
+                </tr>
+                <tr>
+                    <td><strong>Hiking</strong></td>
+                    <td>+2.0</td>
+                    <td>0.65</td>
+                    <td>Moderate heat, moderate wind</td>
+                </tr>
+                <tr>
+                    <td><strong>Snowshoeing</strong></td>
+                    <td>+3.0</td>
+                    <td>0.60</td>
+                    <td>Good heat, some wind buffer from layers</td>
+                </tr>
+                <tr>
+                    <td><strong>Cycling</strong></td>
+                    <td>+4.0</td>
+                    <td>0.50</td>
+                    <td>High heat, but wind is consistent</td>
+                </tr>
+                <tr>
+                    <td><strong>XC Skiing</strong></td>
+                    <td>+4.5</td>
+                    <td>0.50</td>
+                    <td>Very high heat, good wind protection</td>
+                </tr>
+                <tr>
+                    <td><strong>Trail Running</strong></td>
+                    <td>+5.5</td>
+                    <td>0.40</td>
+                    <td>Very high heat, wind matters less</td>
+                </tr>
+                <tr>
+                    <td><strong>Running</strong></td>
+                    <td>+6.0</td>
+                    <td>0.35</td>
+                    <td>Highest heat, least wind impact</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <h3>📐 Example T_comfort Calculation</h3>
         <p style="color: var(--text-secondary); margin-bottom: 1rem;">
-            Current weather: <strong>42°F</strong>, feels like 38°F, 8 mph wind, no rain<br>
-            Historical session: <strong>45°F</strong>, feels like 42°F, 5 mph wind, no rain
+            <strong>Scenario:</strong> Running, 5°C actual, 0°C feels-like, User "runs cold"
+        </p>
+        <table>
+            <thead>
+                <tr>
+                    <th>Component</th>
+                    <th>Value</th>
+                    <th>Description</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>T_actual</td>
+                    <td class="weight-high">5°C</td>
+                    <td>Current temperature</td>
+                </tr>
+                <tr>
+                    <td>Δ (delta)</td>
+                    <td>-5°C</td>
+                    <td>FeelsLike - Actual = 0 - 5 = -5°C</td>
+                </tr>
+                <tr>
+                    <td>B (Running)</td>
+                    <td class="weight-high">+6.0°C</td>
+                    <td>Base body heat for running</td>
+                </tr>
+                <tr>
+                    <td>wΔ (Running)</td>
+                    <td>0.35</td>
+                    <td>Feels-like weight for running</td>
+                </tr>
+                <tr>
+                    <td>wΔ × Δ</td>
+                    <td class="weight-medium">-1.75°C</td>
+                    <td>0.35 × -5 = -1.75°C wind chill effect</td>
+                </tr>
+                <tr>
+                    <td>Thermal offset</td>
+                    <td class="weight-medium">+4.4°C</td>
+                    <td>User "runs cold" preference</td>
+                </tr>
+                <tr style="background: var(--bg-tertiary);">
+                    <td colspan="2"><strong>T_comfort</strong></td>
+                    <td><strong style="color: var(--accent-green);">5 + 6.0 - 1.75 + 4.4 = 13.65°C</strong></td>
+                </tr>
+            </tbody>
+        </table>
+
+        <h3>📐 Example Similarity Matching</h3>
+        <p style="color: var(--text-secondary); margin-bottom: 1rem;">
+            Current T_comfort: <strong>10°C</strong>, no rain, UV 3<br>
+            Historical T_comfort: <strong>12°C</strong>, no rain, UV 4
         </p>
         <table>
             <thead>
@@ -494,46 +582,18 @@
             </thead>
             <tbody>
                 <tr>
-                    <td>Temperature</td>
-                    <td>3°F</td>
-                    <td>1 - (3/10) = 0.70</td>
-                    <td>× 3.0</td>
-                    <td class="weight-high">2.10</td>
-                </tr>
-                <tr>
-                    <td>Feels Like</td>
-                    <td>4°F</td>
-                    <td>1 - (4/14) = 0.71</td>
-                    <td>× 2.5</td>
-                    <td class="weight-high">1.78</td>
+                    <td>T_comfort</td>
+                    <td>2°C</td>
+                    <td>1 - (2/6) = 0.67</td>
+                    <td>× 5.0</td>
+                    <td class="weight-high">3.33</td>
                 </tr>
                 <tr>
                     <td>Precipitation</td>
                     <td>match</td>
                     <td>1.00</td>
-                    <td>× 2.0</td>
-                    <td class="weight-medium">2.00</td>
-                </tr>
-                <tr>
-                    <td>Wind Speed</td>
-                    <td>3 mph</td>
-                    <td>1 - (3/10) = 0.70</td>
-                    <td>× 1.5</td>
-                    <td class="weight-medium">1.05</td>
-                </tr>
-                <tr>
-                    <td>Humidity</td>
-                    <td>5%</td>
-                    <td>1 - (5/30) = 0.83</td>
-                    <td>× 1.0</td>
-                    <td class="weight-low">0.83</td>
-                </tr>
-                <tr>
-                    <td>Cloud Cover</td>
-                    <td>10%</td>
-                    <td>1 - (10/40) = 0.75</td>
-                    <td>× 0.5</td>
-                    <td class="weight-low">0.38</td>
+                    <td>× 2.5</td>
+                    <td class="weight-medium">2.50</td>
                 </tr>
                 <tr>
                     <td>UV Index</td>
@@ -544,7 +604,7 @@
                 </tr>
                 <tr style="background: var(--bg-tertiary);">
                     <td colspan="4"><strong>Total</strong></td>
-                    <td><strong style="color: var(--accent-green);">8.52 / 11.0 = 77%</strong></td>
+                    <td><strong style="color: var(--accent-green);">6.21 / 8.0 = 78%</strong></td>
                 </tr>
             </tbody>
         </table>
