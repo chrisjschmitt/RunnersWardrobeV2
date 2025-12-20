@@ -451,6 +451,7 @@ export function StartRun({ apiKey, hasApiKey, temperatureUnit, thermalPreference
             onClothingChange={handleClothingChange}
             activity={activity}
             temperatureUnit={temperatureUnit}
+            thermalPreference={thermalPreference}
           />
         )}
 
@@ -660,6 +661,7 @@ export function StartRun({ apiKey, hasApiKey, temperatureUnit, thermalPreference
           onClothingChange={handleClothingChange}
           activity={activity}
           temperatureUnit={temperatureUnit}
+          thermalPreference={thermalPreference}
         />
       )}
 

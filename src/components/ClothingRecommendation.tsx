@@ -1,11 +1,12 @@
 import { useState } from 'react';
-import type { ClothingRecommendation as ClothingRec, ClothingItems, ActivityType, RunRecord } from '../types';
+import type { ClothingRecommendation as ClothingRec, ClothingItems, ActivityType, RunRecord, ThermalPreference, WeatherData } from '../types';
 import { getClothingCategories } from '../types';
 import { ClothingPicker } from './ClothingPicker';
 import { ClothingInfoModal } from './ClothingInfoModal';
 import { getClothingInfo, type ClothingInfo } from '../data/clothingInfo';
 import { formatTemperature } from '../services/temperatureUtils';
 import type { TemperatureUnit } from '../services/temperatureUtils';
+import { calculateComfortTemperature } from '../services/recommendationEngine';
 
 // Icons for different clothing categories
 const CATEGORY_ICONS: Record<string, string> = {
@@ -39,6 +40,7 @@ interface ClothingRecommendationProps {
   onClothingChange?: (clothing: ClothingItems) => void;
   activity?: ActivityType;
   temperatureUnit?: TemperatureUnit;
+  thermalPreference?: ThermalPreference;
 }
 
 export function ClothingRecommendation({ 
@@ -49,7 +51,8 @@ export function ClothingRecommendation({
   editable = false,
   onClothingChange,
   activity = 'running',
-  temperatureUnit = 'fahrenheit'
+  temperatureUnit = 'fahrenheit',
+  thermalPreference = 'average'
 }: ClothingRecommendationProps) {
   const [editingCategory, setEditingCategory] = useState<string | null>(null);
   const [showingInfo, setShowingInfo] = useState<ClothingInfo | null>(null);
@@ -182,6 +185,8 @@ export function ClothingRecommendation({
                     key={index}
                     session={session}
                     temperatureUnit={temperatureUnit}
+                    activity={activity}
+                    thermalPreference={thermalPreference}
                   />
                 ))}
               </div>
@@ -322,9 +327,30 @@ function ConfidenceBadge({ confidence }: ConfidenceBadgeProps) {
 interface SimilarSessionCardProps {
   session: RunRecord;
   temperatureUnit: TemperatureUnit;
+  activity: ActivityType;
+  thermalPreference: ThermalPreference;
 }
 
-function SimilarSessionCard({ session, temperatureUnit }: SimilarSessionCardProps) {
+function SimilarSessionCard({ session, temperatureUnit, activity, thermalPreference }: SimilarSessionCardProps) {
+  // Calculate T_comfort for this session
+  const sessionWeather: WeatherData = {
+    temperature: session.temperature,
+    feelsLike: session.feelsLike,
+    humidity: session.humidity,
+    pressure: 0,
+    windSpeed: session.windSpeed,
+    precipitation: session.precipitation,
+    cloudCover: session.cloudCover,
+    uvIndex: session.uvIndex,
+    icon: '',
+    description: '',
+    location: '',
+    timestamp: new Date()
+  };
+  const comfortBreakdown = calculateComfortTemperature(sessionWeather, activity, thermalPreference);
+  const thermalComfortDisplay = temperatureUnit === 'celsius' 
+    ? `${Math.round(comfortBreakdown.comfortTempC)}°C`
+    : `${Math.round((comfortBreakdown.comfortTempC * 9/5) + 32)}°F`;
   const formatDate = (dateStr: string) => {
     try {
       const parts = dateStr.split('-');
@@ -386,6 +412,9 @@ function SimilarSessionCard({ session, temperatureUnit }: SimilarSessionCardProp
             </span>
             <span className="text-xs text-[var(--color-text-muted)]">
               feels like {formatTemperature(session.feelsLike, temperatureUnit)}
+            </span>
+            <span className="text-xs text-[var(--color-success)]" title="Thermal Comfort">
+              TC: {thermalComfortDisplay}
             </span>
             {comfort && (
               <span className="text-sm" title={comfort}>
