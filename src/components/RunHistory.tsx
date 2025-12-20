@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
-import type { RunRecord, RunFeedback, ActivityType } from '../types';
+import type { RunRecord, RunFeedback, ActivityType, ThermalPreference, WeatherData } from '../types';
 import { ACTIVITY_CONFIGS } from '../types';
 import { getAllRuns, clearAllRuns, getAllFeedback, clearAllFeedback, deleteRun, deleteFeedback, exportAllHistoryAsCSV } from '../services/database';
 import { resetSessionCount, getSessionCount } from './BackupReminder';
 import { formatTemperature, formatWindSpeed, type TemperatureUnit } from '../services/temperatureUtils';
+import { calculateComfortTemperature } from '../services/recommendationEngine';
 
 // Extended type to track source
 interface DisplayRun extends RunRecord {
@@ -16,9 +17,10 @@ interface RunHistoryProps {
   onDataCleared: () => void;
   temperatureUnit: TemperatureUnit;
   activity?: ActivityType;
+  thermalPreference?: ThermalPreference;
 }
 
-export function RunHistory({ onDataCleared, temperatureUnit, activity = 'running' }: RunHistoryProps) {
+export function RunHistory({ onDataCleared, temperatureUnit, activity = 'running', thermalPreference = 'average' }: RunHistoryProps) {
   const activityConfig = ACTIVITY_CONFIGS[activity];
   const [runs, setRuns] = useState<DisplayRun[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -328,6 +330,8 @@ export function RunHistory({ onDataCleared, temperatureUnit, activity = 'running
               onDelete={handleDeleteRun}
               activityName={activityConfig.name}
               clothingCategories={activityConfig.clothingCategories}
+              activity={activity}
+              thermalPreference={thermalPreference}
             />
           ))}
           {filteredRuns.length === 0 && (filter || sourceFilter !== 'all') && (
@@ -355,11 +359,33 @@ interface RunCardProps {
   onDelete: (run: DisplayRun) => void;
   activityName: string;
   clothingCategories: ClothingCategory[];
+  activity: ActivityType;
+  thermalPreference: ThermalPreference;
 }
 
-function RunCard({ run, index, temperatureUnit, onDelete, activityName, clothingCategories }: RunCardProps) {
+function RunCard({ run, index, temperatureUnit, onDelete, activityName, clothingCategories, activity, thermalPreference }: RunCardProps) {
   const [isExpanded, setIsExpanded] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  
+  // Calculate T_comfort for this run
+  const runWeather: WeatherData = {
+    temperature: run.temperature,
+    feelsLike: run.feelsLike,
+    humidity: run.humidity,
+    pressure: 0,
+    windSpeed: run.windSpeed,
+    precipitation: run.precipitation,
+    cloudCover: run.cloudCover,
+    uvIndex: run.uvIndex,
+    icon: '',
+    description: '',
+    location: '',
+    timestamp: new Date()
+  };
+  const comfortBreakdown = calculateComfortTemperature(runWeather, activity, thermalPreference);
+  const thermalComfortDisplay = temperatureUnit === 'celsius' 
+    ? `${Math.round(comfortBreakdown.comfortTempC)}°C`
+    : `${Math.round((comfortBreakdown.comfortTempC * 9/5) + 32)}°F`;
   
   const formatDate = (dateStr: string) => {
     try {
@@ -423,6 +449,9 @@ function RunCard({ run, index, temperatureUnit, onDelete, activityName, clothing
             </span>
             <span className="text-[var(--color-text-muted)]">
               feels like {formatTemperature(run.feelsLike, temperatureUnit)}
+            </span>
+            <span className="text-[var(--color-success)] text-sm" title="Thermal Comfort - adjusted for activity and preferences">
+              TC: {thermalComfortDisplay}
             </span>
             {/* Source badge */}
             <span className={`text-xs px-2 py-0.5 rounded-full ${

@@ -1,15 +1,26 @@
-import type { WeatherData, WeatherAlert } from '../types';
+import { useState } from 'react';
+import type { WeatherData, WeatherAlert, ActivityType, ThermalPreference } from '../types';
 import { getWeatherIconUrl, getWeatherAlerts } from '../services/weatherApi';
 import { formatTemperature, getUnitSymbol, formatWindSpeed, formatPrecipitation, type TemperatureUnit } from '../services/temperatureUtils';
+import { calculateComfortTemperature } from '../services/recommendationEngine';
 
 interface WeatherDisplayProps {
   weather: WeatherData;
   unit: TemperatureUnit;
   compact?: boolean;
+  activity?: ActivityType;
+  thermalPreference?: ThermalPreference;
 }
 
-export function WeatherDisplay({ weather, unit, compact = false }: WeatherDisplayProps) {
+export function WeatherDisplay({ weather, unit, compact = false, activity = 'running', thermalPreference = 'average' }: WeatherDisplayProps) {
+  const [showThermalHelp, setShowThermalHelp] = useState(false);
   const alerts = getWeatherAlerts(weather, unit);
+  
+  // Calculate T_comfort
+  const comfortBreakdown = calculateComfortTemperature(weather, activity, thermalPreference);
+  const thermalComfortDisplay = unit === 'celsius' 
+    ? `${Math.round(comfortBreakdown.comfortTempC)}°C`
+    : `${Math.round((comfortBreakdown.comfortTempC * 9/5) + 32)}°F`;
   
   // Format time for sunrise/sunset display
   const formatTime = (date?: Date) => {
@@ -63,6 +74,30 @@ export function WeatherDisplay({ weather, unit, compact = false }: WeatherDispla
             label="Feels Like"
             value={formatTemperature(weather.feelsLike, unit)}
           />
+          <div 
+            className="flex items-center gap-3 p-3 bg-[rgba(255,255,255,0.05)] rounded-lg cursor-pointer hover:bg-[rgba(255,255,255,0.1)] transition-colors relative"
+            onClick={() => setShowThermalHelp(!showThermalHelp)}
+          >
+            <div className="text-[var(--color-accent)]">
+              <ThermalComfortIcon />
+            </div>
+            <div className="flex-1">
+              <div className="text-xs text-[var(--color-text-muted)] flex items-center gap-1">
+                Thermal Comfort
+                <span className="text-[10px] bg-[var(--color-accent)] text-white rounded-full w-4 h-4 flex items-center justify-center">?</span>
+              </div>
+              <div className="font-medium text-[var(--color-success)]">{thermalComfortDisplay}</div>
+            </div>
+            {showThermalHelp && (
+              <div className="absolute bottom-full left-0 right-0 mb-2 p-3 bg-[var(--color-bg-secondary)] border border-[var(--color-accent)] rounded-lg shadow-lg z-10 text-xs">
+                <p className="font-semibold text-[var(--color-accent)] mb-1">What is Thermal Comfort?</p>
+                <p className="text-[var(--color-text-muted)]">
+                  Adjusted temperature based on your activity ({activity}) and personal preference. 
+                  Higher activity = more body heat = feels warmer.
+                </p>
+              </div>
+            )}
+          </div>
           <WeatherStat 
             icon={<DropletIcon />}
             label="Humidity"
@@ -261,6 +296,14 @@ function SunsetIcon() {
     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v1m0 0V3m0 1a9 9 0 019 9M12 4a9 9 0 00-9 9m9-9v1m0 16v1m-9-9h1m16 0h1M5.636 5.636l.707.707m12.02-.707l-.707.707" />
       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 17h18M7 17l5 5 5-5" />
+    </svg>
+  );
+}
+
+function ThermalComfortIcon() {
+  return (
+    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
     </svg>
   );
 }

@@ -435,7 +435,7 @@ export function StartRun({ apiKey, hasApiKey, temperatureUnit, thermalPreference
           
           {weather && (
             <div className="mb-4">
-              <WeatherDisplay weather={weather} unit={temperatureUnit} compact />
+              <WeatherDisplay weather={weather} unit={temperatureUnit} compact activity={activity} thermalPreference={thermalPreference} />
             </div>
           )}
         </div>
@@ -647,7 +647,7 @@ export function StartRun({ apiKey, hasApiKey, temperatureUnit, thermalPreference
       )}
 
       {/* Weather display */}
-      {weather && <WeatherDisplay weather={weather} unit={temperatureUnit} />}
+      {weather && <WeatherDisplay weather={weather} unit={temperatureUnit} activity={activity} thermalPreference={thermalPreference} />}
 
       {/* Clothing recommendations - editable before starting run */}
       {weather && (

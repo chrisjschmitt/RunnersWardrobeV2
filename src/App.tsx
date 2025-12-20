@@ -255,6 +255,7 @@ function App() {
             onDataCleared={handleDataCleared}
             temperatureUnit={temperatureUnit}
             activity={selectedActivity}
+            thermalPreference={thermalPreference}
           />
         )}
         {view === 'settings' && (
