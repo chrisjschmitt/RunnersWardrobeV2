@@ -74,6 +74,7 @@ export function StartRun({ apiKey, hasApiKey, temperatureUnit, thermalPreference
   const [updateAvailable, setUpdateAvailable] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
   const [isCheckingUpdate, setIsCheckingUpdate] = useState(false);
+  const [updateCheckResult, setUpdateCheckResult] = useState<'upToDate' | null>(null);
   const [showForgottenReminder, setShowForgottenReminder] = useState(false);
   const [forgottenDuration, setForgottenDuration] = useState('');
 
@@ -144,19 +145,21 @@ export function StartRun({ apiKey, hasApiKey, temperatureUnit, thermalPreference
 
   // Check for service worker updates
   const checkForUpdates = async () => {
-    if ('serviceWorker' in navigator) {
-      setIsCheckingUpdate(true);
-      try {
+    setIsCheckingUpdate(true);
+    setUpdateCheckResult(null);
+    
+    try {
+      // First check if there's a waiting service worker
+      if ('serviceWorker' in navigator) {
         const registration = await navigator.serviceWorker.getRegistration();
+        if (registration?.waiting) {
+          setUpdateAvailable(true);
+          setIsCheckingUpdate(false);
+          return;
+        }
+        
+        // Trigger an update check
         if (registration) {
-          // Check if there's already a waiting service worker
-          if (registration.waiting) {
-            setUpdateAvailable(true);
-            setIsCheckingUpdate(false);
-            return;
-          }
-          
-          // Trigger an update check
           await registration.update();
           
           // Listen for new service worker installing
@@ -164,7 +167,6 @@ export function StartRun({ apiKey, hasApiKey, temperatureUnit, thermalPreference
             const newWorker = registration.installing;
             if (newWorker) {
               newWorker.addEventListener('statechange', () => {
-                // When the new SW is installed and waiting, show update banner
                 if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
                   setUpdateAvailable(true);
                   setIsCheckingUpdate(false);
@@ -172,21 +174,22 @@ export function StartRun({ apiKey, hasApiKey, temperatureUnit, thermalPreference
               });
             }
           });
-          
-          // Also check again after a short delay (update may have just completed)
-          setTimeout(() => {
-            if (registration.waiting) {
-              setUpdateAvailable(true);
-            }
-            setIsCheckingUpdate(false);
-          }, 2000);
-        } else {
-          setIsCheckingUpdate(false);
         }
-      } catch (err) {
-        console.log('Update check failed:', err);
-        setIsCheckingUpdate(false);
       }
+      
+      // After a delay, if no update was found, show "up to date" message
+      setTimeout(() => {
+        setIsCheckingUpdate(false);
+        if (!updateAvailable) {
+          setUpdateCheckResult('upToDate');
+          // Clear the message after 3 seconds
+          setTimeout(() => setUpdateCheckResult(null), 3000);
+        }
+      }, 2000);
+      
+    } catch (err) {
+      console.log('Update check failed:', err);
+      setIsCheckingUpdate(false);
     }
   };
 
@@ -576,6 +579,18 @@ export function StartRun({ apiKey, hasApiKey, temperatureUnit, thermalPreference
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
             </svg>
             Checking for updates...
+          </span>
+        </div>
+      )}
+
+      {/* Up to date message */}
+      {updateCheckResult === 'upToDate' && !updateAvailable && (
+        <div className="p-2 text-center text-sm text-[var(--color-success)]">
+          <span className="inline-flex items-center gap-2">
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+            </svg>
+            App is up to date!
           </span>
         </div>
       )}
