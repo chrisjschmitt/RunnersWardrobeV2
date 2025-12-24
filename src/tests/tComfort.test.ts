@@ -56,9 +56,11 @@ describe('T_comfort Calculation', () => {
 
   describe('Thermal Preference Offsets', () => {
     it('should have correct offset values', () => {
-      expect(THERMAL_OFFSETS.cold).toBe(4.4);
+      // "runs cold" = needs warmer clothes = lower T_comfort = negative offset
+      expect(THERMAL_OFFSETS.cold).toBe(-4.4);
       expect(THERMAL_OFFSETS.average).toBe(0);
-      expect(THERMAL_OFFSETS.warm).toBe(-4.4);
+      // "runs warm" = needs lighter clothes = higher T_comfort = positive offset
+      expect(THERMAL_OFFSETS.warm).toBe(4.4);
     });
   });
 
@@ -118,23 +120,23 @@ describe('T_comfort Calculation', () => {
     });
 
     it('should apply thermal offset for "runs cold" preference', () => {
-      // 41°F (5°C), running, runs cold (+4.4°C offset)
+      // 41°F (5°C), running, runs cold (-4.4°C offset → lower T_comfort → warmer clothes)
       const weather = createWeatherData(41, 41);
       const result = calculateComfortTemperature(weather, 'running', 'cold');
-      
-      // T_comfort = 5 + 6.0 + 0 + 4.4 = 15.4°C
-      expect(result.thermalOffset).toBe(4.4);
-      expect(result.comfortTempC).toBeCloseTo(15.4, 1);
-    });
-
-    it('should apply thermal offset for "runs warm" preference', () => {
-      // 41°F (5°C), running, runs warm (-4.4°C offset)
-      const weather = createWeatherData(41, 41);
-      const result = calculateComfortTemperature(weather, 'running', 'warm');
       
       // T_comfort = 5 + 6.0 + 0 - 4.4 = 6.6°C
       expect(result.thermalOffset).toBe(-4.4);
       expect(result.comfortTempC).toBeCloseTo(6.6, 1);
+    });
+
+    it('should apply thermal offset for "runs warm" preference', () => {
+      // 41°F (5°C), running, runs warm (+4.4°C offset → higher T_comfort → lighter clothes)
+      const weather = createWeatherData(41, 41);
+      const result = calculateComfortTemperature(weather, 'running', 'warm');
+      
+      // T_comfort = 5 + 6.0 + 0 + 4.4 = 15.4°C
+      expect(result.thermalOffset).toBe(4.4);
+      expect(result.comfortTempC).toBeCloseTo(15.4, 1);
     });
 
     it('should have higher T_comfort for running vs walking at same temperature', () => {
@@ -177,7 +179,8 @@ describe('T_comfort Calculation', () => {
   describe('Example from documentation', () => {
     it('should match the documented example calculation', () => {
       // From docs: 5°C actual, 0°C feels-like, Running, User "runs cold"
-      // T_comfort = 5 + 6.0 + (0.35 × -5) + 4.4 = 5 + 6 - 1.75 + 4.4 = 13.65°C
+      // "runs cold" = -4.4°C offset (lower T_comfort → warmer clothes)
+      // T_comfort = 5 + 6.0 + (0.35 × -5) - 4.4 = 5 + 6 - 1.75 - 4.4 = 4.85°C
       
       // 5°C = 41°F, 0°C = 32°F
       const weather = createWeatherData(41, 32);
@@ -188,8 +191,8 @@ describe('T_comfort Calculation', () => {
       expect(result.delta).toBeCloseTo(-5, 1);
       expect(result.B).toBe(6.0);
       expect(result.wDelta).toBe(0.35);
-      expect(result.thermalOffset).toBe(4.4);
-      expect(result.comfortTempC).toBeCloseTo(13.65, 0.5);
+      expect(result.thermalOffset).toBe(-4.4);
+      expect(result.comfortTempC).toBeCloseTo(4.85, 0.5);
     });
   });
 });

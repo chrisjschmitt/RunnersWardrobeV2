@@ -354,7 +354,7 @@
                 <ul class="step-detail">
                     <li><strong>B(activity)</strong> — Body heat adjustment: +0.5°C walking → +6°C running</li>
                     <li><strong>wΔ × Δ</strong> — Weighted feels-like effect: 0.35 (running) → 0.80 (walking)</li>
-                    <li><strong>thermal_offset</strong> — User preference: −4.4°C (warm) / 0 / +4.4°C (cold)</li>
+                    <li><strong>thermal_offset</strong> — User preference: −4.4°C (cold) / 0 / +4.4°C (warm)</li>
                 </ul>
                 <p class="step-description" style="margin-top: 0.75rem; font-size: 0.9rem; color: var(--text-secondary);">
                     <em>Higher B = more body heat = lighter clothing. Higher wΔ = more affected by wind chill.</em>
@@ -555,12 +555,12 @@
                 </tr>
                 <tr>
                     <td>Thermal offset</td>
-                    <td class="weight-medium">+4.4°C</td>
-                    <td>User "runs cold" preference</td>
+                    <td class="weight-medium">-4.4°C</td>
+                    <td>User "runs cold" → lower T_comfort → warmer clothes</td>
                 </tr>
                 <tr style="background: var(--bg-tertiary);">
                     <td colspan="2"><strong>T_comfort</strong></td>
-                    <td><strong style="color: var(--accent-green);">5 + 6.0 - 1.75 + 4.4 = 13.65°C</strong></td>
+                    <td><strong style="color: var(--accent-green);">5 + 6.0 - 1.75 - 4.4 = 4.85°C</strong></td>
                 </tr>
             </tbody>
         </table>

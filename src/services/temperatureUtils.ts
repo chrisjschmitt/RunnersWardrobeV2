@@ -19,6 +19,7 @@ export function getUnitSymbol(unit: TemperatureUnit): string {
 
 // Format a temperature difference/delta (not an absolute temperature)
 // Used for things like "+3°F offset" which should become "+1.7°C offset"
+// NOTE: Input is expected to be in °F
 export function formatTemperatureDelta(deltaF: number, unit: TemperatureUnit): string {
   const symbol = unit === 'celsius' ? '°C' : '°F';
   if (unit === 'celsius') {
@@ -29,6 +30,20 @@ export function formatTemperatureDelta(deltaF: number, unit: TemperatureUnit): s
   }
   const sign = deltaF > 0 ? '+' : '';
   return `${sign}${deltaF.toFixed(1)}${symbol}`;
+}
+
+// Format a temperature difference/delta that's already in °C
+// Used for thermal preference offsets which are stored in °C
+export function formatTemperatureDeltaC(deltaC: number, unit: TemperatureUnit): string {
+  const symbol = unit === 'celsius' ? '°C' : '°F';
+  if (unit === 'fahrenheit') {
+    // Convert delta: 1°C change = 9/5°F change
+    const deltaF = Math.round(deltaC * 9 / 5 * 10) / 10;
+    const sign = deltaF > 0 ? '+' : '';
+    return `${sign}${deltaF}${symbol}`;
+  }
+  const sign = deltaC > 0 ? '+' : '';
+  return `${sign}${deltaC.toFixed(1)}${symbol}`;
 }
 
 // Wind speed conversion (stored in mph, display in km/h for metric)

@@ -255,12 +255,16 @@ export type ThermalPreference = 'cold' | 'average' | 'warm';
 // 'cold' = user runs cold, recommend warmer clothes (positive offset)
 // 'warm' = user runs hot, recommend lighter clothes (negative offset)
 // Thermal preference offsets in °C
-// Positive = user runs cold, needs warmer clothes
-// Negative = user runs warm, needs lighter clothes
+// These adjust T_comfort to change which temperature band is selected:
+// - Lower T_comfort → colder band → warmer clothing
+// - Higher T_comfort → warmer band → lighter clothing
+//
+// "Runs cold" = user feels cold easily → needs WARMER clothes → LOWER T_comfort → NEGATIVE offset
+// "Runs warm" = user feels hot easily → needs LIGHTER clothes → HIGHER T_comfort → POSITIVE offset
 export const THERMAL_OFFSETS: Record<ThermalPreference, number> = {
-  cold: 4.4,    // +4.4°C offset → warmer recommendations
+  cold: -4.4,   // -4.4°C → lower T_comfort → warmer recommendations
   average: 0,   // No adjustment
-  warm: -4.4    // -4.4°C offset → lighter recommendations
+  warm: 4.4     // +4.4°C → higher T_comfort → lighter recommendations
 };
 
 // Activity-specific thermal parameters for T_comfort calculation

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { getSettings, saveSettings } from '../services/database';
 import { isValidApiKeyFormat, isProxyMode } from '../services/weatherApi';
-import { formatTemperature, formatTemperatureDelta, formatWindSpeed, formatPrecipitation, type TemperatureUnit } from '../services/temperatureUtils';
+import { formatTemperature, formatTemperatureDeltaC, formatWindSpeed, formatPrecipitation, type TemperatureUnit } from '../services/temperatureUtils';
 import { getLastRecommendationDebug } from '../services/recommendationEngine';
 import type { TestWeatherData, RecommendationDebugInfo, ThermalPreference } from '../types';
 import { THERMAL_OFFSETS } from '../types';
@@ -332,7 +332,7 @@ export function Settings({
                   <div>
                     <div className="font-medium">Colder than most people</div>
                     <div className={`text-xs ${thermalPreference === 'cold' ? 'text-white/70' : 'text-[var(--color-text-muted)]'}`}>
-                      Warmer clothing recommendations ({formatTemperatureDelta(THERMAL_OFFSETS.cold, temperatureUnit)} offset)
+                      Warmer clothing recommendations ({formatTemperatureDeltaC(THERMAL_OFFSETS.cold, temperatureUnit)} offset)
                     </div>
                   </div>
                 </div>
@@ -378,7 +378,7 @@ export function Settings({
                   <div>
                     <div className="font-medium">Warmer than most people</div>
                     <div className={`text-xs ${thermalPreference === 'warm' ? 'text-white/70' : 'text-[var(--color-text-muted)]'}`}>
-                      Lighter clothing recommendations ({formatTemperatureDelta(THERMAL_OFFSETS.warm, temperatureUnit)} offset)
+                      Lighter clothing recommendations ({formatTemperatureDeltaC(THERMAL_OFFSETS.warm, temperatureUnit)} offset)
                     </div>
                   </div>
                 </div>
