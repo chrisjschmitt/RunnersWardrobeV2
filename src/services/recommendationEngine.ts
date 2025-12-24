@@ -888,9 +888,11 @@ export function getClothingRecommendation(
     ? similarRuns.reduce((sum, r) => sum + r.score, 0) / similarRuns.length
     : 0;
   
+  // Confidence calculation: 30% based on session count, 70% based on match quality
+  // This weights similarity more heavily - a few close matches = high confidence
   const confidence = Math.min(100, Math.round(
-    (Math.min(similarRuns.length, 10) / 10) * 50 +
-    avgSimilarity * 50
+    (Math.min(similarRuns.length, 10) / 10) * 30 +
+    avgSimilarity * 70
   ));
 
   // Build clothing votes debug info
