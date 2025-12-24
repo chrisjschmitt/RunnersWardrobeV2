@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import type { WeatherData, ClothingRecommendation as ClothingRec, ClothingItems, RunFeedback, ComfortLevel, TestWeatherData, ActivityType, ThermalPreference } from '../types';
 import { ACTIVITY_CONFIGS, THERMAL_OFFSETS } from '../types';
 import { getCurrentPosition, fetchWeather, clearWeatherCache } from '../services/weatherApi';
-import { getClothingRecommendation, getFallbackRecommendation } from '../services/recommendationEngine';
+import { getClothingRecommendation, getFallbackRecommendation, calculateComfortTemperature } from '../services/recommendationEngine';
 import { getAllRuns, getAllFeedback, addFeedback } from '../services/database';
 import { incrementSessionCount } from './BackupReminder';
 import { WeatherDisplay } from './WeatherDisplay';
@@ -441,6 +441,24 @@ export function StartRun({ apiKey, hasApiKey, temperatureUnit, thermalPreference
               <WeatherDisplay weather={weather} unit={temperatureUnit} compact activity={activity} thermalPreference={thermalPreference} />
             </div>
           )}
+          
+          {/* Extreme cold warning during run */}
+          {weather && (() => {
+            const comfortInfo = calculateComfortTemperature(weather, activity, thermalPreference);
+            if (comfortInfo.comfortTempF < 15) {
+              return (
+                <div className="p-3 bg-[rgba(239,68,68,0.2)] border border-red-500/50 rounded-lg mb-4">
+                  <div className="flex items-center gap-2">
+                    <svg className="w-5 h-5 text-red-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                    </svg>
+                    <p className="text-sm text-red-400 font-medium">Extreme cold - protect exposed skin!</p>
+                  </div>
+                </div>
+              );
+            }
+            return null;
+          })()}
         </div>
 
         {/* Show what they're wearing during the run - still editable */}
@@ -664,6 +682,28 @@ export function StartRun({ apiKey, hasApiKey, temperatureUnit, thermalPreference
 
       {/* Weather display */}
       {weather && <WeatherDisplay weather={weather} unit={temperatureUnit} activity={activity} thermalPreference={thermalPreference} />}
+
+      {/* Extreme cold warning */}
+      {weather && (() => {
+        const comfortInfo = calculateComfortTemperature(weather, activity, thermalPreference);
+        // Show warning if T_comfort is below 15°F (-9.4°C) - the "freezing" threshold
+        if (comfortInfo.comfortTempF < 15) {
+          return (
+            <div className="p-3 bg-[rgba(239,68,68,0.2)] border border-red-500/50 rounded-lg mb-4 animate-slide-up">
+              <div className="flex items-center gap-2">
+                <svg className="w-5 h-5 text-red-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+                <div>
+                  <p className="font-semibold text-red-400">Extreme Cold Warning</p>
+                  <p className="text-sm text-[var(--color-text-muted)]">Full coverage recommended. Protect exposed skin.</p>
+                </div>
+              </div>
+            </div>
+          );
+        }
+        return null;
+      })()}
 
       {/* Clothing recommendations - editable before starting run */}
       {weather && (

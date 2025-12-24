@@ -23,7 +23,7 @@
 
 const FORMSPREE_ENDPOINT = 'https://formspree.io/f/xkgdqvjo';
 const FIRST_LAUNCH_KEY = 'trailkit_first_launch_tracked';
-const APP_VERSION = '4.11.5';
+const APP_VERSION = '4.12.0';
 
 interface DeviceInfo {
   browser: string;
