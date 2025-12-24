@@ -442,7 +442,7 @@ export function StartRun({ apiKey, hasApiKey, temperatureUnit, thermalPreference
             </div>
           )}
           
-          {/* Extreme cold warning during run */}
+          {/* Extreme temperature warning during run */}
           {weather && (() => {
             const comfortInfo = calculateComfortTemperature(weather, activity, thermalPreference);
             if (comfortInfo.comfortTempC < -9.4) {
@@ -453,6 +453,18 @@ export function StartRun({ apiKey, hasApiKey, temperatureUnit, thermalPreference
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                     </svg>
                     <p className="text-sm text-red-400 font-medium">Extreme cold - protect exposed skin!</p>
+                  </div>
+                </div>
+              );
+            }
+            if (comfortInfo.comfortTempC > 29.4) {
+              return (
+                <div className="p-3 bg-[rgba(251,146,60,0.2)] border border-orange-500/50 rounded-lg mb-4">
+                  <div className="flex items-center gap-2">
+                    <svg className="w-5 h-5 text-orange-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                    </svg>
+                    <p className="text-sm text-orange-400 font-medium">Extreme heat - prioritize cooling and hydration!</p>
                   </div>
                 </div>
               );
@@ -683,7 +695,7 @@ export function StartRun({ apiKey, hasApiKey, temperatureUnit, thermalPreference
       {/* Weather display */}
       {weather && <WeatherDisplay weather={weather} unit={temperatureUnit} activity={activity} thermalPreference={thermalPreference} />}
 
-      {/* Extreme cold warning */}
+      {/* Extreme temperature warnings */}
       {weather && (() => {
         const comfortInfo = calculateComfortTemperature(weather, activity, thermalPreference);
         // Show warning if T_comfort is below -9.4°C (15°F) - the "freezing" threshold
@@ -697,6 +709,22 @@ export function StartRun({ apiKey, hasApiKey, temperatureUnit, thermalPreference
                 <div>
                   <p className="font-semibold text-red-400">Extreme Cold Warning</p>
                   <p className="text-sm text-[var(--color-text-muted)]">Full coverage recommended. Protect exposed skin.</p>
+                </div>
+              </div>
+            </div>
+          );
+        }
+        // Show warning if T_comfort is above 29.4°C (85°F) - extreme heat
+        if (comfortInfo.comfortTempC > 29.4) {
+          return (
+            <div className="p-3 bg-[rgba(251,146,60,0.2)] border border-orange-500/50 rounded-lg mb-4 animate-slide-up">
+              <div className="flex items-center gap-2">
+                <svg className="w-5 h-5 text-orange-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+                <div>
+                  <p className="font-semibold text-orange-400">Extreme Heat Warning</p>
+                  <p className="text-sm text-[var(--color-text-muted)]">Prioritize cooling and hydration.</p>
                 </div>
               </div>
             </div>
