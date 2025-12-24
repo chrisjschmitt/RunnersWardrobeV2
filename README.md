@@ -208,10 +208,17 @@ Compares current weather to your CSV history + older feedback, weighing factors:
 ### 3. Smart Voting
 Similar activities "vote" for clothing items. Your feedback votes count **2x** more than CSV data.
 
-### 4. Comfort Learning
-If you consistently report "too cold", recommendations shift warmer. "Too hot" shifts lighter.
+### 4. Thermal Preference
+Set your thermal preference in Settings ("runs cold", "average", or "runs warm"). This applies a ±4.4°C offset to the T_comfort calculation, adjusting all recommendations to match how YOUR body feels temperature.
 
-### 5. Smart Overrides
+### 5. Confidence Calculation
+Confidence reflects both match quality and quantity:
+- **30% weight**: Number of similar sessions (capped at 10)
+- **70% weight**: Average similarity score of matches
+
+Example: 2 sessions at 97% avg match = (2/10)×30 + 0.97×70 = **74% confidence**
+
+### 6. Smart Overrides
 Even if voting says "None" or historical data suggests otherwise, the app will recommend:
 - Rain gear when precipitation detected (rain only, not snow)
 - Base layers appropriate for temperature (no T-shirts below 40°F)
@@ -368,6 +375,12 @@ Files with TODO comments:
 
 ## Version History
 
+- **v4.11.5**: Confidence formula rebalanced (30% session count, 70% similarity) for better accuracy with few matches
+- **v4.11.4**: Refresh button shows "App is up to date!" feedback after checking
+- **v4.11.3**: Fix "you run cold/hot" display to match thermal preference setting
+- **v4.11.2**: Fix thermal preference offset logic (cold = warmer clothes, warm = lighter clothes)
+- **v4.11.1**: Display T_comfort in similar sessions dropdown
+- **v4.11.0**: Display Thermal Comfort temperature in weather display with help tooltip
 - **v4.10.0**: T_comfort formula - activity-specific temperature calculation using B(activity), wΔ(activity), and thermal offset
 - **v4.9.3**: Fix debug panel - show actual temp change (not raw offset), add adjusted feels-like temp
 - **v4.9.2**: Fix headlamp/sunglasses - always based on current lighting, ignores historical votes

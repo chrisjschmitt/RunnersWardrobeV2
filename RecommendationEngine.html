@@ -699,6 +699,62 @@
             <em>The app learns from what you actually wore, especially when you adjust the recommendation before saving.</em>
         </p>
 
+        <h2>📈 Confidence Calculation</h2>
+        <p>The confidence percentage shown in the app reflects both the <strong>quality</strong> and <strong>quantity</strong> of matching sessions:</p>
+        
+        <div class="flow-step secondary" style="margin: 1rem 0;">
+            <div class="step-title">Confidence Formula</div>
+            <pre style="background: var(--bg-secondary); padding: 1rem; border-radius: 8px; overflow-x: auto; margin-top: 0.5rem;">
+confidence = (sessionCount / 10) × 30%  +  avgSimilarity × 70%
+            </pre>
+            <ul class="step-detail" style="margin-top: 0.5rem;">
+                <li><strong>30% weight</strong> for session count (capped at 10 sessions)</li>
+                <li><strong>70% weight</strong> for average match quality of similar sessions</li>
+                <li>Maximum confidence: 100%</li>
+            </ul>
+        </div>
+
+        <h3>📊 Confidence Examples</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>Scenario</th>
+                    <th>Session Count</th>
+                    <th>Avg Match</th>
+                    <th>Confidence</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>2 very close matches</td>
+                    <td>(2/10) × 30 = 6</td>
+                    <td>97% × 70 = 68</td>
+                    <td><strong style="color: var(--accent-green);">74%</strong></td>
+                </tr>
+                <tr>
+                    <td>5 good matches</td>
+                    <td>(5/10) × 30 = 15</td>
+                    <td>85% × 70 = 60</td>
+                    <td><strong style="color: var(--accent-green);">75%</strong></td>
+                </tr>
+                <tr>
+                    <td>10+ excellent matches</td>
+                    <td>(10/10) × 30 = 30</td>
+                    <td>90% × 70 = 63</td>
+                    <td><strong style="color: var(--accent-green);">93%</strong></td>
+                </tr>
+                <tr>
+                    <td>1 perfect match</td>
+                    <td>(1/10) × 30 = 3</td>
+                    <td>100% × 70 = 70</td>
+                    <td><strong style="color: var(--accent-green);">73%</strong></td>
+                </tr>
+            </tbody>
+        </table>
+        <p style="color: var(--text-secondary); margin-top: 0.5rem; font-size: 0.9rem;">
+            <em>This weighting means a few very close matches can still produce high confidence, while more sessions provide additional reliability.</em>
+        </p>
+
         <h2>🛡️ Safety Overrides</h2>
         <p>Safety overrides fire <strong>after voting</strong> to prevent dangerous recommendations. They only trigger if the voted result is inadequate (e.g., "None" for gloves when it's freezing).</p>
         
