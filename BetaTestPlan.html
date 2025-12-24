@@ -271,7 +271,38 @@
 
         <!-- Recent Updates -->
         <section>
-            <h2>🆕 Recent Updates (v4.9.x)</h2>
+            <h2>🆕 Recent Updates (v4.10.x - v4.12.x)</h2>
+            
+            <h3>🌡️ T_comfort Temperature Metric</h3>
+            <ul>
+                <li><strong>New formula:</strong> T_comfort = T_actual + B(activity) + wΔ × Δ + thermal_offset</li>
+                <li><strong>Activity-specific:</strong> Different B and wΔ values for each activity (Running generates more body heat than Walking)</li>
+                <li><strong>Visible:</strong> "Thermal Comfort" temperature shown in weather display with help tooltip</li>
+                <li><strong>Matching:</strong> History matching now uses T_comfort for more accurate comparisons</li>
+            </ul>
+
+            <h3>⚠️ Extreme Temperature Warnings</h3>
+            <ul>
+                <li><strong>Extreme Cold:</strong> T_comfort &lt; -9°C (15°F) → Red warning banner</li>
+                <li><strong>Extreme Heat:</strong> T_comfort &gt; 29°C (85°F) → Orange warning banner</li>
+                <li><strong>Display:</strong> Shown before starting and during activity</li>
+                <li><strong>Messages:</strong> "Full coverage recommended" / "Prioritize cooling and hydration"</li>
+            </ul>
+
+            <h3>📈 Confidence Formula Update</h3>
+            <ul>
+                <li><strong>New weighting:</strong> 30% session count + 70% match quality (was 50/50)</li>
+                <li><strong>Benefit:</strong> A few very close matches now show higher confidence</li>
+                <li><strong>Example:</strong> 2 sessions at 97% → 74% confidence (was 59%)</li>
+            </ul>
+
+            <h3>🔄 Refresh Button Feedback</h3>
+            <ul>
+                <li><strong>New:</strong> Shows "Checking for updates..." spinner</li>
+                <li><strong>New:</strong> Shows "✓ App is up to date!" when no update available</li>
+            </ul>
+
+            <h2>🆕 Updates (v4.9.x)</h2>
             
             <h3>🌡️ Thermal Preference Setting</h3>
             <ul>

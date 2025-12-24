@@ -218,7 +218,12 @@ Confidence reflects both match quality and quantity:
 
 Example: 2 sessions at 97% avg match = (2/10)×30 + 0.97×70 = **74% confidence**
 
-### 6. Smart Overrides
+### 6. Extreme Temperature Warnings
+The app displays warning banners for dangerous conditions:
+- **Extreme Cold** (T_comfort < -9°C / 15°F): "Full coverage recommended. Protect exposed skin."
+- **Extreme Heat** (T_comfort > 29°C / 85°F): "Prioritize cooling and hydration."
+
+### 7. Smart Overrides
 Even if voting says "None" or historical data suggests otherwise, the app will recommend:
 - Rain gear when precipitation detected (rain only, not snow)
 - Base layers appropriate for temperature (no T-shirts below 40°F)
@@ -375,6 +380,8 @@ Files with TODO comments:
 
 ## Version History
 
+- **v4.12.2**: Extreme heat warning when T_comfort > 29°C (85°F)
+- **v4.12.0**: Extreme cold warning when T_comfort < -9°C (15°F)
 - **v4.11.5**: Confidence formula rebalanced (30% session count, 70% similarity) for better accuracy with few matches
 - **v4.11.4**: Refresh button shows "App is up to date!" feedback after checking
 - **v4.11.3**: Fix "you run cold/hot" display to match thermal preference setting

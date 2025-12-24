@@ -363,6 +363,8 @@ export function Help({ onTermsClick }: HelpProps) {
               Even if your history says otherwise, the app won't let you go out underdressed. It automatically:
             </p>
             <ul className="text-[var(--color-text-muted)] mt-2 ml-4 list-disc space-y-1 text-sm">
+              <li>Shows <strong className="text-red-400">Extreme Cold Warning</strong> below -9°C (15°F)</li>
+              <li>Shows <strong className="text-orange-400">Extreme Heat Warning</strong> above 29°C (85°F)</li>
               <li>Suggests warm layers, no shorts, and insulated gear in freezing weather</li>
               <li>Recommends rain gear when precipitation is detected</li>
               <li>Shows sunglasses when sunny (daytime only)</li>

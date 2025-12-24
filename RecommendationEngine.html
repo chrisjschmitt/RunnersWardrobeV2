@@ -827,6 +827,33 @@ confidence = (sessionCount / 10) × 30%  +  avgSimilarity × 70%
             <strong>Why no gloves override?</strong> Activity defaults already recommend appropriate gloves based on temperature, and users may have valid preferences (mittens, light gloves, etc.) that shouldn't be overridden.
         </p>
 
+        <h3>⚠️ Extreme Temperature Warnings</h3>
+        <p style="color: var(--text-secondary);">When T_comfort falls outside safe ranges, a warning banner is displayed:</p>
+        <table>
+            <thead>
+                <tr>
+                    <th>Condition</th>
+                    <th>Threshold</th>
+                    <th>Warning</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td style="color: #f87171;"><strong>❄️ Extreme Cold</strong></td>
+                    <td>T_comfort &lt; -9.4°C (15°F)</td>
+                    <td>"Full coverage recommended. Protect exposed skin."</td>
+                </tr>
+                <tr>
+                    <td style="color: #fb923c;"><strong>🔥 Extreme Heat</strong></td>
+                    <td>T_comfort &gt; 29.4°C (85°F)</td>
+                    <td>"Prioritize cooling and hydration."</td>
+                </tr>
+            </tbody>
+        </table>
+        <p style="color: var(--text-secondary); margin-top: 0.5rem; font-size: 0.9rem;">
+            These warnings appear both before starting and during your activity.
+        </p>
+
         <h2>🌡️ Temperature Ranges (Fallback Defaults)</h2>
         <p>When no history exists, the app uses activity-specific defaults for these temperature ranges:</p>
         
