@@ -614,7 +614,7 @@ export function StartRun({ apiKey, hasApiKey, temperatureUnit, thermalPreference
             Based on {feedbackCount} {feedbackCount === 1 ? 'run' : 'runs'} of feedback
             {comfortAdjustment !== 0 && (
               <span className="ml-1">
-                ({comfortAdjustment > 0 ? 'you run cold' : 'you run hot'})
+                ({comfortAdjustment < 0 ? 'you run cold' : 'you run hot'})
               </span>
             )}
           </span>
