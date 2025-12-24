@@ -445,7 +445,7 @@ export function StartRun({ apiKey, hasApiKey, temperatureUnit, thermalPreference
           {/* Extreme cold warning during run */}
           {weather && (() => {
             const comfortInfo = calculateComfortTemperature(weather, activity, thermalPreference);
-            if (comfortInfo.comfortTempF < 15) {
+            if (comfortInfo.comfortTempC < -9.4) {
               return (
                 <div className="p-3 bg-[rgba(239,68,68,0.2)] border border-red-500/50 rounded-lg mb-4">
                   <div className="flex items-center gap-2">
@@ -686,8 +686,8 @@ export function StartRun({ apiKey, hasApiKey, temperatureUnit, thermalPreference
       {/* Extreme cold warning */}
       {weather && (() => {
         const comfortInfo = calculateComfortTemperature(weather, activity, thermalPreference);
-        // Show warning if T_comfort is below 15°F (-9.4°C) - the "freezing" threshold
-        if (comfortInfo.comfortTempF < 15) {
+        // Show warning if T_comfort is below -9.4°C (15°F) - the "freezing" threshold
+        if (comfortInfo.comfortTempC < -9.4) {
           return (
             <div className="p-3 bg-[rgba(239,68,68,0.2)] border border-red-500/50 rounded-lg mb-4 animate-slide-up">
               <div className="flex items-center gap-2">
