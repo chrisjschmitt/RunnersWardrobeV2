@@ -251,6 +251,7 @@
             font-weight: 500;
         }
 
+        .temp-extremecold { background: #1e1b4b; color: #818cf8; }
         .temp-freezing { background: #1e3a5f; color: #93c5fd; }
         .temp-verycold { background: #1e3a5f; color: #60a5fa; }
         .temp-cold { background: #164e63; color: #67e8f9; }
@@ -839,6 +840,11 @@ confidence = (sessionCount / 10) × 30%  +  avgSimilarity × 70%
             </thead>
             <tbody>
                 <tr>
+                    <td style="color: #dc2626;"><strong>⚠️ Dangerous Cold</strong></td>
+                    <td>T_comfort &lt; -15°C (5°F)</td>
+                    <td>Strong warning about potential lung damage. Recommends moving indoors, reducing intensity, or using mask/buff to warm air. Full body coverage essential.</td>
+                </tr>
+                <tr>
                     <td style="color: #f87171;"><strong>❄️ Extreme Cold</strong></td>
                     <td>T_comfort &lt; -9.4°C (15°F)</td>
                     <td>"Full coverage recommended. Protect exposed skin."</td>
@@ -851,14 +857,15 @@ confidence = (sessionCount / 10) × 30%  +  avgSimilarity × 70%
             </tbody>
         </table>
         <p style="color: var(--text-secondary); margin-top: 0.5rem; font-size: 0.9rem;">
-            These warnings appear both before starting and during your activity.
+            These warnings appear both before starting and during your activity. The dangerous cold warning is based on research showing temperatures below -15°C can cause permanent lung damage.
         </p>
 
         <h2>🌡️ Temperature Ranges (Fallback Defaults)</h2>
         <p>When no history exists, the app uses activity-specific defaults for these temperature ranges:</p>
         
         <div class="temp-ranges">
-            <span class="temp-badge temp-freezing">❄️ Freezing: &lt;15°F</span>
+            <span class="temp-badge temp-extremecold">⚠️ Extreme Cold: &lt;5°F</span>
+            <span class="temp-badge temp-freezing">❄️ Freezing: 5-15°F</span>
             <span class="temp-badge temp-verycold">🥶 Very Cold: 15-25°F</span>
             <span class="temp-badge temp-cold">🧊 Cold: 25-40°F</span>
             <span class="temp-badge temp-cool">🍃 Cool: 40-55°F</span>
@@ -869,6 +876,7 @@ confidence = (sessionCount / 10) × 30%  +  avgSimilarity × 70%
         
         <p style="color: var(--text-secondary); margin-top: 1rem;">
             Each activity (Running, Cycling, Walking, etc.) has its own set of defaults for each temperature range.
+            The extremeCold range includes more protective gear (mittens, neck gaiters, expedition-weight base layers) based on research showing temperatures below -15°C can be harmful to lung health.
             For example, Cycling defaults include helmet, jersey, and cycling shoes, while Walking includes more casual options.
         </p>
 
@@ -944,7 +952,7 @@ confidence = (sessionCount / 10) × 30%  +  avgSimilarity × 70%
         </table>
 
         <div class="footer">
-            <span class="version">v4.8.2</span>
+            <span class="version">v4.13.0</span>
             <p style="margin-top: 0.5rem;">TrailKit Recommendation Engine Documentation</p>
             <p>© 2025 TrailKit</p>
         </div>

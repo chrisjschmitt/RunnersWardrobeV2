@@ -220,6 +220,7 @@ Example: 2 sessions at 97% avg match = (2/10)×30 + 0.97×70 = **74% confidence*
 
 ### 6. Extreme Temperature Warnings
 The app displays warning banners for dangerous conditions:
+- **Dangerous Cold** (T_comfort < -15°C / 5°F): Strong warning about potential lung damage. Recommends moving indoors, reducing intensity, or using mask/buff to warm air. Full body coverage essential.
 - **Extreme Cold** (T_comfort < -9°C / 15°F): "Full coverage recommended. Protect exposed skin."
 - **Extreme Heat** (T_comfort > 29°C / 85°F): "Prioritize cooling and hydration."
 
@@ -380,6 +381,7 @@ Files with TODO comments:
 
 ## Version History
 
+- **v4.13.0**: Add extremeCold temperature range (< -15°C / 5°F) with lung health warnings and more protective clothing recommendations
 - **v4.12.2**: Extreme heat warning when T_comfort > 29°C (85°F)
 - **v4.12.0**: Extreme cold warning when T_comfort < -9°C (15°F)
 - **v4.11.5**: Confidence formula rebalanced (30% session count, 70% similarity) for better accuracy with few matches
@@ -419,7 +421,7 @@ Files with TODO comments:
 - **v4.0.1**: Help moved to main navigation, Import Data in Settings, UX improvements
 - **v4.0.0**: Rebranded to TrailKit, similar sessions display (tap banner to see details), notes on feedback, headlamp 60 min before sunset
 - **v3.5.1**: Comprehensive test suite (110+ tests), tests run on build
-- **v3.5.0**: Activity-specific temperature defaults - each activity now has tailored recommendations for 7 temperature ranges (freezing to hot)
+- **v3.5.0**: Activity-specific temperature defaults - each activity now has tailored recommendations for 8 temperature ranges (extremeCold, freezing, veryCold, cold, cool, mild, warm, hot)
 - **v3.4.3**: Restore delete button for custom clothing items
 - **v3.4.2**: Fix shorts being recommended in freezing weather (added bottoms safety override)
 - **v3.4.1**: Added 9 missing clothing info entries (wool socks, sandals, XC ski tops, base layers)

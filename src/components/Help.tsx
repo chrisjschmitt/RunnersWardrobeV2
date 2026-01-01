@@ -164,7 +164,9 @@ These are mutually exclusive - you won't see both sunglasses and headlamp sugges
     answer: `The app works great right from the start! Without any history, it uses activity-specific defaults based on temperature:
 
 **Example (Running):**
-• **Below 25°F (-4°C)**: Base layer + fleece, tights, beanie, heavy gloves
+• **Below 5°F (-15°C)**: Base layer + jacket, tights, balaclava, heavy mittens, neck gaiter (extreme cold - potentially harmful)
+• **5-15°F (-15 to -9°C)**: Base layer + jacket, tights, balaclava, heavy gloves
+• **15-25°F (-9 to -4°C)**: Base layer + jacket, tights, beanie, heavy gloves
 • **25-40°F (-4 to 4°C)**: Long sleeve, tights, light gloves
 • **40-55°F (4-13°C)**: Long sleeve or T-shirt, shorts or tights
 • **55-65°F (13-18°C)**: T-shirt, shorts
@@ -172,6 +174,8 @@ These are mutually exclusive - you won't see both sunglasses and headlamp sugges
 
 **Every activity has its own defaults!**
 Cycling suggests jerseys and bibs. Hiking suggests layers and boots. XC Skiing suggests Nordic-specific gear. The app picks appropriate items for YOUR activity.
+
+**Important:** The app will show strong warnings below -15°C (5°F) as these temperatures can be harmful to lung health. Consider moving indoors or using protective gear like masks/buffs to warm the air you breathe.
 
 As you use the app, recommendations become tailored to YOUR preferences and history.`
   },
@@ -363,6 +367,7 @@ export function Help({ onTermsClick }: HelpProps) {
               Even if your history says otherwise, the app won't let you go out underdressed. It automatically:
             </p>
             <ul className="text-[var(--color-text-muted)] mt-2 ml-4 list-disc space-y-1 text-sm">
+              <li>Shows <strong className="text-red-600">Dangerous Cold Warning</strong> below -15°C (5°F) with lung health safety recommendations</li>
               <li>Shows <strong className="text-red-400">Extreme Cold Warning</strong> below -9°C (15°F)</li>
               <li>Shows <strong className="text-orange-400">Extreme Heat Warning</strong> above 29°C (85°F)</li>
               <li>Suggests warm layers, no shorts, and insulated gear in freezing weather</li>

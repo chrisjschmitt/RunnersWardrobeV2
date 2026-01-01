@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Clothing Selection Engine Report - v3.5.0</title>
+    <title>Clothing Selection Engine Report - v4.13.0</title>
     <style>
         :root {
             --bg-dark: #0f172a;
@@ -142,6 +142,7 @@
             background: rgba(255,255,255,0.03);
         }
         
+        .temp-extremecold { background: linear-gradient(90deg, #6366f1 0%, transparent 100%); }
         .temp-freezing { background: linear-gradient(90deg, #3b82f6 0%, transparent 100%); }
         .temp-verycold { background: linear-gradient(90deg, #06b6d4 0%, transparent 100%); }
         .temp-cold { background: linear-gradient(90deg, #22d3ee 0%, transparent 100%); }
@@ -296,7 +297,7 @@
     <div class="container">
         <header>
             <h1>🏃 Clothing Selection Engine Report</h1>
-            <p>Version 3.5.0 • Generated December 8, 2025</p>
+            <p>Version 4.13.0 • Generated January 2025</p>
         </header>
         
         <nav class="nav">
@@ -317,9 +318,13 @@
         <section id="temp-ranges">
             <h2><span class="icon">🌡️</span> Temperature Ranges</h2>
             <div class="temp-ranges">
+                <div class="temp-card temp-extremecold">
+                    <div class="name">Extreme Cold</div>
+                    <div class="range">&lt; 5°F (&lt; -15°C)</div>
+                </div>
                 <div class="temp-card temp-freezing">
                     <div class="name">Freezing</div>
-                    <div class="range">&lt; 15°F (&lt; -9°C)</div>
+                    <div class="range">5–14°F (-15 to -9°C)</div>
                 </div>
                 <div class="temp-card temp-verycold">
                     <div class="name">Very Cold</div>
@@ -367,6 +372,7 @@
                         </tr>
                     </thead>
                     <tbody>
+                        <tr><td><span class="temp-badge temp-extremecold">Extreme Cold</span></td><td>Balaclava</td><td>Base layer + jacket</td><td>Tights</td><td>Running shoes</td><td>Wool</td><td>Heavy mittens</td><td>None</td><td>Neck gaiter</td></tr>
                         <tr><td><span class="temp-badge temp-freezing">Freezing</span></td><td>Balaclava</td><td>Base layer + jacket</td><td>Tights</td><td>Running shoes</td><td>Wool</td><td>Heavy gloves</td><td>None</td><td>None</td></tr>
                         <tr><td><span class="temp-badge temp-verycold">Very Cold</span></td><td>Beanie</td><td>Base layer + jacket</td><td>Tights</td><td>Running shoes</td><td>Wool</td><td>Heavy gloves</td><td>None</td><td>None</td></tr>
                         <tr><td><span class="temp-badge temp-cold">Cold</span></td><td>Beanie</td><td>Long sleeve</td><td>Tights</td><td>Running shoes</td><td>Wool</td><td>Light gloves</td><td>None</td><td>None</td></tr>
@@ -399,6 +405,7 @@
                         </tr>
                     </thead>
                     <tbody>
+                        <tr><td><span class="temp-badge temp-extremecold">Extreme Cold</span></td><td>Balaclava</td><td>Base layer + jacket</td><td>Tights</td><td>Trail shoes</td><td>Wool</td><td>Heavy mittens</td><td>Wind jacket</td><td>Hydration vest</td><td>Neck gaiter</td></tr>
                         <tr><td><span class="temp-badge temp-freezing">Freezing</span></td><td>Balaclava</td><td>Base layer + jacket</td><td>Tights</td><td>Trail shoes</td><td>Wool</td><td>Heavy gloves</td><td>Wind jacket</td><td>Hydration vest</td><td>None</td></tr>
                         <tr><td><span class="temp-badge temp-verycold">Very Cold</span></td><td>Beanie</td><td>Base layer + jacket</td><td>Tights</td><td>Trail shoes</td><td>Wool</td><td>Heavy gloves</td><td>Wind jacket</td><td>Hydration vest</td><td>None</td></tr>
                         <tr><td><span class="temp-badge temp-cold">Cold</span></td><td>Beanie</td><td>Long sleeve</td><td>Tights</td><td>Trail shoes</td><td>Wool</td><td>Light gloves</td><td>None</td><td>Hydration vest</td><td>None</td></tr>
@@ -432,6 +439,7 @@
                         </tr>
                     </thead>
                     <tbody>
+                        <tr><td><span class="temp-badge temp-extremecold">Extreme Cold</span></td><td>Balaclava</td><td>Expedition weight</td><td>Heavy puffy</td><td>Insulated jacket</td><td>Insulated pants</td><td>Waterproof boots</td><td>Liner + heavy wool</td><td>Liner + mittens</td><td>Daypack (30L)</td><td>Neck gaiter + hand warmers</td></tr>
                         <tr><td><span class="temp-badge temp-freezing">Freezing</span></td><td>Balaclava</td><td>Merino base</td><td>Heavy puffy</td><td>Insulated jacket</td><td>Insulated pants</td><td>Waterproof boots</td><td>Heavy wool</td><td>Insulated gloves</td><td>Daypack (30L)</td><td>None</td></tr>
                         <tr><td><span class="temp-badge temp-verycold">Very Cold</span></td><td>Beanie</td><td>Merino base</td><td>Heavy puffy</td><td>Hardshell</td><td>Insulated pants</td><td>Waterproof boots</td><td>Heavy wool</td><td>Insulated gloves</td><td>Daypack (30L)</td><td>Trekking poles</td></tr>
                         <tr><td><span class="temp-badge temp-cold">Cold</span></td><td>Beanie</td><td>Merino base</td><td>Fleece</td><td>Wind jacket</td><td>Softshell pants</td><td>Hiking boots</td><td>Hiking socks</td><td>Light gloves</td><td>Daypack (30L)</td><td>Trekking poles</td></tr>
@@ -463,6 +471,7 @@
                         </tr>
                     </thead>
                     <tbody>
+                        <tr><td><span class="temp-badge temp-extremecold">Extreme Cold</span></td><td>Balaclava</td><td>Fleece</td><td>Winter coat</td><td>Insulated pants</td><td>Boots</td><td>Thick</td><td>Mittens</td><td>Scarf + face mask</td></tr>
                         <tr><td><span class="temp-badge temp-freezing">Freezing</span></td><td>Beanie</td><td>Fleece</td><td>Winter coat</td><td>Insulated pants</td><td>Boots</td><td>Thick</td><td>Warm gloves</td><td>Scarf</td></tr>
                         <tr><td><span class="temp-badge temp-verycold">Very Cold</span></td><td>Beanie</td><td>Fleece</td><td>Winter coat</td><td>Fleece-lined leggings</td><td>Boots</td><td>Thick</td><td>Warm gloves</td><td>Scarf</td></tr>
                         <tr><td><span class="temp-badge temp-cold">Cold</span></td><td>Beanie</td><td>Sweater</td><td>Down jacket</td><td>Fleece-lined leggings</td><td>Boots</td><td>Wool</td><td>Light gloves</td><td>None</td></tr>
@@ -496,6 +505,7 @@
                         </tr>
                     </thead>
                     <tbody>
+                        <tr><td><span class="temp-badge temp-extremecold">Extreme Cold</span></td><td>Road helmet</td><td>Thermal jersey</td><td>Bib tights</td><td>Shoe covers</td><td>Thermal socks</td><td>Mittens</td><td>Arm + leg warmers</td><td>Clear glasses</td><td>None</td><td>Neck gaiter + lights</td></tr>
                         <tr><td><span class="temp-badge temp-freezing">Freezing</span></td><td>Road helmet</td><td>Thermal jersey</td><td>Bib tights</td><td>Shoe covers</td><td>Thermal socks</td><td>Lobster gloves</td><td>Arm + leg warmers</td><td>Clear glasses</td><td>None</td><td>Lights</td></tr>
                         <tr><td><span class="temp-badge temp-verycold">Very Cold</span></td><td>Road helmet</td><td>Jersey + jacket</td><td>Bib tights</td><td>Shoe covers</td><td>Thermal socks</td><td>Lobster gloves</td><td>Arm + leg warmers</td><td>Clear glasses</td><td>None</td><td>Lights</td></tr>
                         <tr><td><span class="temp-badge temp-cold">Cold</span></td><td>Road helmet</td><td>Jersey + jacket</td><td>Bib tights</td><td>Road shoes</td><td>Wool socks</td><td>Thermal gloves</td><td>Leg warmers</td><td>Photochromic</td><td>None</td><td>None</td></tr>
@@ -529,6 +539,7 @@
                         </tr>
                     </thead>
                     <tbody>
+                        <tr><td><span class="temp-badge temp-extremecold">Extreme Cold</span></td><td>Balaclava</td><td>Expedition weight</td><td>Heavy puffy</td><td>Insulated jacket</td><td>Bibs</td><td>Pac boots</td><td>Liner + heavy wool</td><td>Liner + heavy mittens</td><td>Full gaiters</td><td>Poles + goggles + hand warmers</td></tr>
                         <tr><td><span class="temp-badge temp-freezing">Freezing</span></td><td>Balaclava</td><td>Expedition weight</td><td>Heavy puffy</td><td>Insulated jacket</td><td>Bibs</td><td>Pac boots</td><td>Liner + wool</td><td>Liner + mittens</td><td>Full gaiters</td><td>Poles + goggles</td></tr>
                         <tr><td><span class="temp-badge temp-verycold">Very Cold</span></td><td>Balaclava</td><td>Heavy merino</td><td>Heavy puffy</td><td>Hardshell</td><td>Insulated pants</td><td>Winter boots</td><td>Heavy wool</td><td>Heavy mittens</td><td>Gaiters</td><td>Poles + goggles</td></tr>
                         <tr><td><span class="temp-badge temp-cold">Cold</span></td><td>Beanie</td><td>Merino base</td><td>Fleece</td><td>Softshell</td><td>Softshell pants</td><td>Winter boots</td><td>Heavy wool</td><td>Insulated gloves</td><td>Gaiters</td><td>Poles + sunglasses</td></tr>
@@ -561,6 +572,7 @@
                         </tr>
                     </thead>
                     <tbody>
+                        <tr><td><span class="temp-badge temp-extremecold">Extreme Cold</span></td><td>Balaclava</td><td>Expedition weight</td><td>Wind jacket + fleece</td><td>Wind pants over tights</td><td>Insulated boots</td><td>Liner + wool socks</td><td>Liner + heavy mittens</td><td>Goggles</td><td>Neck gaiter + hand warmers</td></tr>
                         <tr><td><span class="temp-badge temp-freezing">Freezing</span></td><td>Balaclava</td><td>Merino base</td><td>Wind jacket + fleece</td><td>Wind pants over tights</td><td>Insulated boots</td><td>Wool socks</td><td>Heavy mittens</td><td>Goggles</td><td>Neck gaiter + hand warmers</td></tr>
                         <tr><td><span class="temp-badge temp-verycold">Very Cold</span></td><td>Beanie</td><td>Merino base</td><td>XC jacket</td><td>XC pants</td><td>Classic boots</td><td>Wool socks</td><td>Lobster mitts</td><td>Goggles</td><td>Neck gaiter</td></tr>
                         <tr><td><span class="temp-badge temp-cold">Cold</span></td><td>Light beanie</td><td>Merino base</td><td>XC jacket</td><td>XC pants</td><td>Classic boots</td><td>XC socks</td><td>XC gloves</td><td>Sunglasses</td><td>Neck gaiter</td></tr>

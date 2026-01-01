@@ -50,8 +50,9 @@ function getFallbackRecommendation(weather, activity) {
 #### 3. Hiking (Needs work)
 | Temp Range | baseLayer | midLayer | outerLayer | bottoms | footwear |
 |------------|-----------|----------|------------|---------|----------|
-| <25°F | Heavy merino | Heavy puffy | Insulated jacket | Insulated pants | Waterproof boots |
-| 25-40°F | Merino base | Fleece | Wind jacket | Softshell pants | Hiking boots |
+| <5°F | Expedition weight | Heavy puffy | Insulated jacket | Insulated pants | Waterproof boots |
+| 5-15°F | Heavy merino | Heavy puffy | Insulated jacket | Insulated pants | Waterproof boots |
+| 15-40°F | Merino base | Fleece | Wind jacket | Softshell pants | Hiking boots |
 | 40-55°F | Long sleeve | None/Fleece | None | Hiking pants | Hiking boots |
 | 55-65°F | T-shirt | None | None | Hiking pants | Hiking shoes |
 | 65-75°F | T-shirt | None | None | Convertible pants | Trail runners |
@@ -60,8 +61,9 @@ function getFallbackRecommendation(weather, activity) {
 #### 4. Walking (Needs work)
 | Temp Range | tops | outerLayer | bottoms | shoes |
 |------------|------|------------|---------|-------|
-| <25°F | Fleece | Winter coat | Insulated pants | Boots |
-| 25-40°F | Sweater | Down jacket | Fleece-lined leggings | Boots |
+| <5°F | Fleece | Winter coat | Insulated pants | Boots |
+| 5-15°F | Fleece | Winter coat | Insulated pants | Boots |
+| 15-40°F | Sweater | Down jacket | Fleece-lined leggings | Boots |
 | 40-55°F | Long sleeve | Light jacket | Casual pants | Walking shoes |
 | 55-65°F | T-shirt | None | Casual pants | Sneakers |
 | 65-75°F | T-shirt | None | Shorts | Sneakers |
@@ -70,8 +72,9 @@ function getFallbackRecommendation(weather, activity) {
 #### 5. Cycling (NEEDS MAJOR WORK)
 | Temp Range | jersey | bibs | shoes | socks | gloves | armWarmers |
 |------------|--------|------|-------|-------|--------|------------|
-| <25°F | Thermal jersey | Bib tights | Shoe covers | Thermal socks | Lobster gloves | Arm + leg warmers |
-| 25-40°F | Jersey + jacket | Bib tights | Road shoes | Wool socks | Thermal gloves | Leg warmers |
+| <5°F | Thermal jersey | Bib tights | Shoe covers | Thermal socks | Mittens | Arm + leg warmers |
+| 5-15°F | Thermal jersey | Bib tights | Shoe covers | Thermal socks | Lobster gloves | Arm + leg warmers |
+| 15-40°F | Jersey + jacket | Bib tights | Road shoes | Wool socks | Thermal gloves | Leg warmers |
 | 40-55°F | Long sleeve jersey | 3/4 bibs | Road shoes | Cycling socks | Full finger light | Knee warmers |
 | 55-65°F | Short sleeve jersey | Bib shorts | Road shoes | Cycling socks | Fingerless | None |
 | 65-75°F | Short sleeve jersey | Bib shorts | Road shoes | Cycling socks | None | None |
@@ -80,18 +83,20 @@ function getFallbackRecommendation(weather, activity) {
 #### 6. Snowshoeing (Already has winter defaults, but needs temp ranges)
 | Temp Range | baseLayer | midLayer | outerLayer | bottoms | boots | gloves |
 |------------|-----------|----------|------------|---------|-------|--------|
-| <0°F | Expedition weight | Heavy puffy | Insulated jacket | Bibs | Pac boots | Liner + mittens |
-| 0-15°F | Heavy merino | Heavy puffy | Hardshell | Insulated pants | Winter boots | Heavy mittens |
-| 15-25°F | Merino base | Fleece | Softshell | Softshell pants | Winter boots | Insulated gloves |
-| 25-35°F | Light synthetic | Light fleece | Wind jacket | Hiking pants | Winter hiking boots | Light gloves |
+| <5°F | Expedition weight | Heavy puffy | Insulated jacket | Bibs | Pac boots | Liner + heavy mittens |
+| 5-15°F | Expedition weight | Heavy puffy | Insulated jacket | Bibs | Pac boots | Liner + mittens |
+| 15-25°F | Heavy merino | Heavy puffy | Hardshell | Insulated pants | Winter boots | Heavy mittens |
+| 25-40°F | Merino base | Fleece | Softshell | Softshell pants | Winter boots | Insulated gloves |
+| 40-55°F | Light synthetic | Light fleece | Wind jacket | Hiking pants | Winter hiking boots | Light gloves |
 
 #### 7. XC Skiing (Highly activity-dependent)
 | Temp Range | baseLayer | tops | bottoms | boots | gloves |
 |------------|-----------|------|---------|-------|--------|
-| <0°F | Merino base | Wind jacket + fleece | Wind pants over tights | Insulated boots | Heavy mittens |
-| 0-15°F | Merino base | XC jacket | XC pants | Classic boots | Lobster mitts |
-| 15-25°F | Light synthetic | XC jacket | XC pants | Classic boots | XC gloves |
-| 25-35°F | Light synthetic | Soft shell | Race suit tights | Classic boots | Light gloves |
+| <5°F | Expedition weight | Wind jacket + fleece | Wind pants over tights | Insulated boots | Liner + heavy mittens |
+| 5-15°F | Merino base | Wind jacket + fleece | Wind pants over tights | Insulated boots | Heavy mittens |
+| 15-25°F | Merino base | XC jacket | XC pants | Classic boots | Lobster mitts |
+| 25-40°F | Light synthetic | XC jacket | XC pants | Classic boots | XC gloves |
+| 40-55°F | Light synthetic | Soft shell | Race suit tights | Classic boots | Light gloves |
 
 ---
 
@@ -103,14 +108,14 @@ Create a configuration object with defaults per activity per temperature range:
 ```typescript
 const ACTIVITY_TEMP_DEFAULTS: Record<ActivityType, TempDefaults> = {
   cycling: {
-    veryHot: { jersey: 'Sleeveless jersey', bibs: 'Shorts', ... },
-    hot: { jersey: 'Short sleeve jersey', bibs: 'Bib shorts', ... },
-    warm: { ... },
+    hot: { jersey: 'Sleeveless jersey', bibs: 'Shorts', ... },
+    warm: { jersey: 'Short sleeve jersey', bibs: 'Bib shorts', ... },
     mild: { ... },
     cool: { ... },
     cold: { ... },
     veryCold: { ... },
     freezing: { ... },
+    extremeCold: { ... },
   },
   // ... other activities
 };
