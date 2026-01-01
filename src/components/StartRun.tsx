@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import type { WeatherData, ClothingRecommendation as ClothingRec, ClothingItems, RunFeedback, ComfortLevel, TestWeatherData, ActivityType, ThermalPreference, ActivityLevel, ActivityDuration } from '../types';
 import { ACTIVITY_CONFIGS, THERMAL_OFFSETS } from '../types';
 import { getCurrentPosition, fetchWeather, clearWeatherCache } from '../services/weatherApi';
@@ -241,6 +241,80 @@ export function StartRun({ apiKey, hasApiKey, temperatureUnit, thermalPreference
     }
   };
 
+  // Separate function to calculate recommendations (defined first so it can be called by loadWeatherAndRecommendations)
+  const calculateRecommendations = useCallback(async (weatherData?: WeatherData) => {
+    const currentWeather = weatherData || weather;
+    if (!currentWeather) return;
+
+    // If Expert Mode is enabled, require both activity level and duration
+    if (expertMode && (!activityLevel || !duration)) {
+      return;
+    }
+
+    setIsLoadingRec(true);
+    try {
+      const [runs, feedbackHistory] = await Promise.all([
+        getAllRuns(activity),
+        getAllFeedback(activity)
+      ]);
+      
+      setFeedbackCount(feedbackHistory.length);
+      
+      // Use thermal preference setting for comfort adjustment
+      const thermalOffset = THERMAL_OFFSETS[thermalPreference];
+      setComfortAdjustment(thermalOffset);
+      
+      const currentActivityLevel = expertMode ? activityLevel : undefined;
+      
+      if (runs.length > 0 || feedbackHistory.length > 0) {
+        const rec = getClothingRecommendation(currentWeather, runs, feedbackHistory, activity, thermalPreference, currentActivityLevel);
+        
+        // If no similar runs found (confidence would be 0), use fallback instead
+        // This shows "Using activity defaults" message instead of "0% confidence"
+        if (rec.matchingRuns === 0) {
+          const fallbackRec = getFallbackRecommendation(currentWeather, feedbackHistory, activity, thermalPreference, currentActivityLevel);
+          setFallback(fallbackRec);
+          setRecommendation(null);
+          if (!hasUserEdits) {
+            setActualClothing(fallbackRec);
+          }
+        } else {
+          setRecommendation(rec);
+          setFallback(null);
+          // Only update actualClothing if user hasn't made edits
+          if (!hasUserEdits) {
+            setActualClothing(rec.clothing);
+          }
+        }
+      } else {
+        const fallbackRec = getFallbackRecommendation(currentWeather, feedbackHistory, activity, thermalPreference, currentActivityLevel);
+        setFallback(fallbackRec);
+        setRecommendation(null);
+        // Only update actualClothing if user hasn't made edits
+        if (!hasUserEdits) {
+          setActualClothing(fallbackRec);
+        }
+      }
+    } catch (err) {
+      console.error('Failed to calculate recommendations:', err);
+    } finally {
+      setIsLoadingRec(false);
+    }
+  }, [weather, activity, thermalPreference, expertMode, activityLevel, duration, hasUserEdits]);
+
+  // Helper to get appropriate weather icon for test mode
+  const getTestWeatherIcon = (tw: TestWeatherData): string => {
+    const desc = tw.description.toLowerCase();
+    if (desc.includes('rain')) return '10d';
+    if (desc.includes('snow')) return '13d';
+    if (desc.includes('cloud') || desc.includes('overcast')) return '04d';
+    if (desc.includes('partly')) return '02d';
+    if (desc.includes('fog')) return '50d';
+    if (tw.cloudCover > 70) return '04d';
+    if (tw.cloudCover > 30) return '03d';
+    return '01d'; // Clear
+  };
+
   const loadWeatherAndRecommendations = async (forceRefresh = false) => {
     if (!hasApiKey && !testMode) {
       onNeedApiKey();
@@ -291,67 +365,16 @@ export function StartRun({ apiKey, hasApiKey, temperatureUnit, thermalPreference
       setWeather(weatherData);
       setLastUpdate(new Date());
 
-      // Generate recommendations (filter by activity)
-      setIsLoadingRec(true);
-      const [runs, feedbackHistory] = await Promise.all([
-        getAllRuns(activity),
-        getAllFeedback(activity)
-      ]);
-      
-      setFeedbackCount(feedbackHistory.length);
-      
-      // Use thermal preference setting for comfort adjustment
-      const thermalOffset = THERMAL_OFFSETS[thermalPreference];
-      setComfortAdjustment(thermalOffset);
-      
-      if (runs.length > 0 || feedbackHistory.length > 0) {
-        const rec = getClothingRecommendation(weatherData, runs, feedbackHistory, activity, thermalPreference, expertMode ? activityLevel : undefined);
-        
-        // If no similar runs found (confidence would be 0), use fallback instead
-        // This shows "Using activity defaults" message instead of "0% confidence"
-        if (rec.matchingRuns === 0) {
-          const fallbackRec = getFallbackRecommendation(weatherData, feedbackHistory, activity, thermalPreference, expertMode ? activityLevel : undefined);
-          setFallback(fallbackRec);
-          setRecommendation(null);
-          if (!hasUserEdits) {
-            setActualClothing(fallbackRec);
-          }
-        } else {
-          setRecommendation(rec);
-          setFallback(null);
-          // Only update actualClothing if user hasn't made edits
-          if (!hasUserEdits) {
-            setActualClothing(rec.clothing);
-          }
-        }
-      } else {
-        const fallbackRec = getFallbackRecommendation(weatherData, feedbackHistory, activity, thermalPreference, expertMode ? activityLevel : undefined);
-        setFallback(fallbackRec);
-        setRecommendation(null);
-        // Only update actualClothing if user hasn't made edits
-        if (!hasUserEdits) {
-          setActualClothing(fallbackRec);
-        }
+      // If Expert Mode is enabled, wait for activity level/duration before calculating
+      // Otherwise, calculate immediately
+      if (!expertMode || (expertMode && activityLevel && duration)) {
+        await calculateRecommendations(weatherData);
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load weather');
     } finally {
       setIsLoadingWeather(false);
-      setIsLoadingRec(false);
     }
-  };
-
-  // Helper to get appropriate weather icon for test mode
-  const getTestWeatherIcon = (tw: TestWeatherData): string => {
-    const desc = tw.description.toLowerCase();
-    if (desc.includes('rain')) return '10d';
-    if (desc.includes('snow')) return '13d';
-    if (desc.includes('cloud') || desc.includes('overcast')) return '04d';
-    if (desc.includes('partly')) return '02d';
-    if (desc.includes('fog')) return '50d';
-    if (tw.cloudCover > 70) return '04d';
-    if (tw.cloudCover > 30) return '03d';
-    return '01d'; // Clear
   };
 
   useEffect(() => {
@@ -360,6 +383,13 @@ export function StartRun({ apiKey, hasApiKey, temperatureUnit, thermalPreference
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [hasApiKey, apiKey, testMode, testWeather, activity]);
+
+  // Recalculate recommendations when activity level or duration changes (if Expert Mode enabled and weather is loaded)
+  useEffect(() => {
+    if (weather && expertMode && activityLevel && duration) {
+      calculateRecommendations();
+    }
+  }, [weather, expertMode, activityLevel, duration, calculateRecommendations]);
 
   const handleClothingChange = (clothing: ClothingItems) => {
     setActualClothing(clothing);
@@ -750,6 +780,67 @@ export function StartRun({ apiKey, hasApiKey, temperatureUnit, thermalPreference
       {/* Weather display */}
       {weather && <WeatherDisplay weather={weather} unit={temperatureUnit} activity={activity} thermalPreference={thermalPreference} />}
 
+      {/* Expert Mode: Activity Level and Duration inputs - shown BEFORE recommendations */}
+      {weather && expertMode && runState === 'idle' && (
+        <div className="glass-card p-4 mb-4 animate-slide-up delay-200">
+          <h3 className="text-sm font-medium mb-3 flex items-center gap-2">
+            <svg className="w-4 h-4 text-[var(--color-accent)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+            </svg>
+            Activity Details
+          </h3>
+          
+          <div className="space-y-4">
+            {/* Activity Level */}
+            <div>
+              <label className="block text-sm font-medium mb-2">Intensity Level</label>
+              <div className="flex gap-2">
+                {(['low', 'medium', 'high'] as ActivityLevel[]).map((level) => (
+                  <button
+                    key={level}
+                    onClick={() => setActivityLevel(level)}
+                    className={`flex-1 py-2 px-3 rounded-lg font-medium transition-all ${
+                      activityLevel === level
+                        ? 'bg-[var(--color-accent)] text-white'
+                        : 'bg-[rgba(255,255,255,0.1)] text-[var(--color-text-muted)] hover:bg-[rgba(255,255,255,0.15)]'
+                    }`}
+                  >
+                    {level.charAt(0).toUpperCase() + level.slice(1)}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Duration */}
+            <div>
+              <label className="block text-sm font-medium mb-2">Duration</label>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setDuration('short')}
+                  className={`flex-1 py-2 px-3 rounded-lg font-medium transition-all ${
+                    duration === 'short'
+                      ? 'bg-[var(--color-accent)] text-white'
+                      : 'bg-[rgba(255,255,255,0.1)] text-[var(--color-text-muted)] hover:bg-[rgba(255,255,255,0.15)]'
+                  }`}
+                >
+                  &lt; 1 hour
+                </button>
+                <button
+                  onClick={() => setDuration('long')}
+                  className={`flex-1 py-2 px-3 rounded-lg font-medium transition-all ${
+                    duration === 'long'
+                      ? 'bg-[var(--color-accent)] text-white'
+                      : 'bg-[rgba(255,255,255,0.1)] text-[var(--color-text-muted)] hover:bg-[rgba(255,255,255,0.15)]'
+                  }`}
+                >
+                  ≥ 1 hour
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Extreme temperature warnings */}
       {weather && (() => {
         const comfortInfo = calculateComfortTemperature(weather, activity, thermalPreference, expertMode ? activityLevel : undefined);
@@ -820,67 +911,6 @@ export function StartRun({ apiKey, hasApiKey, temperatureUnit, thermalPreference
           temperatureUnit={temperatureUnit}
           thermalPreference={thermalPreference}
         />
-      )}
-
-      {/* Expert Mode: Activity Level and Duration inputs */}
-      {weather && !isLoadingRec && expertMode && runState === 'idle' && (
-        <div className="glass-card p-4 mb-4 animate-slide-up delay-300">
-          <h3 className="text-sm font-medium mb-3 flex items-center gap-2">
-            <svg className="w-4 h-4 text-[var(--color-accent)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-            </svg>
-            Activity Details
-          </h3>
-          
-          <div className="space-y-4">
-            {/* Activity Level */}
-            <div>
-              <label className="block text-sm font-medium mb-2">Intensity Level</label>
-              <div className="flex gap-2">
-                {(['low', 'medium', 'high'] as ActivityLevel[]).map((level) => (
-                  <button
-                    key={level}
-                    onClick={() => setActivityLevel(level)}
-                    className={`flex-1 py-2 px-3 rounded-lg font-medium transition-all ${
-                      activityLevel === level
-                        ? 'bg-[var(--color-accent)] text-white'
-                        : 'bg-[rgba(255,255,255,0.1)] text-[var(--color-text-muted)] hover:bg-[rgba(255,255,255,0.15)]'
-                    }`}
-                  >
-                    {level.charAt(0).toUpperCase() + level.slice(1)}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Duration */}
-            <div>
-              <label className="block text-sm font-medium mb-2">Duration</label>
-              <div className="flex gap-2">
-                <button
-                  onClick={() => setDuration('short')}
-                  className={`flex-1 py-2 px-3 rounded-lg font-medium transition-all ${
-                    duration === 'short'
-                      ? 'bg-[var(--color-accent)] text-white'
-                      : 'bg-[rgba(255,255,255,0.1)] text-[var(--color-text-muted)] hover:bg-[rgba(255,255,255,0.15)]'
-                  }`}
-                >
-                  &lt; 1 hour
-                </button>
-                <button
-                  onClick={() => setDuration('long')}
-                  className={`flex-1 py-2 px-3 rounded-lg font-medium transition-all ${
-                    duration === 'long'
-                      ? 'bg-[var(--color-accent)] text-white'
-                      : 'bg-[rgba(255,255,255,0.1)] text-[var(--color-text-muted)] hover:bg-[rgba(255,255,255,0.15)]'
-                  }`}
-                >
-                  ≥ 1 hour
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
       )}
 
       {/* Start run button */}
