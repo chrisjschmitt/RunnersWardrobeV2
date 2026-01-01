@@ -251,6 +251,31 @@ export function Settings({
     }
   };
 
+  const handleExpertModeToggle = async () => {
+    const newExpertMode = !expertMode;
+    setExpertMode(newExpertMode);
+    
+    // Auto-save expert mode setting immediately
+    try {
+      const settings = await getSettings();
+      if (settings) {
+        await saveSettings({
+          ...settings,
+          expertMode: newExpertMode
+        });
+        // Show brief feedback
+        setSaved(true);
+        setTimeout(() => setSaved(false), 2000);
+      }
+    } catch (err) {
+      console.error('Failed to save expert mode:', err);
+      // Revert on error
+      setExpertMode(!newExpertMode);
+      setError('Failed to save expert mode setting');
+      setTimeout(() => setError(null), 3000);
+    }
+  };
+
   const handleTestModeToggle = () => {
     const newTestMode = !testMode;
     onTestModeChange?.(newTestMode);
@@ -483,7 +508,7 @@ export function Settings({
             Expert Mode
           </h3>
           <button
-            onClick={() => setExpertMode(!expertMode)}
+            onClick={handleExpertModeToggle}
             className={`relative w-14 h-7 rounded-full transition-colors ${
               expertMode ? 'bg-[var(--color-accent)]' : 'bg-[rgba(255,255,255,0.2)]'
             }`}
