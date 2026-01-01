@@ -398,9 +398,11 @@ function SimilarSessionCard({ session, temperatureUnit, activity, thermalPrefere
     return items;
   };
 
-  // Check if this is feedback data (has comfort and comments fields)
+  // Check if this is feedback data (has comfort, comments, activityLevel, and duration fields)
   const comfort = (session as { comfort?: string }).comfort;
   const comments = (session as { comments?: string }).comments;
+  const activityLevel = (session as { activityLevel?: string }).activityLevel;
+  const duration = (session as { duration?: string }).duration;
 
   return (
     <div className="p-3 bg-[rgba(255,255,255,0.05)] rounded-lg border border-[rgba(255,255,255,0.1)]">
@@ -431,6 +433,20 @@ function SimilarSessionCard({ session, temperatureUnit, activity, thermalPrefere
               <span className="ml-1">• {session.location.split(',')[0]}</span>
             )}
           </div>
+          {(activityLevel || duration) && (
+            <div className="flex items-center gap-2 mt-1 flex-wrap">
+              {activityLevel && (
+                <span className="text-xs px-2 py-0.5 bg-[rgba(59,130,246,0.2)] text-blue-300 rounded">
+                  Level: <span className="font-medium capitalize">{activityLevel}</span>
+                </span>
+              )}
+              {duration && (
+                <span className="text-xs px-2 py-0.5 bg-[rgba(59,130,246,0.2)] text-blue-300 rounded">
+                  Duration: <span className="font-medium">{duration === 'short' ? '< 1 hour' : '≥ 1 hour'}</span>
+                </span>
+              )}
+            </div>
+          )}
           <div className="text-sm mt-1 text-[var(--color-text-muted)]">
             <span className="text-[rgba(255,255,255,0.5)]">Wore:</span>
             <div className="flex flex-wrap gap-1 mt-1">

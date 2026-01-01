@@ -344,7 +344,7 @@ function findRecentSimilarFeedback(
 
 // Convert feedback records to run records for clothing recommendations
 // Extends RunRecord with feedback-specific fields for display
-function feedbackToRunRecord(feedback: RunFeedback): RunRecord & { comfort?: string; comments?: string } {
+function feedbackToRunRecord(feedback: RunFeedback): RunRecord & { comfort?: string; comments?: string; activityLevel?: string; duration?: string } {
   // Extract time from timestamp
   const time = feedback.timestamp 
     ? new Date(feedback.timestamp).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })
@@ -366,7 +366,9 @@ function feedbackToRunRecord(feedback: RunFeedback): RunRecord & { comfort?: str
     activity: feedback.activity,
     // Include feedback-specific fields
     comfort: feedback.comfort,
-    comments: feedback.comments
+    comments: feedback.comments,
+    activityLevel: feedback.activityLevel,
+    duration: feedback.duration
   };
 }
 
