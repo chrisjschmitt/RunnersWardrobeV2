@@ -1,0 +1,796 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Long Duration Safety Recommendations - TrailKit</title>
+    <style>
+        :root {
+            --bg-primary: #0f172a;
+            --bg-secondary: #1e293b;
+            --bg-tertiary: #334155;
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --accent-orange: #f97316;
+            --accent-blue: #3b82f6;
+            --accent-green: #22c55e;
+            --accent-yellow: #eab308;
+            --accent-purple: #a855f7;
+            --accent-red: #ef4444;
+            --accent-cyan: #06b6d4;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+            padding: 2rem;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+            color: var(--accent-orange);
+        }
+
+        .subtitle {
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+            margin-bottom: 2rem;
+        }
+
+        h2 {
+            font-size: 1.5rem;
+            margin: 2rem 0 1rem;
+            color: var(--accent-blue);
+            border-bottom: 2px solid var(--bg-tertiary);
+            padding-bottom: 0.5rem;
+        }
+
+        h3 {
+            font-size: 1.2rem;
+            margin: 1.5rem 0 0.75rem;
+            color: var(--accent-cyan);
+        }
+
+        h4 {
+            font-size: 1rem;
+            margin: 1rem 0 0.5rem;
+            color: var(--accent-green);
+        }
+
+        p {
+            margin: 0.75rem 0;
+            color: var(--text-secondary);
+        }
+
+        ul, ol {
+            margin: 0.75rem 0;
+            padding-left: 2rem;
+            color: var(--text-secondary);
+        }
+
+        li {
+            margin: 0.5rem 0;
+        }
+
+        strong {
+            color: var(--text-primary);
+            font-weight: 600;
+        }
+
+        /* Tables */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1.5rem 0;
+            background: var(--bg-secondary);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        th, td {
+            padding: 0.75rem 1rem;
+            text-align: left;
+            border-bottom: 1px solid var(--bg-tertiary);
+        }
+
+        th {
+            background: var(--bg-tertiary);
+            font-weight: 600;
+            color: var(--accent-orange);
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        tr:hover {
+            background: rgba(255, 255, 255, 0.03);
+        }
+
+        /* Info boxes */
+        .info-box {
+            background: var(--bg-secondary);
+            border-left: 4px solid var(--accent-blue);
+            border-radius: 8px;
+            padding: 1rem 1.25rem;
+            margin: 1rem 0;
+        }
+
+        .warning-box {
+            background: var(--bg-secondary);
+            border-left: 4px solid var(--accent-yellow);
+            border-radius: 8px;
+            padding: 1rem 1.25rem;
+            margin: 1rem 0;
+        }
+
+        .success-box {
+            background: var(--bg-secondary);
+            border-left: 4px solid var(--accent-green);
+            border-radius: 8px;
+            padding: 1rem 1.25rem;
+            margin: 1rem 0;
+        }
+
+        /* Priority sections */
+        .priority-section {
+            background: var(--bg-secondary);
+            border-radius: 12px;
+            padding: 1.25rem;
+            margin: 1rem 0;
+            border-left: 4px solid var(--accent-orange);
+        }
+
+        .priority-section h4 {
+            margin-top: 0;
+            color: var(--accent-orange);
+        }
+
+        /* Phase boxes */
+        .phase-box {
+            background: var(--bg-secondary);
+            border-radius: 12px;
+            padding: 1.25rem;
+            margin: 1rem 0;
+            border-left: 4px solid var(--accent-purple);
+        }
+
+        .phase-box h4 {
+            margin-top: 0;
+            color: var(--accent-purple);
+        }
+
+        /* Scenario boxes */
+        .scenario-box {
+            background: var(--bg-secondary);
+            border-radius: 12px;
+            padding: 1.25rem;
+            margin: 1rem 0;
+            border-left: 4px solid var(--accent-cyan);
+        }
+
+        .scenario-box h4 {
+            margin-top: 0;
+            color: var(--accent-cyan);
+        }
+
+        .scenario-current {
+            background: rgba(239, 68, 68, 0.1);
+            padding: 0.75rem;
+            border-radius: 6px;
+            margin: 0.5rem 0;
+        }
+
+        .scenario-enhanced {
+            background: rgba(34, 197, 94, 0.1);
+            padding: 0.75rem;
+            border-radius: 6px;
+            margin: 0.5rem 0;
+        }
+
+        /* Activity list */
+        .activity-list {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .activity-list li {
+            background: var(--bg-secondary);
+            padding: 0.75rem 1rem;
+            margin: 0.5rem 0;
+            border-radius: 6px;
+            border-left: 3px solid var(--accent-green);
+        }
+
+        .activity-list li.warning {
+            border-left-color: var(--accent-yellow);
+        }
+
+        /* Code blocks */
+        code {
+            background: var(--bg-tertiary);
+            padding: 0.2rem 0.4rem;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+            color: var(--accent-green);
+        }
+
+        /* Footer */
+        .footer {
+            margin-top: 3rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid var(--bg-tertiary);
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            text-align: center;
+        }
+
+        .version {
+            display: inline-block;
+            background: var(--accent-orange);
+            color: var(--bg-primary);
+            padding: 0.2rem 0.6rem;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        hr {
+            border: none;
+            border-top: 1px solid var(--bg-tertiary);
+            margin: 2rem 0;
+        }
+
+        /* Responsive */
+        @media (max-width: 600px) {
+            body {
+                padding: 1rem;
+            }
+            
+            h1 {
+                font-size: 1.75rem;
+            }
+
+            table {
+                font-size: 0.9rem;
+            }
+
+            th, td {
+                padding: 0.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>⏱️ Long Duration Safety Recommendations</h1>
+        <p class="subtitle">Enhanced safety considerations for activities ≥1 hour</p>
+
+        <h2>Overview</h2>
+        <p>When activities are ≥1 hour, additional safety considerations become critical. Users will take breaks, may have meals, and need to carry extra gear for changing conditions. This document outlines recommendations for enhancing safety overrides and recommendations for long-duration activities.</p>
+
+        <hr>
+
+        <h2>Problem Statement</h2>
+        <p>Long-duration activities (≥1 hour) present unique challenges:</p>
+        <ul>
+            <li><strong>Break/Rest Periods</strong>: When activity stops, body heat generation drops dramatically → rapid cooling</li>
+            <li><strong>Meal Stops</strong>: Extended stops without movement require additional insulation</li>
+            <li><strong>Carrying Capacity</strong>: Need space for extra layers, water, food, emergency gear</li>
+            <li><strong>Hydration</strong>: Volume requirements increase with duration (hands-free preferred)</li>
+            <li><strong>Weather Changes</strong>: Conditions may change significantly over extended periods</li>
+            <li><strong>Fatigue</strong>: Reduced ability to notice early warning signs of hypothermia/overheating</li>
+        </ul>
+
+        <hr>
+
+        <h2>Current State</h2>
+        
+        <h3>Existing Safety Overrides</h3>
+        <ul>
+            <li>Temperature thresholds for tops, bottoms, head cover, gloves</li>
+            <li>Rain gear recommendations</li>
+            <li>Sunglasses/headlamp logic</li>
+        </ul>
+
+        <h3>Pack/Hydration Support by Activity</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>Activity</th>
+                    <th>Pack Category</th>
+                    <th>Hydration Category</th>
+                    <th>Current Options</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>Hiking</strong></td>
+                    <td>✅ Yes</td>
+                    <td>❌ No</td>
+                    <td>None, Waist pack, Daypack (20L), Daypack (30L), Overnight pack</td>
+                </tr>
+                <tr>
+                    <td><strong>Trail Running</strong></td>
+                    <td>❌ No</td>
+                    <td>✅ Yes</td>
+                    <td>None, Handheld bottle, Waist belt, Hydration vest, Running pack</td>
+                </tr>
+                <tr>
+                    <td><strong>Running</strong></td>
+                    <td>❌ No</td>
+                    <td>❌ No</td>
+                    <td>-</td>
+                </tr>
+                <tr>
+                    <td><strong>Walking</strong></td>
+                    <td>❌ No</td>
+                    <td>❌ No</td>
+                    <td>-</td>
+                </tr>
+                <tr>
+                    <td><strong>Cycling</strong></td>
+                    <td>❌ No</td>
+                    <td>❌ No</td>
+                    <td>-</td>
+                </tr>
+                <tr>
+                    <td><strong>Snowshoeing</strong></td>
+                    <td>❌ No</td>
+                    <td>❌ No</td>
+                    <td>-</td>
+                </tr>
+                <tr>
+                    <td><strong>XC Skiing</strong></td>
+                    <td>❌ No</td>
+                    <td>❌ No</td>
+                    <td>-</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <hr>
+
+        <h2>Proposed Enhancements</h2>
+
+        <h3>1. Break/Rest Period Insulation</h3>
+        <div class="info-box">
+            <p><strong>Problem</strong>: Body heat generation drops to zero during breaks → rapid cooling</p>
+        </div>
+        
+        <p><strong>Recommendations</strong>:</p>
+        <ul>
+            <li><strong>&lt; 50°F</strong>: Recommend carrying lightweight insulating layer (puffy/insulated jacket)</li>
+            <li><strong>&lt; 35°F</strong>: Recommend heavier insulated layer (down/synthetic puffy) for breaks</li>
+            <li><strong>&lt; 20°F</strong>: Critical - must have significant insulation for breaks</li>
+        </ul>
+
+        <p><strong>Implementation Options</strong>:</p>
+        <ul>
+            <li>Add "extra layer" recommendation as a note/comment</li>
+            <li>Suggest warmer outer layer that can be opened/closed for active vs rest</li>
+            <li>For activities with outer layers: recommend insulated jacket vs softshell for long activities</li>
+        </ul>
+
+        <h3>2. Stricter Temperature Thresholds</h3>
+        <p><strong>Rationale</strong>: Can't adjust mid-activity, need more protective clothing from the start</p>
+        
+        <table>
+            <thead>
+                <tr>
+                    <th>Category</th>
+                    <th>Current Threshold</th>
+                    <th>Long Duration Threshold</th>
+                    <th>Change</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>Shorts/short sleeves</strong></td>
+                    <td>&lt;25°F blocked</td>
+                    <td>&lt;30°F blocked</td>
+                    <td>+5°F</td>
+                </tr>
+                <tr>
+                    <td><strong>T-shirt → long sleeve</strong></td>
+                    <td>&lt;40°F</td>
+                    <td>&lt;45°F</td>
+                    <td>+5°F</td>
+                </tr>
+                <tr>
+                    <td><strong>Shorts → tights/pants</strong></td>
+                    <td>&lt;45°F</td>
+                    <td>&lt;50°F</td>
+                    <td>+5°F</td>
+                </tr>
+                <tr>
+                    <td><strong>Head cover required</strong></td>
+                    <td>&lt;40°F</td>
+                    <td>&lt;45°F</td>
+                    <td>+5°F</td>
+                </tr>
+                <tr>
+                    <td><strong>Gloves recommended</strong></td>
+                    <td>&lt;40°F</td>
+                    <td>&lt;45°F</td>
+                    <td>+5°F</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <h3>3. Pack/Backpack Requirements</h3>
+        
+        <h4>Hiking</h4>
+        <ul>
+            <li><strong>Short (&lt; 2 hours)</strong>: Daypack (20L) may suffice</li>
+            <li><strong>Long (≥ 1 hour)</strong>: Ensure pack is NOT "None"</li>
+            <li><strong>Very Long (≥ 2 hours)</strong>: Recommend Daypack (30L) minimum for extra gear</li>
+            <li><strong>Rationale</strong>: Need space for extra layers, water, food, emergency gear</li>
+        </ul>
+
+        <h4>Trail Running</h4>
+        <ul>
+            <li><strong>Short</strong>: Handheld bottle or waist belt acceptable</li>
+            <li><strong>Long (≥ 1 hour)</strong>: Recommend "Hydration vest" or "Running pack" (hands-free + carrying capacity)</li>
+            <li><strong>Rationale</strong>: Need hands-free hydration + space for extra layers/gear</li>
+        </ul>
+
+        <h4>Other Activities</h4>
+        <ul>
+            <li><strong>Running</strong>: Consider waist belt or hydration vest (schema addition needed)</li>
+            <li><strong>Cycling</strong>: Frame bags/packs (schema addition needed)</li>
+            <li><strong>Walking</strong>: Daypack for long walks (schema addition needed)</li>
+        </ul>
+
+        <h3>4. Hydration System Requirements</h3>
+        
+        <h4>Trail Running (has hydration category)</h4>
+        <ul>
+            <li><strong>Short (&lt; 1 hour)</strong>: Handheld bottle acceptable</li>
+            <li><strong>Long (≥ 1 hour)</strong>:
+                <ul>
+                    <li>Recommend hydration vest or running pack (NOT handheld, NOT waist belt for very long)</li>
+                    <li>Ensure hydration is NOT "None"</li>
+                    <li>Rationale: Hands-free, more capacity, space for gear</li>
+                </ul>
+            </li>
+        </ul>
+
+        <h4>Other Activities (no hydration category)</h4>
+        <ul>
+            <li><strong>Consideration</strong>: May need schema additions or recommendation notes</li>
+            <li><strong>Running</strong>: Suggest waist belt or hydration system</li>
+            <li><strong>Hiking</strong>: Water bottles in pack (implied by pack recommendation)</li>
+        </ul>
+
+        <h3>5. Enhanced Protective Gear Recommendations</h3>
+        <p>For long activities, favor:</p>
+        
+        <ul>
+            <li><strong>Gloves</strong>:
+                <ul>
+                    <li>Upgrade earlier: Recommend at &lt;45°F (instead of &lt;40°F)</li>
+                    <li>Prefer heavier options: At &lt;35°F, suggest heavy gloves/mittens vs light gloves</li>
+                </ul>
+            </li>
+            <li><strong>Footwear</strong>:
+                <ul>
+                    <li>Waterproof footwear at &lt;40°F (instead of &lt;32°F) if any precipitation risk</li>
+                    <li>Better insulation for cold conditions</li>
+                </ul>
+            </li>
+            <li><strong>Layering Systems</strong>:
+                <ul>
+                    <li>Prioritize base + mid + outer layer combinations (flexibility to adjust)</li>
+                    <li>Over single layers (harder to adjust mid-activity)</li>
+                </ul>
+            </li>
+            <li><strong>Wind Protection</strong>:
+                <ul>
+                    <li>Recommend windproof layers at lower wind speeds (&gt;15 mph instead of &gt;20 mph)</li>
+                    <li>Wind chill more dangerous over extended exposure</li>
+                </ul>
+            </li>
+            <li><strong>Extremity Protection</strong>:
+                <ul>
+                    <li>Wool/thicker socks at &lt;45°F (instead of &lt;40°F)</li>
+                    <li>Neck gaiter/buff at &lt;40°F (instead of &lt;35°F)</li>
+                    <li>Face protection more important over long exposure</li>
+                </ul>
+            </li>
+        </ul>
+
+        <h3>6. Carried Gear Checklist</h3>
+        <p>For activities ≥1 hour, ensure recommendations account for:</p>
+        <ol>
+            <li><strong>Extra insulating layer</strong> (for breaks/rest stops)</li>
+            <li><strong>Water/hydration</strong> (volume increases with duration)</li>
+            <li><strong>Food/snacks</strong> (energy needs for long activities)</li>
+            <li><strong>Emergency/weather gear</strong> (extra layer, gloves, hat, emergency blanket)</li>
+            <li><strong>Weather changes</strong> (lightweight rain shell if forecast uncertain)</li>
+        </ol>
+
+        <hr>
+
+        <h2>Activity-Specific Recommendations</h2>
+
+        <ul class="activity-list">
+            <li>
+                <strong>Hiking (Long Duration)</strong>
+                <ul>
+                    <li>✅ Ensure pack is Daypack (30L) or larger (NOT 20L, NOT None)</li>
+                    <li>✅ Warmer outer layer than short hike (insulated jacket vs softshell)</li>
+                    <li>✅ Extra base layer to carry for breaks</li>
+                    <li>✅ Consider larger pack size for very long hikes (30L+)</li>
+                </ul>
+            </li>
+            <li>
+                <strong>Trail Running (Long Duration)</strong>
+                <ul>
+                    <li>✅ Hydration vest or Running pack (NOT handheld, NOT waist belt for very long)</li>
+                    <li>✅ Ensure hydration is NOT "None"</li>
+                    <li>✅ Pack capacity consideration for extra gear</li>
+                </ul>
+            </li>
+            <li class="warning">
+                <strong>Running (Long Duration)</strong>
+                <ul>
+                    <li>⚠️ Schema addition needed: Consider hydration/waist belt options</li>
+                    <li>✅ Extra lightweight layer to carry</li>
+                    <li>✅ Suggest carrying capacity for water, extra layer</li>
+                </ul>
+            </li>
+            <li class="warning">
+                <strong>Cycling (Long Duration)</strong>
+                <ul>
+                    <li>⚠️ Schema addition needed: Consider frame bags/packs</li>
+                    <li>✅ Warmer layers than short ride</li>
+                    <li>✅ Consider carrying capacity</li>
+                </ul>
+            </li>
+            <li class="warning">
+                <strong>Walking (Long Duration)</strong>
+                <ul>
+                    <li>⚠️ Schema addition needed: Consider daypack option</li>
+                    <li>✅ Warmer outer layers</li>
+                    <li>✅ Carrying capacity for breaks</li>
+                </ul>
+            </li>
+            <li>
+                <strong>Snowshoeing / XC Skiing (Long Duration)</strong>
+                <ul>
+                    <li>✅ Extra insulation critical (breaks are cold)</li>
+                    <li>✅ Consider pack options for gear</li>
+                    <li>✅ Warmer layers than short activities</li>
+                </ul>
+            </li>
+        </ul>
+
+        <hr>
+
+        <h2>Implementation Strategy</h2>
+
+        <div class="phase-box">
+            <h4>Phase 1: Temperature Threshold Overrides (Low Effort, High Impact)</h4>
+            <p><strong>File</strong>: <code>src/services/recommendationEngine.ts</code> (safety override section)</p>
+            <ul>
+                <li>Add <code>duration?: ActivityDuration</code> parameter to safety override logic</li>
+                <li>Check <code>if (duration === 'long')</code> before applying overrides</li>
+                <li>Apply 5°F warmer thresholds for long activities</li>
+                <li><strong>Impact</strong>: More protective recommendations for long activities</li>
+            </ul>
+        </div>
+
+        <div class="phase-box">
+            <h4>Phase 2: Pack Requirements (Medium Effort, High Impact)</h4>
+            <p><strong>Files</strong>: <code>src/services/recommendationEngine.ts</code></p>
+            <ul>
+                <li><strong>Hiking</strong>: Check duration, ensure pack is NOT "None", upgrade to 30L for long</li>
+                <li><strong>Trail Running</strong>: Check duration, recommend hydration vest/pack for long</li>
+                <li>Add safety overrides to enforce pack/hydration recommendations</li>
+                <li><strong>Impact</strong>: Ensures users have carrying capacity for essential gear</li>
+            </ul>
+        </div>
+
+        <div class="phase-box">
+            <h4>Phase 3: Break Insulation Recommendations (Medium Effort, Medium Impact)</h4>
+            <p><strong>Approach Options</strong>:</p>
+            <ul>
+                <li><strong>Option A: Recommendation Notes/Comments</strong>
+                    <ul>
+                        <li>Add text recommendation about carrying extra layer for breaks</li>
+                        <li>Display as informational message or in recommendations</li>
+                    </ul>
+                </li>
+                <li><strong>Option B: Schema Addition</strong>
+                    <ul>
+                        <li>Add "carried gear" or "extra layer" category to activities</li>
+                        <li>More structured but requires schema changes</li>
+                    </ul>
+                </li>
+                <li><strong>Option C: Outer Layer Upgrades</strong>
+                    <ul>
+                        <li>For activities with outer layers: recommend warmer options for long activities</li>
+                        <li>Implicit break protection (can open/close layer)</li>
+                    </ul>
+                </li>
+            </ul>
+            <p><strong>Impact</strong>: Better preparation for rest stops</p>
+        </div>
+
+        <div class="phase-box">
+            <h4>Phase 4: Schema Expansions (High Effort, Medium Impact)</h4>
+            <p><strong>Files</strong>: <code>src/types/index.ts</code></p>
+            <p>Consider adding:</p>
+            <ul>
+                <li><strong>Running</strong>: Hydration category (waist belt, hydration vest, handheld)</li>
+                <li><strong>Cycling</strong>: Pack/carrying category (frame bag, seat bag, handlebar bag)</li>
+                <li><strong>Walking</strong>: Pack category (daypack options)</li>
+                <li><strong>All activities</strong>: "Carried gear" or "Extra layer" category</li>
+            </ul>
+            <p><strong>Impact</strong>: More complete recommendations but requires significant schema work</p>
+        </div>
+
+        <hr>
+
+        <h2>Recommended Priority</h2>
+
+        <div class="priority-section">
+            <h4>1. Phase 1: Temperature Thresholds - Highest priority</h4>
+            <ul>
+                <li>Simple to implement</li>
+                <li>High impact on safety</li>
+                <li>Low risk</li>
+            </ul>
+        </div>
+
+        <div class="priority-section">
+            <h4>2. Phase 2: Pack Requirements - High priority</h4>
+            <ul>
+                <li>Medium effort (already have pack/hydration categories for hiking/trail running)</li>
+                <li>Ensures carrying capacity</li>
+                <li>Critical for safety</li>
+            </ul>
+        </div>
+
+        <div class="priority-section">
+            <h4>3. Phase 3: Break Insulation - Medium priority</h4>
+            <ul>
+                <li>Can start with Option C (outer layer upgrades) - simpler</li>
+                <li>Option A (notes) is low effort alternative</li>
+                <li>Important but less critical than above</li>
+            </ul>
+        </div>
+
+        <div class="priority-section">
+            <h4>4. Phase 4: Schema Expansions - Lower priority</h4>
+            <ul>
+                <li>Significant effort</li>
+                <li>Nice-to-have for completeness</li>
+                <li>Can be done incrementally per activity</li>
+            </ul>
+        </div>
+
+        <hr>
+
+        <h2>Example Scenarios</h2>
+
+        <div class="scenario-box">
+            <h4>Scenario 1: Long Hike (2+ hours) at 40°F</h4>
+            <div class="scenario-current">
+                <strong>Current recommendations:</strong>
+                <ul>
+                    <li>Long sleeve, tights, light gloves, daypack (20L)</li>
+                </ul>
+            </div>
+            <div class="scenario-enhanced">
+                <strong>Enhanced for long duration:</strong>
+                <ul>
+                    <li>Base layer + jacket (warmer than long sleeve)</li>
+                    <li>Tights (no change)</li>
+                    <li>Light gloves (but recommended earlier)</li>
+                    <li>Daypack (30L) - upgrade from 20L</li>
+                    <li>Extra base layer to carry for breaks</li>
+                    <li>Warmer outer layer that can be opened/closed</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="scenario-box">
+            <h4>Scenario 2: Long Trail Run (90 minutes) at 45°F</h4>
+            <div class="scenario-current">
+                <strong>Current recommendations:</strong>
+                <ul>
+                    <li>Long sleeve, tights, handheld bottle</li>
+                </ul>
+            </div>
+            <div class="scenario-enhanced">
+                <strong>Enhanced for long duration:</strong>
+                <ul>
+                    <li>Long sleeve (okay)</li>
+                    <li>Tights (okay)</li>
+                    <li>Hydration vest or Running pack (NOT handheld)</li>
+                    <li>Extra lightweight layer to carry</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="scenario-box">
+            <h4>Scenario 3: Long Run (2 hours) at 35°F</h4>
+            <div class="scenario-current">
+                <strong>Current recommendations:</strong>
+                <ul>
+                    <li>Long sleeve, tights, light gloves</li>
+                </ul>
+            </div>
+            <div class="scenario-enhanced">
+                <strong>Enhanced for long duration:</strong>
+                <ul>
+                    <li>Base layer + jacket (warmer)</li>
+                    <li>Tights (okay)</li>
+                    <li>Heavy gloves (upgrade from light)</li>
+                    <li>Waist belt or hydration system (schema addition needed)</li>
+                    <li>Extra insulating layer to carry for breaks</li>
+                </ul>
+            </div>
+        </div>
+
+        <hr>
+
+        <h2>Testing Considerations</h2>
+        <ul>
+            <li>Test with all activity types (some have pack/hydration, some don't)</li>
+            <li>Verify temperature thresholds are appropriately stricter</li>
+            <li>Ensure pack recommendations don't conflict with activity defaults</li>
+            <li>Test edge cases: very long activities (3+ hours), extreme temperatures</li>
+            <li>Verify recommendations make sense for each activity type</li>
+            <li>Ensure backwards compatibility (works when duration not provided)</li>
+        </ul>
+
+        <hr>
+
+        <h2>Related Documentation</h2>
+        <ul>
+            <li>See <code>EXPERT_MODE_RECOMMENDATION_SUGGESTIONS.md</code> for activity level and duration tracking context</li>
+            <li>Current safety overrides documented in <code>src/services/recommendationEngine.ts</code> (lines ~666-850)</li>
+            <li>Activity-specific defaults in <code>src/data/activityDefaults.ts</code></li>
+            <li>Clothing schemas in <code>src/types/index.ts</code> (ACTIVITY_CONFIGS)</li>
+        </ul>
+
+        <hr>
+
+        <h2>Notes</h2>
+        <div class="info-box">
+            <ul>
+                <li>This is a planning document for future implementation</li>
+                <li>Current version: v4.17.3 (Expert Mode with activity level/duration tracking implemented)</li>
+                <li>Duration tracking is already in place - this document covers safety enhancements that use duration data</li>
+                <li>Schema expansions (Phase 4) can be done incrementally, one activity at a time</li>
+                <li>Consider user feedback and real-world usage patterns when implementing</li>
+            </ul>
+        </div>
+
+        <div class="footer">
+            <span class="version">v4.17.3</span>
+            <p style="margin-top: 0.5rem;">TrailKit Long Duration Safety Recommendations</p>
+            <p>© 2025 TrailKit</p>
+        </div>
+    </div>
+</body>
+</html>
+
