@@ -396,22 +396,43 @@ export function StartRun({ apiKey, hasApiKey, temperatureUnit, thermalPreference
     setHasUserEdits(true); // Mark that user has made edits
   };
 
-  const handleStartRun = async () => {
-    // Save activity level and duration to settings if expert mode is enabled
-    if (expertMode && (activityLevel || duration)) {
+  // Save activity level immediately when changed
+  const handleActivityLevelChange = async (level: ActivityLevel) => {
+    setActivityLevel(level);
+    if (expertMode) {
       try {
         const settings = await getSettings();
         if (settings) {
           await saveSettings({
             ...settings,
-            lastActivityLevel: activityLevel,
-            lastDuration: duration
+            lastActivityLevel: level
           });
         }
       } catch (err) {
-        console.error('Failed to save activity level/duration:', err);
+        console.error('Failed to save activity level:', err);
       }
     }
+  };
+
+  // Save duration immediately when changed
+  const handleDurationChange = async (dur: ActivityDuration) => {
+    setDuration(dur);
+    if (expertMode) {
+      try {
+        const settings = await getSettings();
+        if (settings) {
+          await saveSettings({
+            ...settings,
+            lastDuration: dur
+          });
+        }
+      } catch (err) {
+        console.error('Failed to save duration:', err);
+      }
+    }
+  };
+
+  const handleStartRun = async () => {
 
     const startTime = new Date();
     setRunState('running');
@@ -798,7 +819,7 @@ export function StartRun({ apiKey, hasApiKey, temperatureUnit, thermalPreference
                 {(['low', 'medium', 'high'] as ActivityLevel[]).map((level) => (
                   <button
                     key={level}
-                    onClick={() => setActivityLevel(level)}
+                    onClick={() => handleActivityLevelChange(level)}
                     className={`flex-1 py-2 px-3 rounded-lg font-medium transition-all ${
                       activityLevel === level
                         ? 'bg-[var(--color-accent)] text-white'
@@ -816,7 +837,7 @@ export function StartRun({ apiKey, hasApiKey, temperatureUnit, thermalPreference
               <label className="block text-sm font-medium mb-2">Duration</label>
               <div className="flex gap-2">
                 <button
-                  onClick={() => setDuration('short')}
+                  onClick={() => handleDurationChange('short')}
                   className={`flex-1 py-2 px-3 rounded-lg font-medium transition-all ${
                     duration === 'short'
                       ? 'bg-[var(--color-accent)] text-white'
@@ -826,7 +847,7 @@ export function StartRun({ apiKey, hasApiKey, temperatureUnit, thermalPreference
                   &lt; 1 hour
                 </button>
                 <button
-                  onClick={() => setDuration('long')}
+                  onClick={() => handleDurationChange('long')}
                   className={`flex-1 py-2 px-3 rounded-lg font-medium transition-all ${
                     duration === 'long'
                       ? 'bg-[var(--color-accent)] text-white'
