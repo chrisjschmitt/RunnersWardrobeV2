@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import type { WeatherData, WeatherAlert, ActivityType, ThermalPreference } from '../types';
+import type { WeatherData, WeatherAlert, ActivityType, ThermalPreference, ActivityLevel } from '../types';
 import { getWeatherIconUrl, getWeatherAlerts } from '../services/weatherApi';
 import { formatTemperature, getUnitSymbol, formatWindSpeed, formatPrecipitation, type TemperatureUnit } from '../services/temperatureUtils';
 import { calculateComfortTemperature } from '../services/recommendationEngine';
@@ -10,14 +10,15 @@ interface WeatherDisplayProps {
   compact?: boolean;
   activity?: ActivityType;
   thermalPreference?: ThermalPreference;
+  activityLevel?: ActivityLevel;
 }
 
-export function WeatherDisplay({ weather, unit, compact = false, activity = 'running', thermalPreference = 'average' }: WeatherDisplayProps) {
+export function WeatherDisplay({ weather, unit, compact = false, activity = 'running', thermalPreference = 'average', activityLevel }: WeatherDisplayProps) {
   const [showThermalHelp, setShowThermalHelp] = useState(false);
   const alerts = getWeatherAlerts(weather, unit);
   
   // Calculate T_comfort
-  const comfortBreakdown = calculateComfortTemperature(weather, activity, thermalPreference);
+  const comfortBreakdown = calculateComfortTemperature(weather, activity, thermalPreference, activityLevel);
   const thermalComfortDisplay = unit === 'celsius' 
     ? `${Math.round(comfortBreakdown.comfortTempC)}°C`
     : `${Math.round((comfortBreakdown.comfortTempC * 9/5) + 32)}°F`;

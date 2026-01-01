@@ -529,7 +529,7 @@ export function StartRun({ apiKey, hasApiKey, temperatureUnit, thermalPreference
           
           {weather && (
             <div className="mb-4">
-              <WeatherDisplay weather={weather} unit={temperatureUnit} compact activity={activity} thermalPreference={thermalPreference} />
+              <WeatherDisplay weather={weather} unit={temperatureUnit} compact activity={activity} thermalPreference={thermalPreference} activityLevel={expertMode ? activityLevel : undefined} />
             </div>
           )}
           
@@ -799,7 +799,7 @@ export function StartRun({ apiKey, hasApiKey, temperatureUnit, thermalPreference
       )}
 
       {/* Weather display */}
-      {weather && <WeatherDisplay weather={weather} unit={temperatureUnit} activity={activity} thermalPreference={thermalPreference} />}
+      {weather && <WeatherDisplay weather={weather} unit={temperatureUnit} activity={activity} thermalPreference={thermalPreference} activityLevel={expertMode ? activityLevel : undefined} />}
 
       {/* Expert Mode: Activity Level and Duration inputs - shown BEFORE recommendations */}
       {weather && expertMode && runState === 'idle' && (
