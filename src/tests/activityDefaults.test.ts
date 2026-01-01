@@ -2,7 +2,7 @@
  * Tests for activity-specific temperature defaults
  * 
  * Verifies that each activity returns correct clothing recommendations
- * for each temperature range (freezing through hot).
+ * for each temperature range (extremeCold through hot).
  */
 
 import { describe, it, expect } from 'vitest';
@@ -33,13 +33,14 @@ function createWeatherData(tempF: number, overrides: Partial<WeatherData> = {}):
 
 // Test temperatures for each range (middle of range)
 const TEMP_SAMPLES: Record<TempRange, number> = {
-  freezing: 5,    // < 15°F
-  veryCold: 20,   // 15-24°F
-  cold: 32,       // 25-39°F
-  cool: 47,       // 40-54°F
-  mild: 60,       // 55-64°F
-  warm: 70,       // 65-74°F
-  hot: 85,        // 75°F+
+  extremeCold: 0,    // < 5°F
+  freezing: 10,      // 5-14°F
+  veryCold: 20,      // 15-24°F
+  cold: 32,          // 25-39°F
+  cool: 47,          // 40-54°F
+  mild: 60,          // 55-64°F
+  warm: 70,          // 65-74°F
+  hot: 85,           // 75°F+
 };
 
 const ALL_ACTIVITIES: ActivityType[] = [
@@ -53,6 +54,7 @@ const ALL_ACTIVITIES: ActivityType[] = [
 ];
 
 const ALL_TEMP_RANGES: TempRange[] = [
+  'extremeCold',
   'freezing',
   'veryCold',
   'cold',
@@ -63,10 +65,17 @@ const ALL_TEMP_RANGES: TempRange[] = [
 ];
 
 describe('Temperature Range Detection', () => {
-  it('should correctly identify freezing range (< 15°F)', () => {
+  it('should correctly identify extremeCold range (< 5°F)', () => {
+    expect(getTempRange(4)).toBe('extremeCold');
+    expect(getTempRange(0)).toBe('extremeCold');
+    expect(getTempRange(-20)).toBe('extremeCold');
+  });
+
+  it('should correctly identify freezing range (5-14°F)', () => {
+    expect(getTempRange(5)).toBe('freezing');
+    expect(getTempRange(10)).toBe('freezing');
     expect(getTempRange(14)).toBe('freezing');
-    expect(getTempRange(0)).toBe('freezing');
-    expect(getTempRange(-20)).toBe('freezing');
+    expect(getTempRange(4.9)).toBe('extremeCold'); // Just below threshold
   });
 
   it('should correctly identify veryCold range (15-24°F)', () => {
@@ -113,7 +122,7 @@ describe('Activity Defaults Configuration', () => {
     });
   });
 
-  it('should have all 7 temperature ranges for each activity', () => {
+  it('should have all 8 temperature ranges for each activity', () => {
     ALL_ACTIVITIES.forEach(activity => {
       ALL_TEMP_RANGES.forEach(range => {
         expect(ACTIVITY_TEMP_DEFAULTS[activity][range]).toBeDefined();
@@ -124,6 +133,15 @@ describe('Activity Defaults Configuration', () => {
 
 describe('Running Defaults', () => {
   const activity: ActivityType = 'running';
+
+  it('should recommend balaclava and heavy mittens in extremeCold weather', () => {
+    const defaults = ACTIVITY_TEMP_DEFAULTS[activity].extremeCold;
+    expect(defaults.headCover).toBe('Balaclava');
+    expect(defaults.gloves).toBe('Heavy mittens');
+    expect(defaults.tops).toBe('Base layer + jacket');
+    expect(defaults.bottoms).toBe('Tights');
+    expect(defaults.accessories).toBe('Neck gaiter');
+  });
 
   it('should recommend balaclava and heavy gloves in freezing weather', () => {
     const defaults = ACTIVITY_TEMP_DEFAULTS[activity].freezing;
@@ -179,7 +197,8 @@ describe('Trail Running Defaults', () => {
     expect(ACTIVITY_TEMP_DEFAULTS[activity].hot.shoes).toBe('Light trail shoes');
   });
 
-  it('should recommend wind jacket in freezing/very cold', () => {
+  it('should recommend wind jacket in extremeCold/freezing/very cold', () => {
+    expect(ACTIVITY_TEMP_DEFAULTS[activity].extremeCold.rainGear).toBe('Wind jacket');
     expect(ACTIVITY_TEMP_DEFAULTS[activity].freezing.rainGear).toBe('Wind jacket');
     expect(ACTIVITY_TEMP_DEFAULTS[activity].veryCold.rainGear).toBe('Wind jacket');
   });
@@ -436,11 +455,14 @@ describe('Fallback Recommendation Integration', () => {
 });
 
 describe('Cycling Shoes and Socks Integration', () => {
-  it('should apply shoe covers in freezing weather for cycling', () => {
-    const weather = createWeatherData(5); // freezing
-    const recommendation = getFallbackRecommendation(weather, [], 'cycling');
-    expect(recommendation.shoes).toBe('Shoe covers');
-    expect(recommendation.socks).toBe('Thermal socks');
+  it('should apply shoe covers in extremeCold or freezing weather for cycling', () => {
+    const weatherExtreme = createWeatherData(0); // extremeCold
+    const recExtreme = getFallbackRecommendation(weatherExtreme, [], 'cycling');
+    expect(recExtreme.shoes).toBe('Shoe covers');
+    
+    const weatherFreezing = createWeatherData(5); // freezing
+    const recFreezing = getFallbackRecommendation(weatherFreezing, [], 'cycling');
+    expect(recFreezing.shoes).toBe('Shoe covers');
   });
 
   it('should apply wool socks in cold weather for cycling', () => {
@@ -482,27 +504,33 @@ describe('Edge Cases', () => {
     // Test at exact boundaries
     expect(getTempRange(15)).toBe('veryCold'); // Should be veryCold, not freezing
     expect(getTempRange(14.9)).toBe('freezing');
+    expect(getTempRange(5)).toBe('freezing'); // Should be freezing, not extremeCold
+    expect(getTempRange(4.9)).toBe('extremeCold');
     expect(getTempRange(25)).toBe('cold');
     expect(getTempRange(24.9)).toBe('veryCold');
   });
 });
 
 describe('Safety Checks - No Inappropriate Clothing', () => {
-  it('should not recommend shorts in freezing weather for any activity', () => {
+  it('should not recommend shorts in extremeCold or freezing weather for any activity', () => {
     ALL_ACTIVITIES.forEach(activity => {
-      const defaults = ACTIVITY_TEMP_DEFAULTS[activity].freezing;
-      const bottoms = (defaults.bottoms || '').toLowerCase();
-      expect(bottoms).not.toContain('shorts');
-      expect(bottoms).not.toContain('short');
+      ['extremeCold', 'freezing'].forEach(range => {
+        const defaults = ACTIVITY_TEMP_DEFAULTS[activity][range as TempRange];
+        const bottoms = (defaults.bottoms || '').toLowerCase();
+        expect(bottoms).not.toContain('shorts');
+        expect(bottoms).not.toContain('short');
+      });
     });
   });
 
-  it('should not recommend t-shirts in freezing weather', () => {
+  it('should not recommend t-shirts in extremeCold or freezing weather', () => {
     ALL_ACTIVITIES.forEach(activity => {
-      const defaults = ACTIVITY_TEMP_DEFAULTS[activity].freezing;
-      const tops = (defaults.tops || defaults.baseLayer || '').toLowerCase();
-      expect(tops).not.toBe('t-shirt');
-      expect(tops).not.toBe('singlet');
+      ['extremeCold', 'freezing'].forEach(range => {
+        const defaults = ACTIVITY_TEMP_DEFAULTS[activity][range as TempRange];
+        const tops = (defaults.tops || defaults.baseLayer || '').toLowerCase();
+        expect(tops).not.toBe('t-shirt');
+        expect(tops).not.toBe('singlet');
+      });
     });
   });
 
@@ -516,22 +544,26 @@ describe('Safety Checks - No Inappropriate Clothing', () => {
     });
   });
 
-  it('should recommend gloves in freezing weather', () => {
+  it('should recommend gloves in extremeCold or freezing weather', () => {
     ALL_ACTIVITIES.forEach(activity => {
-      const defaults = ACTIVITY_TEMP_DEFAULTS[activity].freezing;
-      const gloves = defaults.gloves || '';
-      expect(gloves).not.toBe('None');
-      expect(gloves.length).toBeGreaterThan(0);
+      ['extremeCold', 'freezing'].forEach(range => {
+        const defaults = ACTIVITY_TEMP_DEFAULTS[activity][range as TempRange];
+        const gloves = defaults.gloves || '';
+        expect(gloves).not.toBe('None');
+        expect(gloves.length).toBeGreaterThan(0);
+      });
     });
   });
 
-  it('should recommend head cover in freezing weather', () => {
+  it('should recommend head cover in extremeCold or freezing weather', () => {
     ALL_ACTIVITIES.forEach(activity => {
-      const defaults = ACTIVITY_TEMP_DEFAULTS[activity].freezing;
-      // Cycling uses 'helmet' instead of 'headCover'
-      const headCover = defaults.headCover || defaults.helmet || '';
-      expect(headCover).not.toBe('None');
-      expect(headCover.length).toBeGreaterThan(0);
+      ['extremeCold', 'freezing'].forEach(range => {
+        const defaults = ACTIVITY_TEMP_DEFAULTS[activity][range as TempRange];
+        // Cycling uses 'helmet' instead of 'headCover'
+        const headCover = defaults.headCover || defaults.helmet || '';
+        expect(headCover).not.toBe('None');
+        expect(headCover.length).toBeGreaterThan(0);
+      });
     });
   });
 });

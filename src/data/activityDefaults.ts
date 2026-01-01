@@ -2,7 +2,8 @@
  * Activity-specific clothing defaults by temperature range
  * 
  * Temperature ranges (in °F):
- * - freezing: < 15°F (-9°C)
+ * - extremeCold: < 5°F (< -15°C) - Potentially harmful to lungs, strong warnings recommended
+ * - freezing: 5-15°F (-15 to -9°C)
  * - veryCold: 15-25°F (-9 to -4°C)
  * - cold: 25-40°F (-4 to 4°C)
  * - cool: 40-55°F (4 to 13°C)
@@ -13,22 +14,24 @@
 
 import type { ActivityType, ClothingItems } from '../types';
 
-export type TempRange = 'freezing' | 'veryCold' | 'cold' | 'cool' | 'mild' | 'warm' | 'hot';
+export type TempRange = 'extremeCold' | 'freezing' | 'veryCold' | 'cold' | 'cool' | 'mild' | 'warm' | 'hot';
 
 export interface TempRangeDefaults {
-  freezing: Partial<ClothingItems>;  // < 15°F
-  veryCold: Partial<ClothingItems>;  // 15-25°F
-  cold: Partial<ClothingItems>;      // 25-40°F
-  cool: Partial<ClothingItems>;      // 40-55°F
-  mild: Partial<ClothingItems>;      // 55-65°F
-  warm: Partial<ClothingItems>;      // 65-75°F
-  hot: Partial<ClothingItems>;       // > 75°F
+  extremeCold: Partial<ClothingItems>;  // < 5°F (< -15°C)
+  freezing: Partial<ClothingItems>;     // 5-15°F (-15 to -9°C)
+  veryCold: Partial<ClothingItems>;     // 15-25°F (-9 to -4°C)
+  cold: Partial<ClothingItems>;         // 25-40°F (-4 to 4°C)
+  cool: Partial<ClothingItems>;         // 40-55°F (4 to 13°C)
+  mild: Partial<ClothingItems>;         // 55-65°F (13 to 18°C)
+  warm: Partial<ClothingItems>;         // 65-75°F (18 to 24°C)
+  hot: Partial<ClothingItems>;          // > 75°F (24°C)
 }
 
 /**
  * Get temperature range from temperature in Fahrenheit
  */
 export function getTempRange(tempF: number): TempRange {
+  if (tempF < 5) return 'extremeCold';
   if (tempF < 15) return 'freezing';
   if (tempF < 25) return 'veryCold';
   if (tempF < 40) return 'cold';
@@ -46,6 +49,16 @@ export const ACTIVITY_TEMP_DEFAULTS: Record<ActivityType, TempRangeDefaults> = {
   // RUNNING
   // ============================================================
   running: {
+    extremeCold: {
+      headCover: 'Balaclava',
+      tops: 'Base layer + jacket',
+      bottoms: 'Tights',
+      shoes: 'Running shoes',
+      socks: 'Wool',
+      gloves: 'Heavy mittens',
+      rainGear: 'None',
+      accessories: 'Neck gaiter',
+    },
     freezing: {
       headCover: 'Balaclava',
       tops: 'Base layer + jacket',
@@ -122,6 +135,17 @@ export const ACTIVITY_TEMP_DEFAULTS: Record<ActivityType, TempRangeDefaults> = {
   // TRAIL RUNNING
   // ============================================================
   trail_running: {
+    extremeCold: {
+      headCover: 'Balaclava',
+      tops: 'Base layer + jacket',
+      bottoms: 'Tights',
+      shoes: 'Trail shoes',
+      socks: 'Wool',
+      gloves: 'Heavy mittens',
+      rainGear: 'Wind jacket',
+      hydration: 'Hydration vest',
+      accessories: 'Neck gaiter',
+    },
     freezing: {
       headCover: 'Balaclava',
       tops: 'Base layer + jacket',
@@ -205,6 +229,18 @@ export const ACTIVITY_TEMP_DEFAULTS: Record<ActivityType, TempRangeDefaults> = {
   // HIKING
   // ============================================================
   hiking: {
+    extremeCold: {
+      headCover: 'Balaclava',
+      baseLayer: 'Expedition weight',
+      midLayer: 'Heavy puffy',
+      outerLayer: 'Insulated jacket',
+      bottoms: 'Insulated pants',
+      shoes: 'Waterproof boots',
+      socks: 'Liner + heavy wool',
+      gloves: 'Liner + mittens',
+      pack: 'Daypack (30L)',
+      accessories: 'Neck gaiter + hand warmers',
+    },
     freezing: {
       headCover: 'Balaclava',
       baseLayer: 'Merino base',
@@ -295,6 +331,16 @@ export const ACTIVITY_TEMP_DEFAULTS: Record<ActivityType, TempRangeDefaults> = {
   // WALKING
   // ============================================================
   walking: {
+    extremeCold: {
+      headCover: 'Balaclava',
+      tops: 'Fleece',
+      outerLayer: 'Winter coat',
+      bottoms: 'Insulated pants',
+      shoes: 'Boots',
+      socks: 'Thick',
+      gloves: 'Mittens',
+      accessories: 'Scarf + face mask',
+    },
     freezing: {
       headCover: 'Beanie',
       tops: 'Fleece',
@@ -371,6 +417,18 @@ export const ACTIVITY_TEMP_DEFAULTS: Record<ActivityType, TempRangeDefaults> = {
   // CYCLING
   // ============================================================
   cycling: {
+    extremeCold: {
+      helmet: 'Road helmet',
+      tops: 'Thermal jersey',
+      bottoms: 'Bib tights',
+      shoes: 'Shoe covers',
+      socks: 'Thermal socks',
+      gloves: 'Mittens',
+      armWarmers: 'Arm + leg warmers',
+      eyewear: 'Clear glasses',
+      rainGear: 'None',
+      accessories: 'Neck gaiter + lights',
+    },
     freezing: {
       helmet: 'Road helmet',
       tops: 'Thermal jersey',
@@ -461,6 +519,18 @@ export const ACTIVITY_TEMP_DEFAULTS: Record<ActivityType, TempRangeDefaults> = {
   // SNOWSHOEING
   // ============================================================
   snowshoeing: {
+    extremeCold: {
+      headCover: 'Balaclava',
+      baseLayer: 'Expedition weight',
+      midLayer: 'Heavy puffy',
+      outerLayer: 'Insulated jacket',
+      bottoms: 'Bibs',
+      boots: 'Pac boots',
+      socks: 'Liner + heavy wool',
+      gloves: 'Liner + heavy mittens',
+      gaiters: 'Full gaiters',
+      accessories: 'Poles + goggles + hand warmers',
+    },
     freezing: {
       headCover: 'Balaclava',
       baseLayer: 'Expedition weight',
@@ -552,6 +622,17 @@ export const ACTIVITY_TEMP_DEFAULTS: Record<ActivityType, TempRangeDefaults> = {
   // CROSS COUNTRY SKIING
   // ============================================================
   cross_country_skiing: {
+    extremeCold: {
+      headCover: 'Balaclava',
+      baseLayer: 'Expedition weight',
+      tops: 'Wind jacket + fleece',
+      bottoms: 'Wind pants over tights',
+      boots: 'Insulated boots',
+      socks: 'Liner + wool socks',
+      gloves: 'Liner + heavy mittens',
+      eyewear: 'Goggles',
+      accessories: 'Neck gaiter + hand warmers',
+    },
     freezing: {
       headCover: 'Balaclava',
       baseLayer: 'Merino base',
@@ -660,7 +741,7 @@ export function getWeatherOverrides(
     switch (activity) {
       case 'running':
       case 'trail_running':
-        overrides.rainGear = tempRange === 'freezing' || tempRange === 'veryCold' || tempRange === 'cold' 
+        overrides.rainGear = tempRange === 'extremeCold' || tempRange === 'freezing' || tempRange === 'veryCold' || tempRange === 'cold' 
           ? 'Waterproof jacket' 
           : 'Light rain jacket';
         break;
