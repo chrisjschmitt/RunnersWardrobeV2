@@ -20,19 +20,19 @@ T_comfort = T_actual + B(activity) + I(intensity) + wΔ(activity) × Δ + therma
 ```
 
 ### Intensity Adjustment Values (in °C)
-- **Low intensity**: +0.5°C (less body heat, need warmer clothes)
+- **Low intensity**: -0.5°C (less body heat, need warmer clothes)
 - **Medium intensity**: 0°C (baseline, no adjustment)
-- **High intensity**: -1.5°C (more body heat, can wear lighter clothes)
+- **High intensity**: +1.5°C (more body heat, can wear lighter clothes)
 
 ### Rationale
-- Higher intensity = more metabolic heat = body stays warmer = lighter clothing needed
-- Lower intensity = less heat generation = body cools faster = warmer clothing needed
+- Higher intensity = more metabolic heat = body stays warmer = lighter clothing needed (raises T_comfort)
+- Lower intensity = less heat generation = body cools faster = warmer clothing needed (lowers T_comfort)
 - This shifts T_comfort, which changes the temperature range selected, affecting clothing defaults
 
 ### Example Impact
 For a 40°F run:
-- **High intensity**: T_comfort shifts down by 1.5°C (2.7°F) → suggests lighter clothing
-- **Low intensity**: T_comfort shifts up by 0.5°C (0.9°F) → suggests warmer clothing
+- **High intensity**: T_comfort shifts up by 1.5°C (2.7°F) → suggests lighter clothing
+- **Low intensity**: T_comfort shifts down by 0.5°C (0.9°F) → suggests warmer clothing
 
 ---
 
@@ -184,13 +184,13 @@ When sessions vote for clothing items:
 
 ### Scenario 1: High Intensity, Short Duration
 - **Activity**: 45-minute high-intensity interval run at 40°F
-- **T_comfort adjustment**: -1.5°C (feels like 37.3°F) → selects "cold" range
+- **T_comfort adjustment**: +1.5°C (feels like 42.7°F) → may select "cool" range instead of "cold"
 - **Recommendation**: Long sleeve, tights, light gloves
 - **Rationale**: High intensity generates heat, short duration allows flexibility
 
 ### Scenario 2: Low Intensity, Long Duration
 - **Activity**: 2-hour easy run at 40°F
-- **T_comfort adjustment**: +0.5°C (feels like 42.5°F) → stays in "cold" range but higher
+- **T_comfort adjustment**: -0.5°C (feels like 39.1°F) → stays in "cold" range
 - **Recommendation**: Base layer + jacket, tights, gloves (more protection)
 - **Rationale**: Low intensity = less heat, long duration = need to start correctly
 

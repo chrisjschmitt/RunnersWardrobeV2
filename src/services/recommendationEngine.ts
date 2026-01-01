@@ -37,11 +37,12 @@ function saveDebugInfo(info: RecommendationDebugInfo): void {
 // Where Δ = clamp(FeelsLike − Actual, −15°C, +8°C)
 
 // Intensity adjustment values (in °C)
-// Higher intensity = more body heat = lighter clothes needed (negative adjustment)
+// Higher intensity = more body heat = raises T_comfort (positive adjustment)
+// Lower intensity = less body heat = lowers T_comfort (negative adjustment)
 const INTENSITY_ADJUSTMENTS: Record<ActivityLevel, number> = {
-  low: 0.5,      // Less body heat, need warmer clothes (+0.5°C)
+  low: -0.5,     // Less body heat, need warmer clothes (lowers T_comfort by 0.5°C)
   medium: 0.0,   // Baseline, no adjustment
-  high: -1.5     // More body heat, can wear lighter clothes (-1.5°C)
+  high: 1.5      // More body heat, can wear lighter clothes (raises T_comfort by 1.5°C)
 };
 
 export interface ComfortTemperatureBreakdown {
