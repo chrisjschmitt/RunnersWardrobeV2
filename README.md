@@ -29,6 +29,7 @@ Switch between 7 different outdoor activities, each with tailored clothing categ
 
 ### Personalization
 - **Thermal Preference**: Set whether you run cold, average, or warm — recommendations adjust automatically
+- **Expert Mode**: Track activity intensity (low/medium/high) and duration (<1 hour / ≥1 hour) for more precise recommendations
 - **Simplified Feedback**: After an activity, answer "Satisfied?" — if not, adjust clothing before saving
 - **Learning System**: Recommendations improve based on what you actually wore
 - **Editable Clothing**: Tap any item to change it before your activity
@@ -381,6 +382,13 @@ Files with TODO comments:
 
 ## Version History
 
+- **v4.17.3**: Fix Thermal Comfort temperature updating when activity intensity changes
+- **v4.17.2**: Fix intensity level adjustment signs (high intensity raises T_comfort, low intensity lowers it)
+- **v4.17.1**: Fix activity level and duration not saving immediately when changed
+- **v4.17.0**: Fix recommendation flow - collect activity level/duration before calculating recommendations
+- **v4.16.0**: Expert Mode - track activity intensity (low/medium/high) and duration (<1 hour / ≥1 hour) with CSV export/import support
+- **v4.15.0**: Activity intensity adjusts T_comfort calculation (high intensity = +1.5°C, low intensity = -0.5°C)
+- **v4.14.0**: Display activity level and duration in similar sessions on Home screen
 - **v4.13.0**: Add extremeCold temperature range (< -15°C / 5°F) with lung health warnings and more protective clothing recommendations
 - **v4.12.2**: Extreme heat warning when T_comfort > 29°C (85°F)
 - **v4.12.0**: Extreme cold warning when T_comfort < -9°C (15°F)

@@ -241,6 +241,22 @@ If you're offline, you'll see a message that weather can't be loaded. Once you'r
 ⛷️ **XC Skiing** - Nordic-specific clothing
 
 Each activity has its own clothing categories and your history is tracked separately. Switch activities using the dropdown at the top of the screen.`
+  },
+  {
+    question: "What is Expert Mode?",
+    answer: `Expert Mode is an optional feature in Settings that lets you track additional details about your activities:
+
+**Activity Intensity**
+Select low, medium, or high intensity. Higher intensity activities generate more body heat, so the Thermal Comfort temperature adjusts accordingly (higher intensity = warmer feeling = lighter clothes needed).
+
+**Duration**
+Choose whether your activity is less than 1 hour or 1 hour or longer. This helps the app provide more appropriate recommendations based on how long you'll be out.
+
+**When to Use**
+Enable Expert Mode if you want more precise recommendations that account for how hard you'll be working and how long you'll be active. Your settings persist between sessions.
+
+**Privacy**
+All data stays on your device. Intensity and duration are saved with your activity history and can be exported/imported via CSV.`
   }
 ];
 

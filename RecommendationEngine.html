@@ -349,16 +349,17 @@
                     Calculate a comfort-adjusted temperature based on activity, weather, and preferences
                 </p>
                 <div class="formula-box" style="background: var(--bg-tertiary); padding: 1rem; border-radius: 8px; margin: 0.75rem 0; font-family: monospace;">
-                    <strong>T_comfort = T_actual + B(activity) + wΔ × Δ + thermal_offset</strong>
+                    <strong>T_comfort = T_actual + B(activity) + I(intensity) + wΔ × Δ + thermal_offset</strong>
                     <br><span style="color: var(--text-secondary); font-size: 0.9rem;">Where Δ = clamp(FeelsLike − Actual, −15°C, +8°C)</span>
                 </div>
                 <ul class="step-detail">
                     <li><strong>B(activity)</strong> — Body heat adjustment: +0.5°C walking → +6°C running</li>
+                    <li><strong>I(intensity)</strong> — Activity intensity (Expert Mode): −0.5°C (low) / 0 (medium) / +1.5°C (high)</li>
                     <li><strong>wΔ × Δ</strong> — Weighted feels-like effect: 0.35 (running) → 0.80 (walking)</li>
                     <li><strong>thermal_offset</strong> — User preference: −4.4°C (cold) / 0 / +4.4°C (warm)</li>
                 </ul>
                 <p class="step-description" style="margin-top: 0.75rem; font-size: 0.9rem; color: var(--text-secondary);">
-                    <em>Higher B = more body heat = lighter clothing. Higher wΔ = more affected by wind chill.</em>
+                    <em>Higher B = more body heat = lighter clothing. Higher intensity = more body heat = raises T_comfort. Higher wΔ = more affected by wind chill.</em>
                 </p>
             </div>
 
@@ -952,7 +953,7 @@ confidence = (sessionCount / 10) × 30%  +  avgSimilarity × 70%
         </table>
 
         <div class="footer">
-            <span class="version">v4.13.0</span>
+            <span class="version">v4.17.3</span>
             <p style="margin-top: 0.5rem;">TrailKit Recommendation Engine Documentation</p>
             <p>© 2025 TrailKit</p>
         </div>
