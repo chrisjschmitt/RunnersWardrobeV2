@@ -1,4 +1,4 @@
-import type { WeatherData, RunRecord, ClothingItems, ClothingRecommendation, RunFeedback, ComfortAdjustment, ActivityType, ClothingCategory, RecommendationDebugInfo, SimilarMatchDebug, ClothingVoteDebug, SafetyOverrideDebug, ThermalPreference } from '../types';
+import type { WeatherData, RunRecord, ClothingItems, ClothingRecommendation, RunFeedback, ComfortAdjustment, ActivityType, ClothingCategory, RecommendationDebugInfo, SimilarMatchDebug, ClothingVoteDebug, SafetyOverrideDebug, ThermalPreference, ActivityLevel } from '../types';
 import { getDefaultClothing, getClothingCategories, isDarkOutside, isSunny, THERMAL_OFFSETS, ACTIVITY_THERMAL_PARAMS } from '../types';
 import { ACTIVITY_TEMP_DEFAULTS, getTempRange, getWeatherOverrides, type WeatherModifiers } from '../data/activityDefaults';
 
@@ -33,8 +33,16 @@ function saveDebugInfo(info: RecommendationDebugInfo): void {
 }
 
 // ============ T_COMFORT CALCULATION ============
-// T_comfort = T_actual + B(activity) + wΔ(activity) × Δ + thermal_offset
+// T_comfort = T_actual + B(activity) + I(intensity) + wΔ(activity) × Δ + thermal_offset
 // Where Δ = clamp(FeelsLike − Actual, −15°C, +8°C)
+
+// Intensity adjustment values (in °C)
+// Higher intensity = more body heat = lighter clothes needed (negative adjustment)
+const INTENSITY_ADJUSTMENTS: Record<ActivityLevel, number> = {
+  low: 0.5,      // Less body heat, need warmer clothes (+0.5°C)
+  medium: 0.0,   // Baseline, no adjustment
+  high: -1.5     // More body heat, can wear lighter clothes (-1.5°C)
+};
 
 export interface ComfortTemperatureBreakdown {
   actualTempC: number;        // T_actual in °C
@@ -42,6 +50,7 @@ export interface ComfortTemperatureBreakdown {
   delta: number;              // Clamped Δ
   B: number;                  // Activity base adjustment
   wDelta: number;             // Activity feels-like weight
+  intensityAdjustment: number; // Activity intensity adjustment (expert mode)
   thermalOffset: number;      // User's thermal preference offset
   comfortTempC: number;       // Final T_comfort in °C
 }
@@ -49,18 +58,20 @@ export interface ComfortTemperatureBreakdown {
 /**
  * Calculate the comfort-adjusted temperature (T_comfort)
  * 
- * Formula: T_comfort = T_actual + B(activity) + wΔ(activity) × Δ + thermal_offset
+ * Formula: T_comfort = T_actual + B(activity) + I(intensity) + wΔ(activity) × Δ + thermal_offset
  * Where: Δ = clamp(FeelsLike − Actual, −15°C, +8°C)
  * 
  * @param weather Current weather data (temps in °F from API)
  * @param activity The activity type
  * @param thermalPreference User's thermal preference setting
+ * @param activityLevel Optional activity intensity level (expert mode)
  * @returns ComfortTemperatureBreakdown with all intermediate values
  */
 export function calculateComfortTemperature(
   weather: WeatherData,
   activity: ActivityType,
-  thermalPreference: ThermalPreference = 'average'
+  thermalPreference: ThermalPreference = 'average',
+  activityLevel?: ActivityLevel
 ): ComfortTemperatureBreakdown {
   // Convert from °F (API) to °C for calculation
   const actualTempC = (weather.temperature - 32) * 5 / 9;
@@ -75,11 +86,14 @@ export function calculateComfortTemperature(
   const rawDelta = feelsLikeTempC - actualTempC;
   const delta = Math.max(-15, Math.min(8, rawDelta));
   
+  // Get intensity adjustment (expert mode)
+  const intensityAdjustment = activityLevel ? INTENSITY_ADJUSTMENTS[activityLevel] : 0;
+  
   // Get thermal preference offset (already in °C)
   const thermalOffset = THERMAL_OFFSETS[thermalPreference];
   
-  // Calculate T_comfort
-  const comfortTempC = actualTempC + B + (wDelta * delta) + thermalOffset;
+  // Calculate T_comfort: T_actual + B + I + (wΔ × Δ) + thermal_offset
+  const comfortTempC = actualTempC + B + intensityAdjustment + (wDelta * delta) + thermalOffset;
   
   return {
     actualTempC,
@@ -87,6 +101,7 @@ export function calculateComfortTemperature(
     delta,
     B,
     wDelta,
+    intensityAdjustment,
     thermalOffset,
     comfortTempC
   };
@@ -518,10 +533,11 @@ export function getClothingRecommendation(
   runs: RunRecord[],
   feedbackHistory: RunFeedback[] = [],
   activity: ActivityType = 'running',
-  thermalPreference: ThermalPreference = 'average'
+  thermalPreference: ThermalPreference = 'average',
+  activityLevel?: ActivityLevel
 ): ClothingRecommendation {
-  // Calculate T_comfort using new formula
-  const comfortBreakdown = calculateComfortTemperature(currentWeather, activity, thermalPreference);
+  // Calculate T_comfort using new formula (includes intensity adjustment if provided)
+  const comfortBreakdown = calculateComfortTemperature(currentWeather, activity, thermalPreference, activityLevel);
   const adjustedTempF = comfortTempToFahrenheit(comfortBreakdown.comfortTempC);
   
   const categories = getClothingCategories(activity);
@@ -564,6 +580,7 @@ export function getClothingRecommendation(
         delta: comfortBreakdown.delta,
         B: comfortBreakdown.B,
         wDelta: comfortBreakdown.wDelta,
+        intensityAdjustment: comfortBreakdown.intensityAdjustment,
         thermalOffset: comfortBreakdown.thermalOffset,
         comfortTempC: comfortBreakdown.comfortTempC,
         comfortTempF: adjustedTempF,
@@ -972,6 +989,7 @@ export function getClothingRecommendation(
       delta: comfortBreakdown.delta,
       B: comfortBreakdown.B,
       wDelta: comfortBreakdown.wDelta,
+      intensityAdjustment: comfortBreakdown.intensityAdjustment,
       thermalOffset: comfortBreakdown.thermalOffset,
       comfortTempC: comfortBreakdown.comfortTempC,
       comfortTempF: adjustedTempF,
@@ -1003,10 +1021,11 @@ export function getFallbackRecommendation(
   weather: WeatherData,
   feedbackHistory: RunFeedback[] = [],
   activity: ActivityType = 'running',
-  thermalPreference: ThermalPreference = 'average'
+  thermalPreference: ThermalPreference = 'average',
+  activityLevel?: ActivityLevel
 ): ClothingItems {
-  // Calculate T_comfort for this activity
-  const comfortBreakdown = calculateComfortTemperature(weather, activity, thermalPreference);
+  // Calculate T_comfort for this activity (includes intensity adjustment if provided)
+  const comfortBreakdown = calculateComfortTemperature(weather, activity, thermalPreference, activityLevel);
   const adjustedTempF = comfortTempToFahrenheit(comfortBreakdown.comfortTempC);
   
   // Check if we have any feedback with similar T_comfort

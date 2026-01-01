@@ -934,13 +934,21 @@ export function Settings({
                       <div className="bg-[rgba(255,255,255,0.05)] rounded-lg p-3">
                         <div className="text-xs font-semibold text-[var(--color-text-muted)] mb-2">🌡️ T_COMFORT CALCULATION</div>
                         <div className="text-xs mb-2 text-[var(--color-text-muted)]">
-                          T = Actual + B + (wΔ × Δ) + Thermal
+                          {recDebug.comfortAdjustment.intensityAdjustment !== undefined && recDebug.comfortAdjustment.intensityAdjustment !== 0
+                            ? 'T = Actual + B + I + (wΔ × Δ) + Thermal'
+                            : 'T = Actual + B + (wΔ × Δ) + Thermal'}
                         </div>
                         <div className="grid grid-cols-2 gap-1 text-xs">
                           <div>Actual: <span className="font-mono">{recDebug.comfortAdjustment.actualTempC.toFixed(1)}°C</span></div>
                           <div>Feels Like: <span className="font-mono">{recDebug.comfortAdjustment.feelsLikeTempC.toFixed(1)}°C</span></div>
                           <div>Δ (clamped): <span className="font-mono">{recDebug.comfortAdjustment.delta >= 0 ? '+' : ''}{recDebug.comfortAdjustment.delta.toFixed(1)}°C</span></div>
                           <div>B (activity): <span className="font-mono text-[var(--color-accent)]">+{recDebug.comfortAdjustment.B.toFixed(1)}°C</span></div>
+                          {recDebug.comfortAdjustment.intensityAdjustment !== undefined && recDebug.comfortAdjustment.intensityAdjustment !== 0 && (
+                            <div>I (intensity): <span className={`font-mono ${
+                              recDebug.comfortAdjustment.intensityAdjustment > 0 ? 'text-blue-400' :
+                              recDebug.comfortAdjustment.intensityAdjustment < 0 ? 'text-green-400' : ''
+                            }`}>{recDebug.comfortAdjustment.intensityAdjustment >= 0 ? '+' : ''}{recDebug.comfortAdjustment.intensityAdjustment.toFixed(1)}°C</span></div>
+                          )}
                           <div>wΔ: <span className="font-mono">{recDebug.comfortAdjustment.wDelta.toFixed(2)}</span></div>
                           <div>wΔ × Δ: <span className="font-mono">{(recDebug.comfortAdjustment.wDelta * recDebug.comfortAdjustment.delta) >= 0 ? '+' : ''}{(recDebug.comfortAdjustment.wDelta * recDebug.comfortAdjustment.delta).toFixed(1)}°C</span></div>
                           <div>Thermal: <span className={`font-mono ${

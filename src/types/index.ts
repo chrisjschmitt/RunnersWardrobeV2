@@ -482,6 +482,7 @@ export interface RecommendationDebugInfo {
     delta: number;                 // Clamped Δ = clamp(FeelsLike - Actual, -15, +8)
     B: number;                     // Activity base adjustment
     wDelta: number;                // Activity feels-like weight
+    intensityAdjustment?: number;  // Activity intensity adjustment (expert mode, in °C)
     thermalOffset: number;         // User thermal preference offset
     // Result
     comfortTempC: number;          // Final T_comfort in °C

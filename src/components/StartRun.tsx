@@ -305,12 +305,12 @@ export function StartRun({ apiKey, hasApiKey, temperatureUnit, thermalPreference
       setComfortAdjustment(thermalOffset);
       
       if (runs.length > 0 || feedbackHistory.length > 0) {
-        const rec = getClothingRecommendation(weatherData, runs, feedbackHistory, activity, thermalPreference);
+        const rec = getClothingRecommendation(weatherData, runs, feedbackHistory, activity, thermalPreference, expertMode ? activityLevel : undefined);
         
         // If no similar runs found (confidence would be 0), use fallback instead
         // This shows "Using activity defaults" message instead of "0% confidence"
         if (rec.matchingRuns === 0) {
-          const fallbackRec = getFallbackRecommendation(weatherData, feedbackHistory, activity, thermalPreference);
+          const fallbackRec = getFallbackRecommendation(weatherData, feedbackHistory, activity, thermalPreference, expertMode ? activityLevel : undefined);
           setFallback(fallbackRec);
           setRecommendation(null);
           if (!hasUserEdits) {
@@ -325,7 +325,7 @@ export function StartRun({ apiKey, hasApiKey, temperatureUnit, thermalPreference
           }
         }
       } else {
-        const fallbackRec = getFallbackRecommendation(weatherData, feedbackHistory, activity, thermalPreference);
+        const fallbackRec = getFallbackRecommendation(weatherData, feedbackHistory, activity, thermalPreference, expertMode ? activityLevel : undefined);
         setFallback(fallbackRec);
         setRecommendation(null);
         // Only update actualClothing if user hasn't made edits
@@ -484,7 +484,7 @@ export function StartRun({ apiKey, hasApiKey, temperatureUnit, thermalPreference
           
           {/* Extreme temperature warning during run */}
           {weather && (() => {
-            const comfortInfo = calculateComfortTemperature(weather, activity, thermalPreference);
+            const comfortInfo = calculateComfortTemperature(weather, activity, thermalPreference, expertMode ? activityLevel : undefined);
             if (comfortInfo.comfortTempC < -15) {
               return (
                 <div className="p-4 bg-[rgba(239,68,68,0.25)] border-2 border-red-500/70 rounded-lg mb-4">
@@ -752,7 +752,7 @@ export function StartRun({ apiKey, hasApiKey, temperatureUnit, thermalPreference
 
       {/* Extreme temperature warnings */}
       {weather && (() => {
-        const comfortInfo = calculateComfortTemperature(weather, activity, thermalPreference);
+        const comfortInfo = calculateComfortTemperature(weather, activity, thermalPreference, expertMode ? activityLevel : undefined);
         // Show strong warning if T_comfort is below -15°C (5°F) - potentially harmful to lungs
         if (comfortInfo.comfortTempC < -15) {
           return (
