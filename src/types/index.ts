@@ -287,6 +287,12 @@ export const ACTIVITY_THERMAL_PARAMS: Record<ActivityType, ActivityThermalParams
   running:             { B: 6.0,  wDelta: 0.35 },  // Highest heat, least wind impact
 };
 
+// Activity level for expert mode
+export type ActivityLevel = 'low' | 'medium' | 'high';
+
+// Duration category for expert mode
+export type ActivityDuration = 'short' | 'long';  // 'short' = < 1 hour, 'long' = >= 1 hour
+
 // App settings stored in IndexedDB
 export interface AppSettings {
   id?: number;
@@ -301,6 +307,9 @@ export interface AppSettings {
   testMode?: boolean;
   selectedActivity?: ActivityType;
   onboardingComplete?: boolean;
+  expertMode?: boolean;  // Enable expert mode features (activity level, duration)
+  lastActivityLevel?: ActivityLevel;  // Last used activity level (persists between activities)
+  lastDuration?: ActivityDuration;  // Last used duration (persists between activities)
 }
 
 // Test weather data for testing different conditions
@@ -343,6 +352,8 @@ export interface RunFeedback {
   timestamp: Date;
   activity?: ActivityType;
   comments?: string;  // Optional notes like "don't wear heavy gloves next time"
+  activityLevel?: ActivityLevel;  // Activity intensity level (expert mode)
+  duration?: ActivityDuration;  // Duration category: 'short' (< 1 hour) or 'long' (>= 1 hour) (expert mode)
 }
 
 // Temperature adjustment based on feedback history

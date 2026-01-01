@@ -56,6 +56,7 @@ export function Settings({
   const [apiKey, setApiKey] = useState(initialApiKey);
   const [temperatureUnit, setTemperatureUnit] = useState<TemperatureUnit>(initialUnit);
   const [thermalPreference, setThermalPreference] = useState<ThermalPreference>(initialThermalPreference);
+  const [expertMode, setExpertMode] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -171,6 +172,7 @@ export function Settings({
         setApiKey(settings.weatherApiKey || '');
         setTemperatureUnit(settings.temperatureUnit || 'celsius');
         setThermalPreference(settings.thermalPreference || 'average');
+        setExpertMode(settings.expertMode || false);
       }
     } catch (err) {
       console.error('Failed to load settings:', err);
@@ -235,7 +237,8 @@ export function Settings({
         weatherApiKey: apiKey.trim(),
         temperatureUnit: temperatureUnit,
         thermalPreference: thermalPreference,
-        testMode: testMode
+        testMode: testMode,
+        expertMode: expertMode
       });
       setSaved(true);
       onSettingsSaved();
@@ -468,6 +471,32 @@ export function Settings({
             )}
           </button>
         </div>
+      </div>
+
+      {/* Expert Mode Section */}
+      <div className="glass-card p-6 mb-6">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="font-semibold flex items-center gap-2">
+            <svg className="w-5 h-5 text-[var(--color-accent)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+            </svg>
+            Expert Mode
+          </h3>
+          <button
+            onClick={() => setExpertMode(!expertMode)}
+            className={`relative w-14 h-7 rounded-full transition-colors ${
+              expertMode ? 'bg-[var(--color-accent)]' : 'bg-[rgba(255,255,255,0.2)]'
+            }`}
+          >
+            <div className={`absolute top-1 w-5 h-5 bg-white rounded-full transition-transform ${
+              expertMode ? 'translate-x-8' : 'translate-x-1'
+            }`} />
+          </button>
+        </div>
+
+        <p className="text-sm text-[var(--color-text-muted)] mb-4">
+          Enable activity level and duration tracking for more detailed feedback. When enabled, you'll be prompted to set intensity level (low/medium/high) and duration (&lt; 1 hour / ≥ 1 hour) for each activity.
+        </p>
       </div>
 
       {/* Test Mode Section */}

@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
-import type { WeatherData, ClothingRecommendation as ClothingRec, ClothingItems, RunFeedback, ComfortLevel, TestWeatherData, ActivityType, ThermalPreference } from '../types';
+import type { WeatherData, ClothingRecommendation as ClothingRec, ClothingItems, RunFeedback, ComfortLevel, TestWeatherData, ActivityType, ThermalPreference, ActivityLevel, ActivityDuration } from '../types';
 import { ACTIVITY_CONFIGS, THERMAL_OFFSETS } from '../types';
 import { getCurrentPosition, fetchWeather, clearWeatherCache } from '../services/weatherApi';
 import { getClothingRecommendation, getFallbackRecommendation, calculateComfortTemperature } from '../services/recommendationEngine';
-import { getAllRuns, getAllFeedback, addFeedback } from '../services/database';
+import { getAllRuns, getAllFeedback, addFeedback, getSettings, saveSettings } from '../services/database';
 import { incrementSessionCount } from './BackupReminder';
 import { WeatherDisplay } from './WeatherDisplay';
 import { ClothingRecommendation } from './ClothingRecommendation';
@@ -77,6 +77,28 @@ export function StartRun({ apiKey, hasApiKey, temperatureUnit, thermalPreference
   const [updateCheckResult, setUpdateCheckResult] = useState<'upToDate' | null>(null);
   const [showForgottenReminder, setShowForgottenReminder] = useState(false);
   const [forgottenDuration, setForgottenDuration] = useState('');
+  const [expertMode, setExpertMode] = useState(false);
+  const [activityLevel, setActivityLevel] = useState<ActivityLevel | undefined>(undefined);
+  const [duration, setDuration] = useState<ActivityDuration | undefined>(undefined);
+
+  // Load expert mode settings on mount
+  useEffect(() => {
+    const loadExpertSettings = async () => {
+      try {
+        const settings = await getSettings();
+        if (settings) {
+          setExpertMode(settings.expertMode || false);
+          if (settings.expertMode) {
+            setActivityLevel(settings.lastActivityLevel);
+            setDuration(settings.lastDuration);
+          }
+        }
+      } catch (err) {
+        console.error('Failed to load expert settings:', err);
+      }
+    };
+    loadExpertSettings();
+  }, []);
 
   // Restore activity state from localStorage on mount
   useEffect(() => {
@@ -344,7 +366,23 @@ export function StartRun({ apiKey, hasApiKey, temperatureUnit, thermalPreference
     setHasUserEdits(true); // Mark that user has made edits
   };
 
-  const handleStartRun = () => {
+  const handleStartRun = async () => {
+    // Save activity level and duration to settings if expert mode is enabled
+    if (expertMode && (activityLevel || duration)) {
+      try {
+        const settings = await getSettings();
+        if (settings) {
+          await saveSettings({
+            ...settings,
+            lastActivityLevel: activityLevel,
+            lastDuration: duration
+          });
+        }
+      } catch (err) {
+        console.error('Failed to save activity level/duration:', err);
+      }
+    }
+
     const startTime = new Date();
     setRunState('running');
     setRunStartTime(startTime);
@@ -376,7 +414,9 @@ export function StartRun({ apiKey, hasApiKey, temperatureUnit, thermalPreference
       comfort,
       timestamp: new Date(),
       activity,
-      comments // Optional user notes
+      comments, // Optional user notes
+      activityLevel: expertMode ? activityLevel : undefined, // Only include if expert mode enabled
+      duration: expertMode ? duration : undefined // Only include if expert mode enabled
     };
 
     await addFeedback(feedback);
@@ -782,12 +822,74 @@ export function StartRun({ apiKey, hasApiKey, temperatureUnit, thermalPreference
         />
       )}
 
+      {/* Expert Mode: Activity Level and Duration inputs */}
+      {weather && !isLoadingRec && expertMode && runState === 'idle' && (
+        <div className="glass-card p-4 mb-4 animate-slide-up delay-300">
+          <h3 className="text-sm font-medium mb-3 flex items-center gap-2">
+            <svg className="w-4 h-4 text-[var(--color-accent)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+            </svg>
+            Activity Details
+          </h3>
+          
+          <div className="space-y-4">
+            {/* Activity Level */}
+            <div>
+              <label className="block text-sm font-medium mb-2">Intensity Level</label>
+              <div className="flex gap-2">
+                {(['low', 'medium', 'high'] as ActivityLevel[]).map((level) => (
+                  <button
+                    key={level}
+                    onClick={() => setActivityLevel(level)}
+                    className={`flex-1 py-2 px-3 rounded-lg font-medium transition-all ${
+                      activityLevel === level
+                        ? 'bg-[var(--color-accent)] text-white'
+                        : 'bg-[rgba(255,255,255,0.1)] text-[var(--color-text-muted)] hover:bg-[rgba(255,255,255,0.15)]'
+                    }`}
+                  >
+                    {level.charAt(0).toUpperCase() + level.slice(1)}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Duration */}
+            <div>
+              <label className="block text-sm font-medium mb-2">Duration</label>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setDuration('short')}
+                  className={`flex-1 py-2 px-3 rounded-lg font-medium transition-all ${
+                    duration === 'short'
+                      ? 'bg-[var(--color-accent)] text-white'
+                      : 'bg-[rgba(255,255,255,0.1)] text-[var(--color-text-muted)] hover:bg-[rgba(255,255,255,0.15)]'
+                  }`}
+                >
+                  &lt; 1 hour
+                </button>
+                <button
+                  onClick={() => setDuration('long')}
+                  className={`flex-1 py-2 px-3 rounded-lg font-medium transition-all ${
+                    duration === 'long'
+                      ? 'bg-[var(--color-accent)] text-white'
+                      : 'bg-[rgba(255,255,255,0.1)] text-[var(--color-text-muted)] hover:bg-[rgba(255,255,255,0.15)]'
+                  }`}
+                >
+                  ≥ 1 hour
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Start run button */}
       {weather && !isLoadingRec && (
         <div className="animate-slide-up delay-400">
           <button 
             onClick={handleStartRun}
-            className="btn-primary w-full text-lg py-4 animate-pulse-glow"
+            disabled={expertMode && runState === 'idle' && (!activityLevel || !duration)}
+            className="btn-primary w-full text-lg py-4 animate-pulse-glow disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <span className="flex items-center justify-center gap-2">
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">

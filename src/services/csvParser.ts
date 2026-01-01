@@ -35,6 +35,10 @@ const HEADER_MAPPINGS: Record<string, string> = {
   'clouds': 'cloudCover',
   'comfort': 'comfort',
   'comments': 'comments',
+  'activity_level': 'activityLevel',  // Recognized but not used in RunRecord (expert mode feature)
+  'activitylevel': 'activityLevel',
+  'activity level': 'activityLevel',
+  'duration': 'duration',  // Recognized but not used in RunRecord (expert mode feature)
   
   // Clothing - Common
   'head_cover': 'headCover',

@@ -37,6 +37,14 @@ db.version(4).stores({
   customClothing: '++id, category, activity'
 });
 
+// Version 5 adds activity level and duration to feedback (expert mode)
+db.version(5).stores({
+  runs: '++id, date, time, location, temperature, activity',
+  settings: '++id',
+  feedback: '++id, date, temperature, comfort, activity, activityLevel, duration',
+  customClothing: '++id, category, activity'
+});
+
 // Run records operations
 export async function addRuns(runs: RunRecord[]): Promise<void> {
   await db.runs.bulkAdd(runs);
@@ -208,6 +216,8 @@ export async function exportHistoryAsCSV(activity?: ActivityType): Promise<strin
     cloudCover: number;
     comfort?: string;
     comments?: string;
+    activityLevel?: string;
+    duration?: string;
     clothing: Record<string, string>;
   }
 
@@ -243,6 +253,8 @@ export async function exportHistoryAsCSV(activity?: ActivityType): Promise<strin
       cloudCover: fb.cloudCover,
       comfort: fb.comfort,
       comments: fb.comments,
+      activityLevel: fb.activityLevel,
+      duration: fb.duration,
       clothing: fb.clothing
     });
   }
@@ -274,6 +286,8 @@ export async function exportHistoryAsCSV(activity?: ActivityType): Promise<strin
     'cloud_cover',
     'comfort',
     'comments',
+    'activity_level',
+    'duration',
     ...clothingKeysArray.map(k => k.replace(/([A-Z])/g, '_$1').toLowerCase())
   ];
 
@@ -294,6 +308,8 @@ export async function exportHistoryAsCSV(activity?: ActivityType): Promise<strin
       record.cloudCover,
       record.comfort || '',
       record.comments || '',
+      record.activityLevel || '',
+      record.duration || '',
       ...clothingValues
     ].map(v => escapeCSVValue(String(v))).join(',');
   });
@@ -325,6 +341,8 @@ export async function exportAllHistoryAsCSV(): Promise<string> {
     cloudCover: number;
     comfort?: string;
     comments?: string;
+    activityLevel?: string;
+    duration?: string;
     clothing: Record<string, string>;
   }
 
@@ -369,6 +387,8 @@ export async function exportAllHistoryAsCSV(): Promise<string> {
         cloudCover: fb.cloudCover,
         comfort: fb.comfort,
         comments: fb.comments,
+        activityLevel: fb.activityLevel,
+        duration: fb.duration,
         clothing: fb.clothing
       });
     }
@@ -402,6 +422,8 @@ export async function exportAllHistoryAsCSV(): Promise<string> {
     'cloud_cover',
     'comfort',
     'comments',
+    'activity_level',
+    'duration',
     ...clothingKeysArray.map(k => k.replace(/([A-Z])/g, '_$1').toLowerCase())
   ];
 
@@ -423,6 +445,8 @@ export async function exportAllHistoryAsCSV(): Promise<string> {
       record.cloudCover,
       record.comfort || '',
       record.comments || '',
+      record.activityLevel || '',
+      record.duration || '',
       ...clothingValues
     ].map(v => escapeCSVValue(String(v))).join(',');
   });

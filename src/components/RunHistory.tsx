@@ -11,6 +11,8 @@ interface DisplayRun extends RunRecord {
   source: 'csv' | 'feedback';
   comfort?: string;
   comments?: string;
+  activityLevel?: string;
+  duration?: string;
 }
 
 interface RunHistoryProps {
@@ -67,7 +69,9 @@ export function RunHistory({ onDataCleared, temperatureUnit, activity = 'running
           clothing: fb.clothing,
           source: 'feedback' as const,
           comfort: fb.comfort,
-          comments: fb.comments
+          comments: fb.comments,
+          activityLevel: fb.activityLevel,
+          duration: fb.duration
         }));
         
         // Combine and sort by date descending
@@ -493,6 +497,27 @@ function RunCard({ run, index, temperatureUnit, onDelete, activityName, clothing
 
       {isExpanded && (
         <div className="mt-4 pt-4 border-t border-[rgba(255,255,255,0.1)]">
+          {/* Activity level and duration (expert mode) */}
+          {(run.activityLevel || run.duration) && (
+            <div className="mb-4 p-3 rounded-lg bg-[rgba(255,255,255,0.05)] border-l-2 border-[var(--color-accent)]">
+              <div className="text-xs uppercase tracking-wide text-[var(--color-text-muted)] mb-2">Activity Details</div>
+              <div className="flex flex-wrap gap-3 text-sm">
+                {run.activityLevel && (
+                  <span>
+                    <span className="text-[var(--color-text-muted)]">Level: </span>
+                    <span className="font-medium capitalize">{run.activityLevel}</span>
+                  </span>
+                )}
+                {run.duration && (
+                  <span>
+                    <span className="text-[var(--color-text-muted)]">Duration: </span>
+                    <span className="font-medium">{run.duration === 'short' ? '< 1 hour' : '≥ 1 hour'}</span>
+                  </span>
+                )}
+              </div>
+            </div>
+          )}
+
           {/* Comfort feedback for user runs */}
           {run.comfort && (
             <div className="mb-4 p-3 rounded-lg bg-[rgba(255,255,255,0.05)]">

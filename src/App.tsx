@@ -161,7 +161,7 @@ function App() {
   const activityConfig = ACTIVITY_CONFIGS[selectedActivity];
 
   if (isLoading) {
-    return (
+  return (
       <div className="flex-1 flex items-center justify-center">
         <div className="text-center">
           <div className="spinner animate-spin mx-auto mb-4 w-8 h-8"></div>
@@ -222,7 +222,7 @@ function App() {
                       <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                     </svg>
                   )}
-                </button>
+        </button>
               ))}
             </div>
           )}
@@ -325,7 +325,7 @@ function App() {
 
       {/* Backup reminder modal - shows after 5 sessions */}
       <BackupReminder onExport={handleBackupExport} />
-    </div>
+      </div>
   );
 }
 
