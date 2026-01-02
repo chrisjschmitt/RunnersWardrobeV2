@@ -7,8 +7,6 @@
 import { describe, it, expect } from 'vitest';
 import { 
   getClothingRecommendation,
-  calculateComfortTemperature,
-  comfortTempToFahrenheit,
   getLastRecommendationDebug
 } from '../services/recommendationEngine';
 import type { WeatherData, RunRecord, RunFeedback, ActivityType, ActivityLevel } from '../types';

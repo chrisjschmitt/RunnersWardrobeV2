@@ -557,13 +557,6 @@ export function getClothingRecommendation(
   // Initialize debug info
   const debugSafetyOverrides: SafetyOverrideDebug[] = [];
   
-  // Create adjusted weather using T_comfort for temperature-based decisions
-  const adjustedWeather: WeatherData = {
-    ...currentWeather,
-    temperature: adjustedTempF,
-    feelsLike: adjustedTempF  // T_comfort already incorporates feels-like
-  };
-
   // Check for recent similar feedback first
   const recentMatch = findRecentSimilarFeedback(currentWeather, feedbackHistory);
   if (recentMatch) {
