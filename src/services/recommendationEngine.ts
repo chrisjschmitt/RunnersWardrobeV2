@@ -394,9 +394,9 @@ function feedbackToRunRecord(feedback: RunFeedback): RunRecord & { comfort?: str
  * This function:
  * 1. Calculates similarity scores for all historical sessions (both CSV imports and feedback)
  * 2. Filters out sessions below the minimum similarity threshold (default 40%)
- * 3. Applies boosts to feedback sessions:
- *    - Recency boost: up to +30% for sessions from the last 30 days
- *    - Comfort boost: +10% if the user marked the session as "just right"
+ * 3. Applies multipliers to feedback sessions (weather similarity remains primary):
+ *    - Recency multiplier: up to 1.05× (5% boost) for sessions within last 7 days
+ *    - Comfort multiplier: 1.05× (5% boost) if the user marked the session as "just right" or "satisfied"
  * 4. Returns sessions sorted by score (highest first)
  * 
  * @param currentWeather - Current weather conditions to match against
