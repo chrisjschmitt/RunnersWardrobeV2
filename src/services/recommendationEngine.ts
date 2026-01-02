@@ -133,8 +133,9 @@ export function comfortTempToFahrenheit(comfortTempC: number): number {
 //    Only sessions with ≥40% similarity are included in the analysis.
 //
 // 4. FEEDBACK BOOSTS (for sessions from user feedback, not CSV imports)
-//    - Recency boost: up to +30% for recent sessions (30 / days_ago × 0.1)
-//    - Comfort boost: +10% if the session was marked "just right"
+//    - Recency multiplier: up to 1.05× (5% boost) for sessions within last 7 days
+//      This acts as a tie-breaker - weather similarity remains primary
+//    - Comfort multiplier: 1.05× (5% boost) if the session was marked "just right" or "satisfied"
 //
 // 5. VOTING
 //    Higher-scoring matches get more "votes" when determining clothing.
