@@ -3,7 +3,7 @@ import type { RunRecord, RunFeedback, ActivityType, ThermalPreference, WeatherDa
 import { ACTIVITY_CONFIGS } from '../types';
 import { getAllRuns, clearAllRuns, getAllFeedback, clearAllFeedback, deleteRun, deleteFeedback, exportAllHistoryAsCSV } from '../services/database';
 import { resetSessionCount, getSessionCount } from './BackupReminder';
-import { formatTemperature, formatWindSpeed, type TemperatureUnit } from '../services/temperatureUtils';
+import { formatTemperature, formatWindSpeed, formatPrecipitation, type TemperatureUnit } from '../services/temperatureUtils';
 import { calculateComfortTemperature } from '../services/recommendationEngine';
 
 // Extended type to track source
@@ -548,6 +548,9 @@ function RunCard({ run, index, temperatureUnit, onDelete, activityName, clothing
             </div>
             <div>
               <span className="text-[var(--color-text-muted)]">Clouds:</span> {run.cloudCover}%
+            </div>
+            <div>
+              <span className="text-[var(--color-text-muted)]">Precipitation:</span> {formatPrecipitation(run.precipitation, temperatureUnit)}
             </div>
           </div>
 
