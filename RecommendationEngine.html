@@ -354,7 +354,7 @@
                 </div>
                 <ul class="step-detail">
                     <li><strong>B(activity)</strong> — Body heat adjustment: +0.5°C walking → +6°C running</li>
-                    <li><strong>I(intensity)</strong> — Activity intensity (Expert Mode): −0.5°C (low) / 0 (medium) / +1.5°C (high)</li>
+                    <li><strong>I(intensity)</strong> — Activity intensity (Expert Mode): −1.5°C (low) / 0 (moderate) / +1.5°C (high)</li>
                     <li><strong>wΔ × Δ</strong> — Weighted feels-like effect: 0.35 (running) → 0.80 (walking)</li>
                     <li><strong>thermal_offset</strong> — User preference: −4.4°C (cold) / 0 / +4.4°C (warm)</li>
                 </ul>
@@ -384,8 +384,10 @@
                 </p>
                 <ul class="step-detail">
                     <li><strong>Feedback records</strong> get 2× weight (you rated them!)</li>
-                    <li><strong>Recent sessions</strong> get a recency boost</li>
-                    <li><strong>"Just right"</strong> comfort ratings get an extra boost</li>
+                    <li><strong>Recent sessions</strong> get a recency multiplier (up to 1.05×)</li>
+                    <li><strong>"Just right" or "satisfied"</strong> comfort ratings get a comfort multiplier (1.05×)</li>
+                    <li><strong>Activity level matching:</strong> Historical sessions use their stored activity level for accurate T_comfort comparison</li>
+                    <li><strong>Legacy "medium" values</strong> are automatically normalized to "moderate" for backward compatibility</li>
                 </ul>
             </div>
 
@@ -401,6 +403,22 @@
                     <li>Collect what you wore in similar conditions</li>
                     <li>Higher similarity = more votes</li>
                     <li>Pick the most common choice</li>
+                </ul>
+            </div>
+
+            <div class="flow-step secondary">
+                <div class="step-title">
+                    <span class="step-number">4.5</span>
+                    Temperature Adjustment
+                </div>
+                <p class="step-description">
+                    If current T_comfort is significantly colder/warmer than historical matches, adjust clothing accordingly
+                </p>
+                <ul class="step-detail">
+                    <li>Compares current T_comfort to average T_comfort of similar sessions</li>
+                    <li>If current is ≥3°C colder, upgrades clothing to warmer options</li>
+                    <li>Upgrades base layer, mid-layer, and outer layer as needed</li>
+                    <li>Ensures recommendations match CURRENT conditions, not just historical averages</li>
                 </ul>
             </div>
 
@@ -664,31 +682,32 @@
             <strong style="color: var(--accent-green);">Result:</strong> Long sleeve (10 votes) beats T-shirt (2 votes) → <strong>Long sleeve wins!</strong>
         </p>
 
-        <h3>🚀 Feedback Boosts</h3>
-        <p style="color: var(--text-secondary);">Sessions from user feedback get additional score boosts before voting:</p>
+        <h3>🚀 Feedback Multipliers</h3>
+        <p style="color: var(--text-secondary);">Sessions from user feedback get additional score multipliers before voting (v4.18+):</p>
         <table>
             <thead>
                 <tr>
-                    <th>Boost Type</th>
+                    <th>Multiplier Type</th>
                     <th>Amount</th>
                     <th>Formula</th>
                 </tr>
             </thead>
             <tbody>
                 <tr>
-                    <td><strong>Recency Boost</strong></td>
-                    <td>Up to +30%</td>
-                    <td><code>min(0.3, 30 / days_ago × 0.1)</code></td>
+                    <td><strong>Recency Multiplier</strong></td>
+                    <td>Up to 1.05× (5%)</td>
+                    <td><code>1.0 + (0.05 × min(1, 7 / days_ago))</code></td>
                 </tr>
                 <tr>
-                    <td><strong>Satisfaction Boost</strong></td>
-                    <td>+10%</td>
+                    <td><strong>Comfort Multiplier</strong></td>
+                    <td>1.05× (5%)</td>
                     <td>If session was marked "satisfied" (v4.9+) or "just right" (legacy)</td>
                 </tr>
             </tbody>
         </table>
         <p style="color: var(--text-secondary); margin-top: 0.5rem; font-size: 0.9rem;">
-            Example: A "satisfied" session from yesterday gets: base score + 30% recency + 10% satisfaction = up to 40% boost!
+            <strong>Note:</strong> Multipliers are small (up to 5%) and act as tie-breakers. Weather similarity remains the primary factor. 
+            Example: A "satisfied" session from yesterday gets: base score × 1.05 (recency) × 1.05 (comfort) = up to 10% total boost.
         </p>
         
         <h3>✅ New Feedback Flow (v4.9+)</h3>
@@ -702,17 +721,18 @@
         </p>
 
         <h2>📈 Confidence Calculation</h2>
-        <p>The confidence percentage shown in the app reflects both the <strong>quality</strong> and <strong>quantity</strong> of matching sessions:</p>
+        <p>The confidence percentage shown in the app reflects both the <strong>quality</strong> and <strong>quantity</strong> of matching sessions. When confidence is Medium or Low, the app may provide suggestions for clothing adjustments.</p>
         
         <div class="flow-step secondary" style="margin: 1rem 0;">
             <div class="step-title">Confidence Formula</div>
             <pre style="background: var(--bg-secondary); padding: 1rem; border-radius: 8px; overflow-x: auto; margin-top: 0.5rem;">
-confidence = (sessionCount / 10) × 30%  +  avgSimilarity × 70%
+confidence = (sessionCount / 5) × 30%  +  avgSimilarity × 70%
             </pre>
             <ul class="step-detail" style="margin-top: 0.5rem;">
-                <li><strong>30% weight</strong> for session count (capped at 10 sessions)</li>
+                <li><strong>30% weight</strong> for session count (capped at 5 sessions)</li>
                 <li><strong>70% weight</strong> for average match quality of similar sessions</li>
                 <li>Maximum confidence: 100%</li>
+                <li><em>Note: Reduced from 10 to 5 sessions (v4.21.5) for more realistic confidence with fewer data points</em></li>
             </ul>
         </div>
 
@@ -729,32 +749,44 @@ confidence = (sessionCount / 10) × 30%  +  avgSimilarity × 70%
             <tbody>
                 <tr>
                     <td>2 very close matches</td>
-                    <td>(2/10) × 30 = 6</td>
+                    <td>(2/5) × 30 = 12</td>
                     <td>97% × 70 = 68</td>
-                    <td><strong style="color: var(--accent-green);">74%</strong></td>
+                    <td><strong style="color: var(--accent-green);">80%</strong></td>
                 </tr>
                 <tr>
                     <td>5 good matches</td>
-                    <td>(5/10) × 30 = 15</td>
+                    <td>(5/5) × 30 = 30</td>
                     <td>85% × 70 = 60</td>
-                    <td><strong style="color: var(--accent-green);">75%</strong></td>
+                    <td><strong style="color: var(--accent-green);">90%</strong></td>
                 </tr>
                 <tr>
-                    <td>10+ excellent matches</td>
-                    <td>(10/10) × 30 = 30</td>
+                    <td>5+ excellent matches</td>
+                    <td>(5/5) × 30 = 30</td>
                     <td>90% × 70 = 63</td>
                     <td><strong style="color: var(--accent-green);">93%</strong></td>
                 </tr>
                 <tr>
                     <td>1 perfect match</td>
-                    <td>(1/10) × 30 = 3</td>
+                    <td>(1/5) × 30 = 6</td>
                     <td>100% × 70 = 70</td>
-                    <td><strong style="color: var(--accent-green);">73%</strong></td>
+                    <td><strong style="color: var(--accent-green);">76%</strong></td>
                 </tr>
             </tbody>
         </table>
         <p style="color: var(--text-secondary); margin-top: 0.5rem; font-size: 0.9rem;">
             <em>This weighting means a few very close matches can still produce high confidence, while more sessions provide additional reliability.</em>
+        </p>
+
+        <h3>💡 Low/Medium Confidence Suggestions</h3>
+        <p style="color: var(--text-secondary);">When confidence is below 70% (Medium or Low), the app can provide contextual suggestions:</p>
+        <ul class="step-detail">
+            <li><strong>Compares current recommendation</strong> to activity defaults and weather conditions</li>
+            <li><strong>Identifies potential gaps</strong> (e.g., missing mid-layer in cold conditions)</li>
+            <li><strong>Provides specific recommendations</strong> with reasoning (e.g., "Add a mid-layer - current conditions are colder than your historical matches")</li>
+            <li><strong>Category-by-category suggestions</strong> showing current vs. recommended items</li>
+        </ul>
+        <p style="color: var(--text-secondary); margin-top: 0.5rem; font-size: 0.9rem;">
+            <em>Note: Suggestions feature is currently being refined and may be temporarily disabled in some versions.</em>
         </p>
 
         <h2>🛡️ Safety Overrides</h2>
@@ -953,7 +985,7 @@ confidence = (sessionCount / 10) × 30%  +  avgSimilarity × 70%
         </table>
 
         <div class="footer">
-            <span class="version">v4.17.3</span>
+            <span class="version">v4.21.5</span>
             <p style="margin-top: 0.5rem;">TrailKit Recommendation Engine Documentation</p>
             <p>© 2025 TrailKit</p>
         </div>
