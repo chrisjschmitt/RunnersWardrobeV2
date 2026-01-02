@@ -204,13 +204,16 @@ function calculateSimilarity(
   current: WeatherData, 
   historical: RunRecord,
   activity: ActivityType = 'running',
-  thermalPreference: ThermalPreference = 'average'
+  thermalPreference: ThermalPreference = 'average',
+  currentActivityLevel?: ActivityLevel,
+  historicalActivityLevel?: ActivityLevel
 ): number {
   let totalWeight = 0;
   let weightedScore = 0;
 
   // Calculate T_comfort for both current and historical weather
-  const currentComfort = calculateComfortTemperature(current, activity, thermalPreference);
+  // Use current activity level for current weather
+  const currentComfort = calculateComfortTemperature(current, activity, thermalPreference, currentActivityLevel);
   
   // For historical, create a WeatherData-like object
   const historicalWeather: WeatherData = {
@@ -227,7 +230,8 @@ function calculateSimilarity(
     location: '',
     timestamp: new Date()
   };
-  const historicalComfort = calculateComfortTemperature(historicalWeather, activity, thermalPreference);
+  // Use historical activity level for historical weather (if stored)
+  const historicalComfort = calculateComfortTemperature(historicalWeather, activity, thermalPreference, historicalActivityLevel);
 
   // T_comfort similarity (in °C)
   const comfortDiff = Math.abs(currentComfort.comfortTempC - historicalComfort.comfortTempC);
@@ -412,13 +416,15 @@ function findSimilarRuns(
   feedbackHistory: RunFeedback[],
   minSimilarity: number = 0.5,
   activity: ActivityType = 'running',
-  thermalPreference: ThermalPreference = 'average'
+  thermalPreference: ThermalPreference = 'average',
+  currentActivityLevel?: ActivityLevel
 ): SimilarityScore[] {
   const similarities: SimilarityScore[] = [];
 
   // Add CSV runs (no boosts applied - these are historical imports)
+  // CSV runs don't have activityLevel stored, so pass undefined for historical
   for (const run of runs) {
-    const score = calculateSimilarity(currentWeather, run, activity, thermalPreference);
+    const score = calculateSimilarity(currentWeather, run, activity, thermalPreference, currentActivityLevel, undefined);
     if (score >= minSimilarity) {
       similarities.push({ record: run, score, isFromFeedback: false });
     }
@@ -427,7 +433,9 @@ function findSimilarRuns(
   // Add ALL feedback records as runs (with boosts for recency and comfort)
   for (const feedback of feedbackHistory) {
     const runRecord = feedbackToRunRecord(feedback);
-    const score = calculateSimilarity(currentWeather, runRecord, activity, thermalPreference);
+    // Use the activityLevel that was stored with this feedback session
+    const historicalActivityLevel = feedback.activityLevel as ActivityLevel | undefined;
+    const score = calculateSimilarity(currentWeather, runRecord, activity, thermalPreference, currentActivityLevel, historicalActivityLevel);
     
     if (score >= minSimilarity) {
       // Recency multiplier: more recent = slight boost (tie-breaker, not compensation)
@@ -615,7 +623,7 @@ export function getClothingRecommendation(
     };
   }
 
-  const similarRuns = findSimilarRuns(adjustedWeather, runs, feedbackHistory, 0.4, activity, thermalPreference);
+  const similarRuns = findSimilarRuns(adjustedWeather, runs, feedbackHistory, 0.4, activity, thermalPreference, activityLevel);
   
   // ============ VOTING SYSTEM ============
   // Build clothing votes from similar runs for each category
