@@ -62,6 +62,7 @@ export function ClothingRecommendation({
   const [editingCategory, setEditingCategory] = useState<string | null>(null);
   const [showingInfo, setShowingInfo] = useState<ClothingInfo | null>(null);
   const [showSimilarSessions, setShowSimilarSessions] = useState(false);
+  const [showSuggestions, setShowSuggestions] = useState(false);
   
   // Get categories for this activity
   const categories = getClothingCategories(activity);
@@ -170,31 +171,6 @@ export function ClothingRecommendation({
           )}
         </div>
 
-        {suggestions && suggestions.suggestions.length > 0 && (
-          <div className="mb-4 p-4 bg-[rgba(234,179,8,0.15)] border border-[var(--color-warning)] rounded-lg">
-            <div className="flex items-start gap-2 mb-2">
-              <svg className="w-5 h-5 text-[var(--color-warning)] flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-              <div className="flex-1">
-                <p className="text-sm font-medium text-[var(--color-warning)] mb-1">Suggestions</p>
-                <p className="text-xs text-[var(--color-text-muted)] mb-3">{suggestions.explanation}</p>
-                <div className="space-y-2">
-                  {suggestions.suggestions.map((suggestion, idx) => (
-                    <div key={idx} className="text-sm">
-                      <span className="font-medium">{suggestion.categoryLabel}:</span>{' '}
-                      <span className="text-[var(--color-text-muted)] line-through">{suggestion.current}</span>
-                      {' → '}
-                      <span className="font-medium text-[var(--color-warning)]">{suggestion.suggested}</span>
-                      <span className="text-xs text-[var(--color-text-muted)] block ml-0 mt-0.5">{suggestion.reason}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-
         {!hasHistory && (
           <div className="mb-4 p-3 bg-[rgba(234,179,8,0.15)] border border-[var(--color-warning)] rounded-lg">
             <p className="text-sm text-[var(--color-warning)]">
@@ -203,43 +179,124 @@ export function ClothingRecommendation({
           </div>
         )}
 
-        {hasHistory && recommendation && (
-          <div className="mb-4">
-            <button
-              onClick={() => setShowSimilarSessions(!showSimilarSessions)}
-              className="w-full p-3 bg-[rgba(34,197,94,0.15)] border border-[var(--color-success)] rounded-lg text-left hover:bg-[rgba(34,197,94,0.25)] transition-colors"
-            >
-              <div className="flex items-center justify-between">
-                <p className="text-sm text-[var(--color-success)]">
-                  Based on <strong>{recommendation.matchingRuns}</strong> similar session{recommendation.matchingRuns !== 1 ? 's' : ''} from your history
-                </p>
-                <svg 
-                  className={`w-4 h-4 text-[var(--color-success)] transition-transform ${showSimilarSessions ? 'rotate-180' : ''}`}
-                  fill="none" 
-                  stroke="currentColor" 
-                  viewBox="0 0 24 24"
-                >
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                </svg>
-              </div>
-            </button>
-            
-            {/* Expandable similar sessions */}
-            {showSimilarSessions && recommendation.similarConditions.length > 0 && (
-              <div className="mt-2 space-y-2 animate-fade-in">
-                {recommendation.similarConditions.map((session, index) => (
-                  <SimilarSessionCard 
-                    key={index}
-                    session={session}
-                    temperatureUnit={temperatureUnit}
-                    activity={activity}
-                    thermalPreference={thermalPreference}
-                  />
-                ))}
-              </div>
-            )}
-          </div>
-        )}
+        {hasHistory && recommendation && (() => {
+          // Get confidence color
+          let confidenceColor = 'var(--color-error)'; // Low
+          let confidenceBgColor = 'rgba(239,68,68,0.15)';
+          let confidenceHoverBgColor = 'rgba(239,68,68,0.25)';
+          
+          if (recommendation.confidence >= 70) {
+            confidenceColor = 'var(--color-success)'; // High
+            confidenceBgColor = 'rgba(34,197,94,0.15)';
+            confidenceHoverBgColor = 'rgba(34,197,94,0.25)';
+          } else if (recommendation.confidence >= 40) {
+            confidenceColor = 'var(--color-warning)'; // Medium
+            confidenceBgColor = 'rgba(234,179,8,0.15)';
+            confidenceHoverBgColor = 'rgba(234,179,8,0.25)';
+          }
+
+          return (
+            <div className="mb-4">
+              <button
+                onClick={() => setShowSimilarSessions(!showSimilarSessions)}
+                className="w-full p-3 rounded-lg text-left transition-colors"
+                style={{ 
+                  backgroundColor: confidenceBgColor,
+                  border: `1px solid ${confidenceColor}`,
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = confidenceHoverBgColor;
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = confidenceBgColor;
+                }}
+              >
+                <div className="flex items-center justify-between">
+                  <p className="text-sm" style={{ color: confidenceColor }}>
+                    Based on <strong>{recommendation.matchingRuns}</strong> similar session{recommendation.matchingRuns !== 1 ? 's' : ''} from your history
+                  </p>
+                  <svg 
+                    className={`w-4 h-4 transition-transform ${showSimilarSessions ? 'rotate-180' : ''}`}
+                    style={{ color: confidenceColor }}
+                    fill="none" 
+                    stroke="currentColor" 
+                    viewBox="0 0 24 24"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </div>
+              </button>
+              
+              {/* Expandable similar sessions */}
+              {showSimilarSessions && recommendation.similarConditions.length > 0 && (
+                <div className="mt-2 space-y-2 animate-fade-in">
+                  {recommendation.similarConditions.map((session, index) => (
+                    <SimilarSessionCard 
+                      key={index}
+                      session={session}
+                      temperatureUnit={temperatureUnit}
+                      activity={activity}
+                      thermalPreference={thermalPreference}
+                    />
+                  ))}
+                </div>
+              )}
+
+              {/* Suggestions - collapsible, below history */}
+              {suggestions && suggestions.suggestions.length > 0 && (
+                <div className="mt-2">
+                  <button
+                    onClick={() => setShowSuggestions(!showSuggestions)}
+                    className="w-full p-3 rounded-lg text-left transition-colors"
+                    style={{ 
+                      backgroundColor: confidenceBgColor,
+                      border: `1px solid ${confidenceColor}`,
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.backgroundColor = confidenceHoverBgColor;
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.backgroundColor = confidenceBgColor;
+                    }}
+                  >
+                    <div className="flex items-center justify-between">
+                      <p className="text-sm" style={{ color: confidenceColor }}>
+                        Suggestions
+                      </p>
+                      <svg 
+                        className={`w-4 h-4 transition-transform ${showSuggestions ? 'rotate-180' : ''}`}
+                        style={{ color: confidenceColor }}
+                        fill="none" 
+                        stroke="currentColor" 
+                        viewBox="0 0 24 24"
+                      >
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                      </svg>
+                    </div>
+                  </button>
+
+                  {/* Expandable suggestions content */}
+                  {showSuggestions && (
+                    <div className="mt-2 p-3 rounded-lg animate-fade-in" style={{ backgroundColor: confidenceBgColor, border: `1px solid ${confidenceColor}` }}>
+                      <p className="text-xs mb-3" style={{ color: confidenceColor }}>{suggestions.explanation}</p>
+                      <div className="space-y-2">
+                        {suggestions.suggestions.map((suggestion, idx) => (
+                          <div key={idx} className="text-sm">
+                            <span className="font-medium">{suggestion.categoryLabel}:</span>{' '}
+                            <span className="text-[var(--color-text-muted)] line-through">{suggestion.current}</span>
+                            {' → '}
+                            <span className="font-medium" style={{ color: confidenceColor }}>{suggestion.suggested}</span>
+                            <span className="text-xs text-[var(--color-text-muted)] block ml-0 mt-0.5">{suggestion.reason}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          );
+        })()}
 
         {editable && (
           <div className="mb-4 p-3 bg-[rgba(249,115,22,0.15)] border border-[var(--color-accent)] rounded-lg">
