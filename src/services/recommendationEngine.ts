@@ -668,6 +668,138 @@ export function getClothingRecommendation(
     clothing[cat.key] = results[cat.key].item;
   }
 
+  // Define preference lists and helper function early for use in temperature adjustment
+  // Comprehensive preference lists for all activities
+  // When adding a new activity, add its clothing terms to these lists
+  const WARM_TOPS = [
+    // Athletic
+    'Heavy merino', 'Base layer + jacket', 'Expedition weight',
+    // Casual
+    'Fleece', 'Sweater', 'Light jacket',
+    // Cycling specific
+    'Thermal jersey', 'Jersey + jacket', 'Jersey + vest',
+    // XC Skiing specific
+    'Wind jacket + fleece', 'XC jacket', 'Soft shell'
+  ];
+  
+  const COLD_TOPS = [
+    // Athletic
+    'Merino base', 'Long sleeve', 'Base layer',
+    // Casual
+    'Sweater', 'Fleece',
+    // Cycling specific
+    'Long sleeve jersey', 'Thermal jersey',
+    // XC Skiing specific
+    'XC jacket'
+  ];
+
+  const WARM_OUTER = [
+    'Insulated jacket', 'Down jacket', 'Winter coat', 
+    'Hardshell', 'Heavy puffy', 'Softshell'
+  ];
+
+  // Helper to find first valid option from a list of preferences
+  // This ensures we never set a value that doesn't exist in the activity's options
+  const findValidOption = (categoryKey: string, preferences: string[]): string | null => {
+    const category = categories.find(c => c.key === categoryKey);
+    if (!category) return null;
+    for (const pref of preferences) {
+      const match = category.options.find(opt => opt.toLowerCase() === pref.toLowerCase());
+      if (match) return match;
+    }
+    // If no preference matches, return null (keep existing value)
+    return null;
+  };
+
+  // ============ TEMPERATURE ADJUSTMENT ============
+  // If current conditions are significantly colder/warmer than historical sessions,
+  // adjust clothing recommendations to account for the temperature difference.
+  // This ensures recommendations are appropriate for CURRENT conditions, not just historical matches.
+  if (similarRuns.length > 0) {
+    // Calculate average T_comfort of similar sessions
+    let totalHistoricalComfort = 0;
+    let historicalCount = 0;
+    
+    for (const { record } of similarRuns) {
+      const historicalWeather: WeatherData = {
+        temperature: record.temperature,
+        feelsLike: record.feelsLike,
+        humidity: record.humidity,
+        pressure: 0,
+        windSpeed: record.windSpeed,
+        precipitation: record.precipitation,
+        cloudCover: record.cloudCover,
+        uvIndex: record.uvIndex,
+        icon: '',
+        description: '',
+        location: '',
+        timestamp: new Date()
+      };
+      // For historical sessions, we need to get the activityLevel from feedback records
+      // For CSV runs, it will be undefined (which is correct)
+      const historicalActivityLevel = (record as RunRecord & { activityLevel?: ActivityLevel }).activityLevel;
+      const historicalComfort = calculateComfortTemperature(historicalWeather, activity, thermalPreference, historicalActivityLevel);
+      totalHistoricalComfort += historicalComfort.comfortTempC;
+      historicalCount++;
+    }
+    
+    const avgHistoricalComfortC = totalHistoricalComfort / historicalCount;
+    const currentComfortC = comfortBreakdown.comfortTempC;
+    const comfortDiffC = currentComfortC - avgHistoricalComfortC; // Positive = current is warmer, negative = current is colder
+    
+    // Only adjust if difference is significant (≥3°C, about 5.4°F)
+    // This threshold matches our similarity threshold to avoid over-adjusting for very similar conditions
+    if (Math.abs(comfortDiffC) >= 3) {
+      // Current is colder - need to make clothing warmer
+      if (comfortDiffC < 0) {
+        const tempDiffF = Math.abs(comfortDiffC) * 9 / 5; // Convert to Fahrenheit for thresholds
+        
+        // Adjust base layer / tops - upgrade to warmer options
+        const baseKey = categories.find(c => c.key === 'baseLayer' || c.key === 'tops');
+        if (baseKey) {
+          const currentBase = clothing[baseKey.key]?.toLowerCase() || '';
+          const isWarm = currentBase.includes('merino') || currentBase.includes('base layer + jacket') || 
+                        currentBase.includes('expedition') || currentBase.includes('heavy');
+          const isCold = currentBase.includes('t-shirt') || currentBase.includes('singlet') || 
+                        currentBase.includes('tank') || currentBase.includes('short sleeve');
+          
+          // If current is much colder (>5°C = 9°F), strongly upgrade
+          if (tempDiffF > 9 && !isWarm) {
+            const warmTop = findValidOption(baseKey.key, WARM_TOPS);
+            if (warmTop) clothing[baseKey.key] = warmTop;
+          } else if (tempDiffF > 5.4 && isCold) {
+            // If current is moderately colder (3-5°C), upgrade from cold to warm
+            const warmTop = findValidOption(baseKey.key, WARM_TOPS);
+            if (warmTop) clothing[baseKey.key] = warmTop;
+          } else if (!isWarm && !isCold) {
+            // Intermediate items (long sleeve) - upgrade to warm if significant difference
+            if (tempDiffF > 9) {
+              const warmTop = findValidOption(baseKey.key, WARM_TOPS);
+              if (warmTop) clothing[baseKey.key] = warmTop;
+            }
+          }
+        }
+        
+        // Add mid layer if missing and it's significantly colder
+        const midKey = categories.find(c => c.key === 'midLayer');
+        if (midKey && tempDiffF > 5.4 && clothing[midKey.key]?.toLowerCase() === 'none') {
+          const midLayer = findValidOption('midLayer', ['Fleece', 'Light fleece', 'Grid fleece', 'Light puffy', 'Heavy puffy']);
+          if (midLayer) clothing[midKey.key] = midLayer;
+        }
+        
+        // Add outer layer if missing and it's very much colder
+        const outerKey = categories.find(c => c.key === 'outerLayer');
+        if (outerKey && tempDiffF > 9 && clothing[outerKey.key]?.toLowerCase() === 'none') {
+          const outerLayer = findValidOption('outerLayer', WARM_OUTER);
+          if (outerLayer) clothing[outerKey.key] = outerLayer;
+        }
+      }
+      // Note: We don't adjust for warmer conditions (comfortDiffC > 0) because
+      // safety overrides already prevent too-warm clothing in warm conditions,
+      // and users can always remove layers if too warm.
+    }
+  }
+
   // ============ SAFETY OVERRIDES ============
   // These overrides prevent dangerous recommendations that could leave the user
   // freezing or unprepared. They fire AFTER voting, so they can override
@@ -719,48 +851,6 @@ export function getClothingRecommendation(
   if (rainOverrideTriggered && rainKey) {
     clothing[rainKey.key] = adjustedTemp < 50 ? 'Waterproof jacket' : 'Light rain jacket';
   }
-
-  // Helper to find first valid option from a list of preferences
-  // This ensures we never set a value that doesn't exist in the activity's options
-  const findValidOption = (categoryKey: string, preferences: string[]): string | null => {
-    const category = categories.find(c => c.key === categoryKey);
-    if (!category) return null;
-    for (const pref of preferences) {
-      const match = category.options.find(opt => opt.toLowerCase() === pref.toLowerCase());
-      if (match) return match;
-    }
-    // If no preference matches, return null (keep existing value)
-    return null;
-  };
-
-  // Comprehensive preference lists for all activities
-  // When adding a new activity, add its clothing terms to these lists
-  const WARM_TOPS = [
-    // Athletic
-    'Heavy merino', 'Base layer + jacket', 'Expedition weight',
-    // Casual
-    'Fleece', 'Sweater', 'Light jacket',
-    // Cycling specific
-    'Thermal jersey', 'Jersey + jacket', 'Jersey + vest',
-    // XC Skiing specific
-    'Wind jacket + fleece', 'XC jacket', 'Soft shell'
-  ];
-  
-  const COLD_TOPS = [
-    // Athletic
-    'Merino base', 'Long sleeve', 'Base layer',
-    // Casual
-    'Sweater', 'Fleece',
-    // Cycling specific
-    'Long sleeve jersey', 'Thermal jersey',
-    // XC Skiing specific
-    'XC jacket'
-  ];
-
-  const WARM_OUTER = [
-    'Insulated jacket', 'Down jacket', 'Winter coat', 
-    'Hardshell', 'Heavy puffy', 'Softshell'
-  ];
 
   // NOTE: VERY_COLD_GLOVES and COLD_GLOVES removed - gloves handled by activity defaults
 
