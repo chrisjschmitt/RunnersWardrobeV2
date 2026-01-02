@@ -393,10 +393,14 @@ export function calculateComfortAdjustment(
 }
 
 // Find recent feedback that closely matches current weather
+// Returns both the feedback and the calculated similarity score
 function findRecentSimilarFeedback(
   currentWeather: WeatherData,
-  feedbackHistory: RunFeedback[]
-): RunFeedback | null {
+  feedbackHistory: RunFeedback[],
+  activity: ActivityType = 'running',
+  thermalPreference: ThermalPreference = 'average',
+  currentActivityLevel?: ActivityLevel
+): { feedback: RunFeedback; similarity: number } | null {
   const sevenDaysAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
   
   const recentFeedback = feedbackHistory.filter(f => 
@@ -409,7 +413,11 @@ function findRecentSimilarFeedback(
   let bestSimilarity = 0;
   
   for (const feedback of recentFeedback) {
-    const similarity = calculateFeedbackSimilarity(currentWeather, feedback);
+    // Use the same similarity calculation as the main flow, including activity-specific thresholds
+    const runRecord = feedbackToRunRecord(feedback);
+    const historicalActivityLevel = normalizeActivityLevel(feedback.activityLevel);
+    const normalizedCurrentLevel = normalizeActivityLevel(currentActivityLevel);
+    const similarity = calculateSimilarity(currentWeather, runRecord, activity, thermalPreference, normalizedCurrentLevel, historicalActivityLevel);
     
     if (similarity > 0.85 && similarity > bestSimilarity) {
       bestMatch = feedback;
@@ -417,7 +425,9 @@ function findRecentSimilarFeedback(
     }
   }
   
-  return bestMatch;
+  if (!bestMatch) return null;
+  
+  return { feedback: bestMatch, similarity: bestSimilarity };
 }
 
 // Convert feedback records to run records for clothing recommendations
@@ -672,9 +682,16 @@ export function getClothingRecommendation(
   const debugSafetyOverrides: SafetyOverrideDebug[] = [];
   
   // Check for recent similar feedback first
-  const recentMatch = findRecentSimilarFeedback(currentWeather, feedbackHistory);
-  if (recentMatch) {
+  const recentMatchResult = findRecentSimilarFeedback(currentWeather, feedbackHistory, activity, thermalPreference, activityLevel);
+  if (recentMatchResult) {
+    const { feedback: recentMatch, similarity: recentSimilarity } = recentMatchResult;
     const clothing = applyAccessoryLogic(recentMatch.clothing, currentWeather, activity);
+    
+    // Calculate confidence from actual similarity score
+    // For a single recent match: (1/5) × 30 + similarity × 70
+    const confidence = Math.min(100, Math.round(
+      (1 / 5) * 30 + recentSimilarity * 70
+    ));
     
     // Save debug info for recent match case
     const debugInfo: RecommendationDebugInfo = {
@@ -707,7 +724,7 @@ export function getClothingRecommendation(
       recentExactMatch: true,
       similarMatches: [{
         date: recentMatch.date,
-        score: 0.95,
+        score: Math.round(recentSimilarity * 100) / 100,
         isFromFeedback: true,
         comfort: recentMatch.comfort,
         clothing: recentMatch.clothing,
@@ -716,14 +733,14 @@ export function getClothingRecommendation(
       clothingVotes: [],
       safetyOverrides: [],
       finalRecommendation: clothing,
-      confidence: 95,
+      confidence,
       source: 'recent_match',
     };
     saveDebugInfo(debugInfo);
     
     return {
       clothing,
-      confidence: 95,
+      confidence,
       matchingRuns: 1,
       totalRuns: runs.length + feedbackHistory.length,
       similarConditions: [feedbackToRunRecord(recentMatch)]
