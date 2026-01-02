@@ -242,10 +242,10 @@ describe('Recommendation Engine - Similarity and Confidence', () => {
   });
 
   describe('Confidence Calculation Formula', () => {
-    it('should calculate confidence as: (count/10)*30 + avgSimilarity*70', () => {
+    it('should calculate confidence as: (count/5)*30 + avgSimilarity*70', () => {
       // Test the confidence formula explicitly
       // With 3 sessions and low similarity (0.375):
-      // (3/10) * 30 + 0.375 * 70 = 9 + 26.25 = 35.25%
+      // (3/5) * 30 + 0.375 * 70 = 18 + 26.25 = 44.25%
       const currentWeather = createWeatherFromTComfort(-17);
       const runs: RunRecord[] = [
         createRunRecordWithTComfort(-10, '2024-01-01'),
