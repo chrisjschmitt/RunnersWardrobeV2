@@ -45,6 +45,20 @@ const INTENSITY_ADJUSTMENTS: Record<ActivityLevel, number> = {
   high: 1.5      // More body heat, can wear lighter clothes (raises T_comfort by 1.5°C)
 };
 
+/**
+ * Normalize activity level string to valid ActivityLevel type
+ * Handles legacy "medium" values from before the rename to "moderate"
+ */
+function normalizeActivityLevel(level: string | undefined | null): ActivityLevel | undefined {
+  if (!level) return undefined;
+  // Migrate legacy "medium" to "moderate"
+  if (level === 'medium') return 'moderate';
+  if (level === 'low' || level === 'moderate' || level === 'high') {
+    return level as ActivityLevel;
+  }
+  return undefined;
+}
+
 export interface ComfortTemperatureBreakdown {
   actualTempC: number;        // T_actual in °C
   feelsLikeTempC: number;     // Feels-like in °C
@@ -88,7 +102,9 @@ export function calculateComfortTemperature(
   const delta = Math.max(-15, Math.min(8, rawDelta));
   
   // Get intensity adjustment (expert mode)
-  const intensityAdjustment = activityLevel ? INTENSITY_ADJUSTMENTS[activityLevel] : 0;
+  // Normalize to handle legacy "medium" values
+  const normalizedLevel = normalizeActivityLevel(activityLevel);
+  const intensityAdjustment = normalizedLevel ? INTENSITY_ADJUSTMENTS[normalizedLevel] : 0;
   
   // Get thermal preference offset (already in °C)
   const thermalOffset = THERMAL_OFFSETS[thermalPreference];
@@ -212,8 +228,10 @@ function calculateSimilarity(
   let weightedScore = 0;
 
   // Calculate T_comfort for both current and historical weather
-  // Use current activity level for current weather
-  const currentComfort = calculateComfortTemperature(current, activity, thermalPreference, currentActivityLevel);
+  // Normalize activity levels (handle legacy "medium" values)
+  const normalizedCurrentLevel = normalizeActivityLevel(currentActivityLevel);
+  const normalizedHistoricalLevel = normalizeActivityLevel(historicalActivityLevel);
+  const currentComfort = calculateComfortTemperature(current, activity, thermalPreference, normalizedCurrentLevel);
   
   // For historical, create a WeatherData-like object
   const historicalWeather: WeatherData = {
@@ -231,7 +249,7 @@ function calculateSimilarity(
     timestamp: new Date()
   };
   // Use historical activity level for historical weather (if stored)
-  const historicalComfort = calculateComfortTemperature(historicalWeather, activity, thermalPreference, historicalActivityLevel);
+  const historicalComfort = calculateComfortTemperature(historicalWeather, activity, thermalPreference, normalizedHistoricalLevel);
 
   // T_comfort similarity (in °C)
   const comfortDiff = Math.abs(currentComfort.comfortTempC - historicalComfort.comfortTempC);
@@ -423,8 +441,10 @@ function findSimilarRuns(
 
   // Add CSV runs (no boosts applied - these are historical imports)
   // CSV runs don't have activityLevel stored, so pass undefined for historical
+  // Normalize current activity level to handle legacy "medium" values
+  const normalizedCurrentActivityLevel = normalizeActivityLevel(currentActivityLevel);
   for (const run of runs) {
-    const score = calculateSimilarity(currentWeather, run, activity, thermalPreference, currentActivityLevel, undefined);
+    const score = calculateSimilarity(currentWeather, run, activity, thermalPreference, normalizedCurrentActivityLevel, undefined);
     if (score >= minSimilarity) {
       similarities.push({ record: run, score, isFromFeedback: false });
     }
@@ -434,8 +454,10 @@ function findSimilarRuns(
   for (const feedback of feedbackHistory) {
     const runRecord = feedbackToRunRecord(feedback);
     // Use the activityLevel that was stored with this feedback session
-    const historicalActivityLevel = feedback.activityLevel as ActivityLevel | undefined;
-    const score = calculateSimilarity(currentWeather, runRecord, activity, thermalPreference, currentActivityLevel, historicalActivityLevel);
+    // Normalize to handle legacy "medium" values (migrated to "moderate")
+    const historicalActivityLevel = normalizeActivityLevel(feedback.activityLevel);
+    // Use the already-normalized current level from above
+    const score = calculateSimilarity(currentWeather, runRecord, activity, thermalPreference, normalizedCurrentActivityLevel, historicalActivityLevel);
     
     if (score >= minSimilarity) {
       // Recency multiplier: more recent = slight boost (tie-breaker, not compensation)
