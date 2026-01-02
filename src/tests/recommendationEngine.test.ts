@@ -209,7 +209,7 @@ describe('Recommendation Engine - Similarity and Confidence', () => {
         feedback,
         activity,
         'average',
-        'medium' // Current activity level
+        'moderate' // Current activity level
       );
 
       // Should calculate similarity using historical high intensity and current medium
@@ -223,7 +223,7 @@ describe('Recommendation Engine - Similarity and Confidence', () => {
       // Historical sessions with different intensities
       const feedback: RunFeedback[] = [
         createFeedbackWithTComfort(-10, 'low', '2024-01-01'),    // Low intensity
-        createFeedbackWithTComfort(-10, 'medium', '2024-01-02'), // Medium intensity
+        createFeedbackWithTComfort(-10, 'moderate', '2024-01-02'), // Moderate intensity
         createFeedbackWithTComfort(-6, 'high', '2024-01-03'),    // High intensity
       ];
 
@@ -233,7 +233,7 @@ describe('Recommendation Engine - Similarity and Confidence', () => {
         feedback,
         activity,
         'average',
-        'medium' // Current activity level
+        'moderate' // Current activity level
       );
 
       // Each historical session should use its own activity level

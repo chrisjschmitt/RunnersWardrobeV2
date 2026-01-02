@@ -247,7 +247,7 @@ Each activity has its own clothing categories and your history is tracked separa
     answer: `Expert Mode is an optional feature in Settings that lets you track additional details about your activities:
 
 **Activity Intensity**
-Select low, medium, or high intensity. Higher intensity activities generate more body heat, so the Thermal Comfort temperature adjusts accordingly (higher intensity = warmer feeling = lighter clothes needed).
+Select low, moderate, or high intensity. Higher intensity activities generate more body heat, so the Thermal Comfort temperature adjusts accordingly (higher intensity = warmer feeling = lighter clothes needed).
 
 **Duration**
 Choose whether your activity is less than 1 hour or 1 hour or longer. This helps the app provide more appropriate recommendations based on how long you'll be out.

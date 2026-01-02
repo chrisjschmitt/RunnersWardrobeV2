@@ -520,7 +520,7 @@ export function Settings({
         </div>
 
         <p className="text-sm text-[var(--color-text-muted)] mb-4">
-          Enable activity level and duration tracking for more detailed feedback. When enabled, you'll be prompted to set intensity level (low/medium/high) and duration (&lt; 1 hour / ≥ 1 hour) for each activity.
+          Enable activity level and duration tracking for more detailed feedback. When enabled, you'll be prompted to set intensity level (low/moderate/high) and duration (&lt; 1 hour / ≥ 1 hour) for each activity.
         </p>
       </div>
 

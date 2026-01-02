@@ -20,8 +20,8 @@ T_comfort = T_actual + B(activity) + I(intensity) + wΔ(activity) × Δ + therma
 ```
 
 ### Intensity Adjustment Values (in °C)
-- **Low intensity**: -0.5°C (less body heat, need warmer clothes)
-- **Medium intensity**: 0°C (baseline, no adjustment)
+- **Low intensity**: -1.5°C (less body heat, need warmer clothes)
+- **Moderate intensity**: 0°C (baseline, no adjustment)
 - **High intensity**: +1.5°C (more body heat, can wear lighter clothes)
 
 ### Rationale
@@ -32,7 +32,7 @@ T_comfort = T_actual + B(activity) + I(intensity) + wΔ(activity) × Δ + therma
 ### Example Impact
 For a 40°F run:
 - **High intensity**: T_comfort shifts up by 1.5°C (2.7°F) → suggests lighter clothing
-- **Low intensity**: T_comfort shifts down by 0.5°C (0.9°F) → suggests warmer clothing
+- **Low intensity**: T_comfort shifts down by 1.5°C (2.7°F) → suggests warmer clothing
 
 ---
 
@@ -86,10 +86,10 @@ if (currentActivityLevel && feedback.activityLevel) {
   if (currentActivityLevel === feedback.activityLevel) {
     similarityBoost += 0.05; // +5% boost for same intensity
   } else if (
-    (currentActivityLevel === 'high' && feedback.activityLevel === 'medium') ||
-    (currentActivityLevel === 'medium' && feedback.activityLevel === 'high') ||
-    (currentActivityLevel === 'low' && feedback.activityLevel === 'medium') ||
-    (currentActivityLevel === 'medium' && feedback.activityLevel === 'low')
+    (currentActivityLevel === 'high' && feedback.activityLevel === 'moderate') ||
+    (currentActivityLevel === 'moderate' && feedback.activityLevel === 'high') ||
+    (currentActivityLevel === 'low' && feedback.activityLevel === 'moderate') ||
+    (currentActivityLevel === 'moderate' && feedback.activityLevel === 'low')
   ) {
     similarityBoost += 0.02; // +2% boost for adjacent levels
   }
@@ -194,7 +194,7 @@ When sessions vote for clothing items:
 - **Recommendation**: Base layer + jacket, tights, gloves (more protection)
 - **Rationale**: Low intensity = less heat, long duration = need to start correctly
 
-### Scenario 3: Medium Intensity, Long Duration
+### Scenario 3: Moderate Intensity, Long Duration
 - **Activity**: 90-minute moderate run at 50°F
 - **T_comfort adjustment**: 0°C (no change) → "cool" range
 - **Recommendation**: Long sleeve, tights (with layering option)

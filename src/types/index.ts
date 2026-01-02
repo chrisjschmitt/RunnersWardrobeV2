@@ -288,7 +288,7 @@ export const ACTIVITY_THERMAL_PARAMS: Record<ActivityType, ActivityThermalParams
 };
 
 // Activity level for expert mode
-export type ActivityLevel = 'low' | 'medium' | 'high';
+export type ActivityLevel = 'low' | 'moderate' | 'high';
 
 // Duration category for expert mode
 export type ActivityDuration = 'short' | 'long';  // 'short' = < 1 hour, 'long' = >= 1 hour

@@ -816,7 +816,7 @@ export function StartRun({ apiKey, hasApiKey, temperatureUnit, thermalPreference
             <div>
               <label className="block text-sm font-medium mb-2">Intensity Level</label>
               <div className="flex gap-2">
-                {(['low', 'medium', 'high'] as ActivityLevel[]).map((level) => (
+                {(['low', 'moderate', 'high'] as ActivityLevel[]).map((level) => (
                   <button
                     key={level}
                     onClick={() => handleActivityLevelChange(level)}
