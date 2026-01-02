@@ -172,9 +172,9 @@ describe('Recommendation Engine - Similarity and Confidence', () => {
     it('should calculate medium similarity for moderate T_comfort differences (3-6°C)', () => {
       const currentWeather = createWeatherFromTComfort(10);
       const runs: RunRecord[] = [
-        createRunRecordWithTComfort(13, '2024-01-01'),
-        createRunRecordWithTComfort(14, '2024-01-02'),
-        createRunRecordWithTComfort(12, '2024-01-03'),
+        createRunRecordWithTComfort(13, '2024-01-01'),  // 3°C diff → 100% (within 3.5°C threshold for running)
+        createRunRecordWithTComfort(14, '2024-01-02'),  // 4°C diff → 86% (sliding scale)
+        createRunRecordWithTComfort(12, '2024-01-03'), // 2°C diff → 100% (within threshold)
       ];
 
       const result = getClothingRecommendation(
@@ -185,9 +185,9 @@ describe('Recommendation Engine - Similarity and Confidence', () => {
         'average'
       );
 
-      // With 2-4°C differences, similarity should be medium
+      // With running threshold of 3.5°C, 2-4°C differences are mostly within threshold or high on sliding scale
+      // So confidence should be high
       expect(result.confidence).toBeGreaterThan(40);
-      expect(result.confidence).toBeLessThan(80);
       expect(result.matchingRuns).toBe(3);
     });
   });
@@ -319,6 +319,248 @@ describe('Recommendation Engine - Similarity and Confidence', () => {
       // Very cold session should be filtered out (40% minimum threshold)
       // Only the close match should count
       expect(result.matchingRuns).toBeLessThanOrEqual(2);
+    });
+  });
+
+  describe('Activity-Specific T_comfort Thresholds', () => {
+    // Helper to create weather for a specific activity with T_comfort
+    function createWeatherForActivity(tComfortC: number, activity: ActivityType): WeatherData {
+      // For each activity: T_comfort = tempC + B + (wDelta × delta) + thermal_offset
+      // Simplest case: temp = feelsLike (delta = 0), average preference (offset = 0)
+      // So: T_comfort = tempC + B, therefore tempC = T_comfort - B
+      const B_VALUES: Record<ActivityType, number> = {
+        walking: 0.5,
+        hiking: 2.0,
+        snowshoeing: 3.0,
+        cycling: 4.0,
+        cross_country_skiing: 4.5,
+        trail_running: 5.5,
+        running: 6.0,
+      };
+      const tempC = tComfortC - B_VALUES[activity];
+      const tempF = (tempC * 9/5) + 32;
+      return createWeatherData(tempF, tempF);
+    }
+
+    function createRunForActivity(tComfortC: number, activity: ActivityType, date: string = '2024-01-01'): RunRecord {
+      const weather = createWeatherForActivity(tComfortC, activity);
+      return {
+        date,
+        time: '10:00 AM',
+        location: 'Test Location',
+        temperature: weather.temperature,
+        feelsLike: weather.feelsLike,
+        humidity: weather.humidity,
+        pressure: weather.pressure,
+        precipitation: weather.precipitation,
+        uvIndex: weather.uvIndex,
+        windSpeed: weather.windSpeed,
+        cloudCover: weather.cloudCover,
+        clothing: { tops: 'Test' },
+        activity,
+      };
+    }
+
+    describe('Walking (threshold: ±1.5°C, max: ±3°C)', () => {
+      it('should give 100% score for differences within ±1.5°C', () => {
+        const current = createWeatherForActivity(10, 'walking');
+        const runs: RunRecord[] = [
+          createRunForActivity(10, 'walking'),      // 0°C diff → 100%
+          createRunForActivity(10.5, 'walking'),    // 0.5°C diff → 100%
+          createRunForActivity(11.5, 'walking'),    // 1.5°C diff → 100% (at threshold)
+        ];
+
+        const result = getClothingRecommendation(current, runs, [], 'walking', 'average');
+        expect(result.matchingRuns).toBe(3);
+        expect(result.confidence).toBeGreaterThan(70);
+      });
+
+      it('should use sliding scale for differences between 1.5°C and 3°C', () => {
+        const current = createWeatherForActivity(10, 'walking');
+        const runs: RunRecord[] = [
+          createRunForActivity(12, 'walking'),      // 2°C diff → 67% (2 - 2/1.5 = 0.67)
+          createRunForActivity(12.75, 'walking'),  // 2.75°C diff → 17% (2 - 2.75/1.5 = 0.17)
+        ];
+
+        const result = getClothingRecommendation(current, runs, [], 'walking', 'average');
+        // Should match but with lower confidence due to sliding scale
+        expect(result.matchingRuns).toBeGreaterThanOrEqual(1);
+      });
+
+      it('should filter out differences >3°C', () => {
+        const current = createWeatherForActivity(10, 'walking');
+        const runs: RunRecord[] = [
+          createRunForActivity(13, 'walking'),      // 3°C diff → 0% (at 2× threshold)
+          createRunForActivity(14, 'walking'),       // 4°C diff → 0% (beyond 2× threshold)
+        ];
+
+        const result = getClothingRecommendation(current, runs, [], 'walking', 'average');
+        // Should be filtered out by early filter
+        expect(result.matchingRuns).toBe(0);
+      });
+    });
+
+    describe('Hiking (threshold: ±2°C, max: ±4°C)', () => {
+      it('should give 100% score for differences within ±2°C', () => {
+        const current = createWeatherForActivity(5, 'hiking');
+        const runs: RunRecord[] = [
+          createRunForActivity(5, 'hiking'),        // 0°C diff → 100%
+          createRunForActivity(6.5, 'hiking'),     // 1.5°C diff → 100%
+          createRunForActivity(7, 'hiking'),        // 2°C diff → 100% (at threshold)
+        ];
+
+        const result = getClothingRecommendation(current, runs, [], 'hiking', 'average');
+        expect(result.matchingRuns).toBe(3);
+      });
+
+      it('should use sliding scale for differences between 2°C and 4°C', () => {
+        const current = createWeatherForActivity(5, 'hiking');
+        const runs: RunRecord[] = [
+          createRunForActivity(7.5, 'hiking'),       // 2.5°C diff → 75% (2 - 2.5/2 = 0.75)
+          createRunForActivity(8, 'hiking'),         // 3°C diff → 50% (2 - 3/2 = 0.50)
+        ];
+
+        const result = getClothingRecommendation(current, runs, [], 'hiking', 'average');
+        expect(result.matchingRuns).toBeGreaterThanOrEqual(1);
+      });
+
+      it('should filter out differences >4°C', () => {
+        const current = createWeatherForActivity(5, 'hiking');
+        const runs: RunRecord[] = [
+          createRunForActivity(9, 'hiking'),        // 4°C diff → 0% (at 2× threshold)
+          createRunForActivity(10, 'hiking'),       // 5°C diff → 0% (beyond 2× threshold)
+        ];
+
+        const result = getClothingRecommendation(current, runs, [], 'hiking', 'average');
+        expect(result.matchingRuns).toBe(0);
+      });
+    });
+
+    describe('Snowshoeing (threshold: ±2.5°C, max: ±5°C)', () => {
+      it('should give 100% score for differences within ±2.5°C', () => {
+        const current = createWeatherForActivity(-5, 'snowshoeing');
+        const runs: RunRecord[] = [
+          createRunForActivity(-5, 'snowshoeing'),      // 0°C diff → 100%
+          createRunForActivity(-6.5, 'snowshoeing'),    // 1.5°C diff → 100%
+          createRunForActivity(-7.5, 'snowshoeing'),    // 2.5°C diff → 100% (at threshold)
+        ];
+
+        const result = getClothingRecommendation(current, runs, [], 'snowshoeing', 'average');
+        expect(result.matchingRuns).toBe(3);
+      });
+
+      it('should use sliding scale for differences between 2.5°C and 5°C', () => {
+        const current = createWeatherForActivity(-5, 'snowshoeing');
+        const runs: RunRecord[] = [
+          createRunForActivity(-8, 'snowshoeing'),     // 3°C diff → 80% (2 - 3/2.5 = 0.80)
+          createRunForActivity(-9, 'snowshoeing'),     // 4°C diff → 40% (2 - 4/2.5 = 0.40)
+        ];
+
+        const result = getClothingRecommendation(current, runs, [], 'snowshoeing', 'average');
+        expect(result.matchingRuns).toBeGreaterThanOrEqual(1);
+      });
+
+      it('should filter out differences >5°C', () => {
+        const current = createWeatherForActivity(-5, 'snowshoeing');
+        const runs: RunRecord[] = [
+          createRunForActivity(-10, 'snowshoeing'),     // 5°C diff → 0% (at 2× threshold)
+        ];
+
+        const result = getClothingRecommendation(current, runs, [], 'snowshoeing', 'average');
+        expect(result.matchingRuns).toBe(0);
+      });
+    });
+
+    describe('XC Skiing (threshold: ±3°C, max: ±6°C)', () => {
+      it('should give 100% score for differences within ±3°C', () => {
+        const current = createWeatherForActivity(-10, 'cross_country_skiing');
+        const runs: RunRecord[] = [
+          createRunForActivity(-10, 'cross_country_skiing'),  // 0°C diff → 100%
+          createRunForActivity(-12, 'cross_country_skiing'),  // 2°C diff → 100%
+          createRunForActivity(-13, 'cross_country_skiing'),  // 3°C diff → 100% (at threshold)
+        ];
+
+        const result = getClothingRecommendation(current, runs, [], 'cross_country_skiing', 'average');
+        expect(result.matchingRuns).toBe(3);
+      });
+
+      it('should use sliding scale for differences between 3°C and 6°C', () => {
+        const current = createWeatherForActivity(-10, 'cross_country_skiing');
+        const runs: RunRecord[] = [
+          createRunForActivity(-14, 'cross_country_skiing'),  // 4°C diff → 67% (2 - 4/3 = 0.67)
+          createRunForActivity(-15.5, 'cross_country_skiing'), // 5.5°C diff → 17% (2 - 5.5/3 = 0.17)
+        ];
+
+        const result = getClothingRecommendation(current, runs, [], 'cross_country_skiing', 'average');
+        expect(result.matchingRuns).toBeGreaterThanOrEqual(1);
+      });
+
+      it('should filter out differences >6°C', () => {
+        const current = createWeatherForActivity(-10, 'cross_country_skiing');
+        const runs: RunRecord[] = [
+          createRunForActivity(-16, 'cross_country_skiing'),  // 6°C diff → 0% (at 2× threshold)
+        ];
+
+        const result = getClothingRecommendation(current, runs, [], 'cross_country_skiing', 'average');
+        expect(result.matchingRuns).toBe(0);
+      });
+    });
+
+    describe('Running (threshold: ±3.5°C, max: ±7°C)', () => {
+      it('should give 100% score for differences within ±3.5°C', () => {
+        const current = createWeatherForActivity(15, 'running');
+        const runs: RunRecord[] = [
+          createRunForActivity(15, 'running'),       // 0°C diff → 100%
+          createRunForActivity(17, 'running'),       // 2°C diff → 100%
+          createRunForActivity(18.5, 'running'),     // 3.5°C diff → 100% (at threshold)
+        ];
+
+        const result = getClothingRecommendation(current, runs, [], 'running', 'average');
+        expect(result.matchingRuns).toBe(3);
+      });
+
+      it('should use sliding scale for differences between 3.5°C and 7°C', () => {
+        const current = createWeatherForActivity(15, 'running');
+        const runs: RunRecord[] = [
+          createRunForActivity(19, 'running'),       // 4°C diff → 86% (2 - 4/3.5 = 0.86)
+          createRunForActivity(20.5, 'running'),     // 5.5°C diff → 43% (2 - 5.5/3.5 = 0.43)
+        ];
+
+        const result = getClothingRecommendation(current, runs, [], 'running', 'average');
+        expect(result.matchingRuns).toBeGreaterThanOrEqual(1);
+      });
+
+      it('should filter out differences >7°C', () => {
+        const current = createWeatherForActivity(15, 'running');
+        const runs: RunRecord[] = [
+          createRunForActivity(22, 'running'),       // 7°C diff → 0% (at 2× threshold)
+        ];
+
+        const result = getClothingRecommendation(current, runs, [], 'running', 'average');
+        expect(result.matchingRuns).toBe(0);
+      });
+    });
+
+    describe('Overall Similarity with Activity-Specific Thresholds', () => {
+      it('should calculate overall similarity correctly with sliding scale T_comfort scores', () => {
+        // Running example: Current T_comfort = 15°C, Historical = 20.5°C (5.5°C difference)
+        // Running threshold: 3.5°C, max: 7°C
+        // T_comfort score: 2 - (5.5/3.5) = 2 - 1.57 = 0.43 (43%)
+        // With perfect precipitation and UV matches, overall should be ~64%
+        const current = createWeatherForActivity(15, 'running');
+        const runs: RunRecord[] = [
+          createRunForActivity(20.5, 'running', '2024-01-01'), // 5.5°C diff → 43% T_comfort score
+        ];
+
+        const result = getClothingRecommendation(current, runs, [], 'running', 'average');
+        
+        // Should pass 40% threshold (T_comfort 43% × 5.0 = 2.15, precip 100% × 2.5 = 2.5, UV 100% × 0.5 = 0.5)
+        // Total: 5.15 / 8.0 = 64.4%
+        // But with only 1 run: (1/5) × 30 = 6%, avgSimilarity × 70 = 64.4% × 70 = 45.1%
+        // Total confidence: 6% + 45.1% = 51.1%
+        expect(result.matchingRuns).toBe(1);
+        expect(result.confidence).toBeGreaterThan(40); // Adjusted expectation - single run with sliding scale
+      });
     });
   });
 });

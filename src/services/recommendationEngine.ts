@@ -167,9 +167,20 @@ export function comfortTempToFahrenheit(comfortTempC: number): number {
 //
 // We still separately match on precipitation (rain/no-rain) and UV.
 
-// T_comfort-based thresholds
+// Activity-specific T_comfort tolerance thresholds (in °C)
+// Within threshold = 100% score, threshold to 2× threshold = sliding scale, >2× threshold = 0% (filtered)
+const ACTIVITY_T_COMFORT_THRESHOLDS: Record<ActivityType, number> = {
+  walking: 1.5,        // ±1.5°C perfect match, up to ±3°C sliding scale
+  hiking: 2.0,         // ±2°C perfect match, up to ±4°C sliding scale
+  snowshoeing: 2.5,    // ±2.5°C perfect match, up to ±5°C sliding scale
+  cross_country_skiing: 3.0,  // ±3°C perfect match, up to ±6°C sliding scale
+  trail_running: 3.0,  // ±3°C perfect match, up to ±6°C sliding scale
+  cycling: 3.0,        // ±3°C perfect match, up to ±6°C sliding scale (default for cycling)
+  running: 3.5         // ±3.5°C perfect match, up to ±7°C sliding scale
+};
+
+// Other thresholds (not activity-specific)
 const THRESHOLDS = {
-  comfortTemp: 3,      // ±3°C T_comfort → perfect match if within 3°C, 0% if >6°C different
   precipitation: 0.1,  // Binary comparison (rain/no-rain), not continuous
   uvIndex: 2           // ±2 → perfect match if within 2, 0% if >4 different
 };
@@ -251,9 +262,23 @@ function calculateSimilarity(
   // Use historical activity level for historical weather (if stored)
   const historicalComfort = calculateComfortTemperature(historicalWeather, activity, thermalPreference, normalizedHistoricalLevel);
 
-  // T_comfort similarity (in °C)
+  // T_comfort similarity (in °C) - activity-specific thresholds
   const comfortDiff = Math.abs(currentComfort.comfortTempC - historicalComfort.comfortTempC);
-  const comfortScore = Math.max(0, 1 - comfortDiff / (THRESHOLDS.comfortTemp * 2));
+  const threshold = ACTIVITY_T_COMFORT_THRESHOLDS[activity];
+  const maxDiff = threshold * 2;
+  
+  let comfortScore: number;
+  if (comfortDiff <= threshold) {
+    // Within tolerance: 100% score
+    comfortScore = 1.0;
+  } else if (comfortDiff <= maxDiff) {
+    // Sliding scale from 100% to 0%: score = 2 - (diff / threshold)
+    comfortScore = Math.max(0, 2 - (comfortDiff / threshold));
+  } else {
+    // Beyond 2× threshold: 0% score (will be filtered out)
+    comfortScore = 0.0;
+  }
+  
   weightedScore += comfortScore * WEIGHTS.comfortTemp;
   totalWeight += WEIGHTS.comfortTemp;
 
@@ -306,9 +331,23 @@ function calculateFeedbackSimilarity(
   };
   const feedbackComfort = calculateComfortTemperature(feedbackWeather, activity, thermalPreference);
 
-  // T_comfort similarity (in °C)
+  // T_comfort similarity (in °C) - activity-specific thresholds
   const comfortDiff = Math.abs(currentComfort.comfortTempC - feedbackComfort.comfortTempC);
-  const comfortScore = Math.max(0, 1 - comfortDiff / (THRESHOLDS.comfortTemp * 2));
+  const threshold = ACTIVITY_T_COMFORT_THRESHOLDS[activity];
+  const maxDiff = threshold * 2;
+  
+  let comfortScore: number;
+  if (comfortDiff <= threshold) {
+    // Within tolerance: 100% score
+    comfortScore = 1.0;
+  } else if (comfortDiff <= maxDiff) {
+    // Sliding scale from 100% to 0%: score = 2 - (diff / threshold)
+    comfortScore = Math.max(0, 2 - (comfortDiff / threshold));
+  } else {
+    // Beyond 2× threshold: 0% score (will be filtered out)
+    comfortScore = 0.0;
+  }
+  
   weightedScore += comfortScore * WEIGHTS.comfortTemp;
   totalWeight += WEIGHTS.comfortTemp;
 
@@ -443,7 +482,36 @@ function findSimilarRuns(
   // CSV runs don't have activityLevel stored, so pass undefined for historical
   // Normalize current activity level to handle legacy "medium" values
   const normalizedCurrentActivityLevel = normalizeActivityLevel(currentActivityLevel);
+  
+  // Early filter: Calculate T_comfort for current weather once
+  const currentComfort = calculateComfortTemperature(currentWeather, activity, thermalPreference, normalizedCurrentActivityLevel);
+  const threshold = ACTIVITY_T_COMFORT_THRESHOLDS[activity];
+  const maxDiff = threshold * 2;
+  
   for (const run of runs) {
+    // Early filter: Skip if T_comfort difference > 2× threshold
+    const historicalWeather: WeatherData = {
+      temperature: run.temperature,
+      feelsLike: run.feelsLike,
+      humidity: run.humidity,
+      pressure: 0,
+      windSpeed: run.windSpeed,
+      precipitation: run.precipitation,
+      cloudCover: run.cloudCover,
+      uvIndex: run.uvIndex,
+      icon: '',
+      description: '',
+      location: '',
+      timestamp: new Date()
+    };
+    const historicalComfort = calculateComfortTemperature(historicalWeather, activity, thermalPreference, undefined);
+    const comfortDiff = Math.abs(currentComfort.comfortTempC - historicalComfort.comfortTempC);
+    
+    // Skip if beyond 2× threshold (will have 0% T_comfort score anyway)
+    if (comfortDiff > maxDiff) {
+      continue;
+    }
+    
     const score = calculateSimilarity(currentWeather, run, activity, thermalPreference, normalizedCurrentActivityLevel, undefined);
     if (score >= minSimilarity) {
       similarities.push({ record: run, score, isFromFeedback: false });
@@ -456,6 +524,30 @@ function findSimilarRuns(
     // Use the activityLevel that was stored with this feedback session
     // Normalize to handle legacy "medium" values (migrated to "moderate")
     const historicalActivityLevel = normalizeActivityLevel(feedback.activityLevel);
+    
+    // Early filter: Skip if T_comfort difference > 2× threshold
+    const historicalWeather: WeatherData = {
+      temperature: runRecord.temperature,
+      feelsLike: runRecord.feelsLike,
+      humidity: runRecord.humidity,
+      pressure: 0,
+      windSpeed: runRecord.windSpeed,
+      precipitation: runRecord.precipitation,
+      cloudCover: runRecord.cloudCover,
+      uvIndex: runRecord.uvIndex,
+      icon: '',
+      description: '',
+      location: '',
+      timestamp: new Date()
+    };
+    const historicalComfort = calculateComfortTemperature(historicalWeather, activity, thermalPreference, historicalActivityLevel);
+    const comfortDiff = Math.abs(currentComfort.comfortTempC - historicalComfort.comfortTempC);
+    
+    // Skip if beyond 2× threshold (will have 0% T_comfort score anyway)
+    if (comfortDiff > maxDiff) {
+      continue;
+    }
+    
     // Use the already-normalized current level from above
     const score = calculateSimilarity(currentWeather, runRecord, activity, thermalPreference, normalizedCurrentActivityLevel, historicalActivityLevel);
     
