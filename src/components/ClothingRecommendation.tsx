@@ -1,4 +1,5 @@
-import { useState, useMemo } from 'react';
+import { useState } from 'react';
+// import { useMemo } from 'react'; // Temporarily disabled
 import type { ClothingRecommendation as ClothingRec, ClothingItems, ActivityType, RunRecord, ThermalPreference, WeatherData, ActivityLevel } from '../types';
 import { getClothingCategories } from '../types';
 import { ClothingPicker } from './ClothingPicker';
@@ -7,7 +8,7 @@ import { getClothingInfo, type ClothingInfo } from '../data/clothingInfo';
 import { formatTemperature } from '../services/temperatureUtils';
 import type { TemperatureUnit } from '../services/temperatureUtils';
 import { calculateComfortTemperature } from '../services/recommendationEngine';
-import { generateClothingSuggestions } from '../services/recommendationSuggestions';
+// import { generateClothingSuggestions } from '../services/recommendationSuggestions'; // Temporarily disabled
 
 // Icons for different clothing categories
 const CATEGORY_ICONS: Record<string, string> = {
@@ -56,13 +57,13 @@ export function ClothingRecommendation({
   activity = 'running',
   temperatureUnit = 'fahrenheit',
   thermalPreference = 'average',
-  weather,
-  activityLevel
+  weather: _weather, // Temporarily unused
+  activityLevel: _activityLevel // Temporarily unused
 }: ClothingRecommendationProps) {
   const [editingCategory, setEditingCategory] = useState<string | null>(null);
   const [showingInfo, setShowingInfo] = useState<ClothingInfo | null>(null);
   const [showSimilarSessions, setShowSimilarSessions] = useState(false);
-  const [showSuggestions, setShowSuggestions] = useState(false);
+  // const [showSuggestions, setShowSuggestions] = useState(false); // Temporarily disabled
   
   // Get categories for this activity
   const categories = getClothingCategories(activity);
@@ -75,21 +76,23 @@ export function ClothingRecommendation({
   const hasHistory = recommendation !== null;
 
   // Generate suggestions when confidence is low/medium and weather is available
-  const suggestions = useMemo(() => {
-    if (!weather || !clothing || !baseClothing) return null;
-    if (!hasHistory || !recommendation) return null; // Only suggest when we have a recommendation (not pure fallback)
-    if (recommendation.confidence >= 70) return null; // Only suggest for low/medium confidence
-    
-    return generateClothingSuggestions(
-      clothing,
-      weather,
-      activity,
-      thermalPreference,
-      activityLevel,
-      recommendation.confidence,
-      recommendation.matchingRuns
-    );
-  }, [weather, clothing, baseClothing, hasHistory, recommendation, activity, thermalPreference, activityLevel]);
+  // Temporarily disabled until suggestions logic is fixed
+  // const suggestions = useMemo(() => {
+  //   if (!weather || !clothing || !baseClothing) return null;
+  //   if (!hasHistory || !recommendation) return null; // Only suggest when we have a recommendation (not pure fallback)
+  //   if (recommendation.confidence >= 70) return null; // Only suggest for low/medium confidence
+  //   
+  //   return generateClothingSuggestions(
+  //     clothing,
+  //     weather,
+  //     activity,
+  //     thermalPreference,
+  //     activityLevel,
+  //     recommendation.confidence,
+  //     recommendation.matchingRuns
+  //   );
+  // }, [weather, clothing, baseClothing, hasHistory, recommendation, activity, thermalPreference, activityLevel]);
+  // const suggestions = null; // Temporarily disabled - not used when panel is hidden
   
   // Highlight important categories
   const highlightCategories = ['tops', 'jersey', 'bottoms', 'baseLayer', 'outerLayer'];
@@ -243,57 +246,7 @@ export function ClothingRecommendation({
               )}
 
               {/* Suggestions - collapsible, below history */}
-              {suggestions && suggestions.suggestions.length > 0 && (
-                <div className="mt-2">
-                  <button
-                    onClick={() => setShowSuggestions(!showSuggestions)}
-                    className="w-full p-3 rounded-lg text-left transition-colors"
-                    style={{ 
-                      backgroundColor: confidenceBgColor,
-                      border: `1px solid ${confidenceColor}`,
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.backgroundColor = confidenceHoverBgColor;
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.backgroundColor = confidenceBgColor;
-                    }}
-                  >
-                    <div className="flex items-center justify-between">
-                      <p className="text-sm" style={{ color: confidenceColor }}>
-                        Suggestions
-                      </p>
-                      <svg 
-                        className={`w-4 h-4 transition-transform ${showSuggestions ? 'rotate-180' : ''}`}
-                        style={{ color: confidenceColor }}
-                        fill="none" 
-                        stroke="currentColor" 
-                        viewBox="0 0 24 24"
-                      >
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                      </svg>
-                    </div>
-                  </button>
-
-                  {/* Expandable suggestions content */}
-                  {showSuggestions && (
-                    <div className="mt-2 p-3 rounded-lg animate-fade-in" style={{ backgroundColor: confidenceBgColor, border: `1px solid ${confidenceColor}` }}>
-                      <p className="text-xs mb-3" style={{ color: confidenceColor }}>{suggestions.explanation}</p>
-                      <div className="space-y-2">
-                        {suggestions.suggestions.map((suggestion, idx) => (
-                          <div key={idx} className="text-sm">
-                            <span className="font-medium">{suggestion.categoryLabel}:</span>{' '}
-                            <span className="text-[var(--color-text-muted)] line-through">{suggestion.current}</span>
-                            {' → '}
-                            <span className="font-medium" style={{ color: confidenceColor }}>{suggestion.suggested}</span>
-                            <span className="text-xs text-[var(--color-text-muted)] block ml-0 mt-0.5">{suggestion.reason}</span>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </div>
-              )}
+              {/* Temporarily hidden until suggestions logic is fixed */}
             </div>
           );
         })()}
