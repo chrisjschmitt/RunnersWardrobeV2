@@ -367,11 +367,16 @@
                 <div class="step-title">
                     <span class="step-number">2</span>
                     Exact Recent Match (Last 7 Days)
-                    <span class="confidence-badge">95% confidence</span>
+                    <span class="confidence-badge">Variable confidence</span>
                 </div>
                 <p class="step-description">
                     If you did this activity in very similar weather (&gt;85% match) in the past week, use exactly what you wore
                 </p>
+                <ul class="step-detail">
+                    <li><strong>Uses activity-specific thresholds:</strong> Walking uses ±1.5°C, Running uses ±3.5°C, etc.</li>
+                    <li><strong>Confidence calculated from actual similarity:</strong> (1/5) × 30% + similarity × 70%</li>
+                    <li><strong>No longer hardcoded to 95%:</strong> Confidence reflects true match quality (v4.22.1)</li>
+                </ul>
             </div>
 
             <div class="flow-step secondary">
@@ -459,8 +464,8 @@
                 <tr>
                     <td><strong>T_comfort</strong></td>
                     <td class="weight-high">5.0</td>
-                    <td>±3°C</td>
-                    <td>Perfect if ≤3°C diff, 0% if &gt;6°C diff</td>
+                    <td>Activity-specific (see below)</td>
+                    <td>100% within threshold, sliding scale to 0% at 2× threshold, filtered if &gt;2× threshold</td>
                 </tr>
                 <tr>
                     <td><strong>Precipitation</strong></td>
@@ -476,6 +481,74 @@
                 </tr>
             </tbody>
         </table>
+
+        <h3>🎯 Activity-Specific T_comfort Thresholds (v4.22.0+)</h3>
+        <p style="color: var(--text-secondary);">Each activity has its own T_comfort tolerance based on intensity and typical conditions:</p>
+        <table>
+            <thead>
+                <tr>
+                    <th>Activity</th>
+                    <th>Perfect Match</th>
+                    <th>Sliding Scale</th>
+                    <th>Filtered Out</th>
+                    <th>Logic</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>Walking</strong></td>
+                    <td>±1.5°C</td>
+                    <td>1.5°C to 3.0°C</td>
+                    <td>&gt;3.0°C</td>
+                    <td>Low intensity, need precise matches</td>
+                </tr>
+                <tr>
+                    <td><strong>Hiking</strong></td>
+                    <td>±2.0°C</td>
+                    <td>2.0°C to 4.0°C</td>
+                    <td>&gt;4.0°C</td>
+                    <td>Moderate intensity, moderate tolerance</td>
+                </tr>
+                <tr>
+                    <td><strong>Snowshoeing</strong></td>
+                    <td>±2.5°C</td>
+                    <td>2.5°C to 5.0°C</td>
+                    <td>&gt;5.0°C</td>
+                    <td>Variable intensity, some tolerance</td>
+                </tr>
+                <tr>
+                    <td><strong>XC Skiing</strong></td>
+                    <td>±3.0°C</td>
+                    <td>3.0°C to 6.0°C</td>
+                    <td>&gt;6.0°C</td>
+                    <td>High intensity, more tolerance</td>
+                </tr>
+                <tr>
+                    <td><strong>Trail Running</strong></td>
+                    <td>±3.0°C</td>
+                    <td>3.0°C to 6.0°C</td>
+                    <td>&gt;6.0°C</td>
+                    <td>High intensity, more tolerance</td>
+                </tr>
+                <tr>
+                    <td><strong>Cycling</strong></td>
+                    <td>±3.0°C</td>
+                    <td>3.0°C to 6.0°C</td>
+                    <td>&gt;6.0°C</td>
+                    <td>High intensity, more tolerance</td>
+                </tr>
+                <tr>
+                    <td><strong>Running</strong></td>
+                    <td>±3.5°C</td>
+                    <td>3.5°C to 7.0°C</td>
+                    <td>&gt;7.0°C</td>
+                    <td>Highest intensity, most tolerance</td>
+                </tr>
+            </tbody>
+        </table>
+        <p style="color: var(--text-secondary); margin-top: 0.5rem; font-size: 0.9rem;">
+            <strong>Scoring:</strong> Within threshold = 100% score. Between threshold and 2× threshold = sliding scale (2 - diff/threshold). Beyond 2× threshold = 0% score and filtered out early.
+        </p>
 
         <h2>🏃 Activity Thermal Parameters</h2>
         <p>Each activity has specific parameters for T_comfort calculation:</p>
@@ -733,6 +806,7 @@ confidence = (sessionCount / 5) × 30%  +  avgSimilarity × 70%
                 <li><strong>70% weight</strong> for average match quality of similar sessions</li>
                 <li>Maximum confidence: 100%</li>
                 <li><em>Note: Reduced from 10 to 5 sessions (v4.21.5) for more realistic confidence with fewer data points</em></li>
+                <li><em>Note: Activity-specific T_comfort thresholds (v4.22.0) ensure each activity uses appropriate matching tolerance</em></li>
             </ul>
         </div>
 
@@ -985,7 +1059,7 @@ confidence = (sessionCount / 5) × 30%  +  avgSimilarity × 70%
         </table>
 
         <div class="footer">
-            <span class="version">v4.21.5</span>
+            <span class="version">v4.22.1</span>
             <p style="margin-top: 0.5rem;">TrailKit Recommendation Engine Documentation</p>
             <p>© 2025 TrailKit</p>
         </div>

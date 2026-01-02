@@ -397,6 +397,8 @@ Files with TODO comments:
 - **v4.11.3**: Fix "you run cold/hot" display to match thermal preference setting
 - **v4.11.2**: Fix thermal preference offset logic (cold = warmer clothes, warm = lighter clothes)
 - **v4.11.1**: Display T_comfort in similar sessions dropdown
+- **v4.22.1**: Fix recent match using wrong activity thresholds - now correctly uses activity-specific T_comfort thresholds and calculates confidence from actual similarity
+- **v4.22.0**: Activity-specific T_comfort thresholds - each activity has its own tolerance (walking ±1.5°C, hiking ±2°C, running ±3.5°C, etc.) with sliding scale scoring
 - **v4.11.0**: Display Thermal Comfort temperature in weather display with help tooltip
 - **v4.10.0**: T_comfort formula - activity-specific temperature calculation using B(activity), wΔ(activity), and thermal offset
 - **v4.9.3**: Fix debug panel - show actual temp change (not raw offset), add adjusted feels-like temp
