@@ -429,19 +429,20 @@ function findSimilarRuns(
     const score = calculateSimilarity(currentWeather, runRecord, activity, thermalPreference);
     
     if (score >= minSimilarity) {
-      // Recency boost: more recent = higher boost
-      // Formula: 30 / days_ago × 0.1, capped at 0.3 (30%)
-      // Examples: 1 day ago = +30%, 3 days ago = +10%, 30 days ago = +1%
+      // Recency multiplier: more recent = slight boost (tie-breaker, not compensation)
+      // Formula: 1.0 + (0.05 × min(1, 7 / days_ago))
+      // Examples: 1 day ago = 1.05×, 3.5 days ago = 1.05×, 7 days ago = 1.05×, 30 days ago = 1.01×, 100+ days = 1.0×
+      // This gives a small boost (up to 5%) to recent sessions without overriding weather similarity
       const daysSince = Math.max(1, (Date.now() - new Date(feedback.timestamp).getTime()) / (1000 * 60 * 60 * 24));
-      const recencyBoost = Math.min(0.3, 30 / daysSince * 0.1);
+      const recencyMultiplier = 1.0 + (0.05 * Math.min(1, 7 / daysSince));
       
-      // Comfort boost: +10% if user said this session was "just right" or "satisfied"
-      const comfortBoost = (feedback.comfort === 'just_right' || feedback.comfort === 'satisfied') ? 0.1 : 0;
+      // Comfort boost: +5% multiplier if user said this session was "just right" or "satisfied"
+      const comfortMultiplier = (feedback.comfort === 'just_right' || feedback.comfort === 'satisfied') ? 1.05 : 1.0;
       
-      // Apply boosts, but cap at 100%
-      const boostedScore = Math.min(1, score + recencyBoost + comfortBoost);
+      // Apply multipliers (weather similarity remains primary, recency/comfort are tie-breakers)
+      const adjustedScore = Math.min(1, score * recencyMultiplier * comfortMultiplier);
       
-      similarities.push({ record: runRecord, score: boostedScore, isFromFeedback: true });
+      similarities.push({ record: runRecord, score: adjustedScore, isFromFeedback: true });
     }
   }
 
