@@ -623,7 +623,9 @@ export function getClothingRecommendation(
     };
   }
 
-  const similarRuns = findSimilarRuns(adjustedWeather, runs, feedbackHistory, 0.4, activity, thermalPreference, activityLevel);
+  // Use currentWeather (actual weather) for similarity, not adjustedWeather (T_comfort values)
+  // Similarity compares actual weather conditions, and calculateSimilarity will compute T_comfort internally
+  const similarRuns = findSimilarRuns(currentWeather, runs, feedbackHistory, 0.4, activity, thermalPreference, activityLevel);
   
   // ============ VOTING SYSTEM ============
   // Build clothing votes from similar runs for each category
