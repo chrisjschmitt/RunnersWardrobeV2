@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import type { ClothingRecommendation as ClothingRec, ClothingItems, ActivityType, RunRecord, ThermalPreference, WeatherData } from '../types';
+import { useState, useMemo } from 'react';
+import type { ClothingRecommendation as ClothingRec, ClothingItems, ActivityType, RunRecord, ThermalPreference, WeatherData, ActivityLevel } from '../types';
 import { getClothingCategories } from '../types';
 import { ClothingPicker } from './ClothingPicker';
 import { ClothingInfoModal } from './ClothingInfoModal';
@@ -7,6 +7,7 @@ import { getClothingInfo, type ClothingInfo } from '../data/clothingInfo';
 import { formatTemperature } from '../services/temperatureUtils';
 import type { TemperatureUnit } from '../services/temperatureUtils';
 import { calculateComfortTemperature } from '../services/recommendationEngine';
+import { generateClothingSuggestions } from '../services/recommendationSuggestions';
 
 // Icons for different clothing categories
 const CATEGORY_ICONS: Record<string, string> = {
@@ -41,6 +42,8 @@ interface ClothingRecommendationProps {
   activity?: ActivityType;
   temperatureUnit?: TemperatureUnit;
   thermalPreference?: ThermalPreference;
+  weather?: WeatherData;
+  activityLevel?: ActivityLevel;
 }
 
 export function ClothingRecommendation({ 
@@ -52,7 +55,9 @@ export function ClothingRecommendation({
   onClothingChange,
   activity = 'running',
   temperatureUnit = 'fahrenheit',
-  thermalPreference = 'average'
+  thermalPreference = 'average',
+  weather,
+  activityLevel
 }: ClothingRecommendationProps) {
   const [editingCategory, setEditingCategory] = useState<string | null>(null);
   const [showingInfo, setShowingInfo] = useState<ClothingInfo | null>(null);
@@ -67,6 +72,23 @@ export function ClothingRecommendation({
   // Use currentClothing if provided (preserves user edits), otherwise use base
   const clothing = currentClothing || baseClothing;
   const hasHistory = recommendation !== null;
+
+  // Generate suggestions when confidence is low/medium and weather is available
+  const suggestions = useMemo(() => {
+    if (!weather || !clothing || !baseClothing) return null;
+    if (!hasHistory || !recommendation) return null; // Only suggest when we have a recommendation (not pure fallback)
+    if (recommendation.confidence >= 70) return null; // Only suggest for low/medium confidence
+    
+    return generateClothingSuggestions(
+      clothing,
+      weather,
+      activity,
+      thermalPreference,
+      activityLevel,
+      recommendation.confidence,
+      recommendation.matchingRuns
+    );
+  }, [weather, clothing, baseClothing, hasHistory, recommendation, activity, thermalPreference, activityLevel]);
   
   // Highlight important categories
   const highlightCategories = ['tops', 'jersey', 'bottoms', 'baseLayer', 'outerLayer'];
@@ -147,6 +169,31 @@ export function ClothingRecommendation({
             <ConfidenceBadge confidence={recommendation.confidence} />
           )}
         </div>
+
+        {suggestions && suggestions.suggestions.length > 0 && (
+          <div className="mb-4 p-4 bg-[rgba(234,179,8,0.15)] border border-[var(--color-warning)] rounded-lg">
+            <div className="flex items-start gap-2 mb-2">
+              <svg className="w-5 h-5 text-[var(--color-warning)] flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <div className="flex-1">
+                <p className="text-sm font-medium text-[var(--color-warning)] mb-1">Suggestions</p>
+                <p className="text-xs text-[var(--color-text-muted)] mb-3">{suggestions.explanation}</p>
+                <div className="space-y-2">
+                  {suggestions.suggestions.map((suggestion, idx) => (
+                    <div key={idx} className="text-sm">
+                      <span className="font-medium">{suggestion.categoryLabel}:</span>{' '}
+                      <span className="text-[var(--color-text-muted)] line-through">{suggestion.current}</span>
+                      {' → '}
+                      <span className="font-medium text-[var(--color-warning)]">{suggestion.suggested}</span>
+                      <span className="text-xs text-[var(--color-text-muted)] block ml-0 mt-0.5">{suggestion.reason}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
 
         {!hasHistory && (
           <div className="mb-4 p-3 bg-[rgba(234,179,8,0.15)] border border-[var(--color-warning)] rounded-lg">

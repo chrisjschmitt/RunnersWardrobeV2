@@ -591,6 +591,8 @@ export function StartRun({ apiKey, hasApiKey, temperatureUnit, thermalPreference
             activity={activity}
             temperatureUnit={temperatureUnit}
             thermalPreference={thermalPreference}
+            weather={weather || undefined}
+            activityLevel={expertMode ? activityLevel : undefined}
           />
         )}
 
@@ -931,6 +933,8 @@ export function StartRun({ apiKey, hasApiKey, temperatureUnit, thermalPreference
           activity={activity}
           temperatureUnit={temperatureUnit}
           thermalPreference={thermalPreference}
+          weather={weather}
+          activityLevel={expertMode ? activityLevel : undefined}
         />
       )}
 
