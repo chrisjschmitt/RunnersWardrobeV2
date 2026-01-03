@@ -83,10 +83,101 @@ Allow users to add their own clothing items to any activity's categories, making
 - **Pros**: Logical grouping, maintains temperature ordering
 - **Cons**: Requires additional input, complex to implement
 
-#### Recommendation: **Option A (Add to End)** initially, with Option C as future enhancement
-- Start simple: always add custom items to the end
-- Future: Allow reordering/positioning in settings
-- Rationale: Users can find their custom items if they know they added them; can iterate based on feedback
+#### Option E: Recommendation-Based Placement (Intelligent - NEW)
+- Place custom item relative to the currently recommended item for the temperature range
+- When user adds custom item, check what the recommendation engine suggests for current conditions
+- Place the custom item immediately after (or before) the recommended item
+- **Logic**:
+  - If custom item is similar warmth to recommended → place after recommended item
+  - If custom item is warmer → place after warmer items in the list
+  - If custom item is lighter → place before lighter items in the list
+- **Pros**: 
+  - Uses existing recommendation knowledge (no extra user input needed)
+  - Provides context about where item fits in warmth hierarchy
+  - Automatically maintains logical temperature ordering
+  - Helps users understand their gear relative to defaults
+- **Cons**: 
+  - Requires recommendation engine to be available when adding item
+  - May need to determine relative warmth (could use brand/model lookup)
+  - Placement might change if user adds item in different weather conditions
+
+**Example Flow**:
+1. User is viewing recommendations for 5°C conditions
+2. Recommendation engine suggests "Fleece" for midLayer
+3. User adds custom item "Patagonia R1 Hoody"
+4. System places "Patagonia R1 Hoody" right after "Fleece" in the list
+5. Future users (or same user in similar conditions) see items in logical warmth order
+
+**Enhanced Version**:
+- If brand/model lookup is available, use warmness level to determine exact placement
+- "Patagonia R1 Hoody" (moderate warmth) → place after "Fleece" (moderate warmth)
+- "Arcteryx Atom LT" (warm) → place after "Heavy puffy" (warm)
+- Falls back to "after recommended item" if warmness unknown
+
+**Implementation Details**:
+```typescript
+async function addCustomClothingWithSmartPlacement(
+  category: string,
+  itemName: string,
+  activity: ActivityType,
+  currentWeather?: WeatherData
+): Promise<void> {
+  // Get recommended item for current conditions (if available)
+  let recommendedItem: string | null = null;
+  if (currentWeather) {
+    const fallback = getFallbackRecommendation(currentWeather, [], activity);
+    recommendedItem = fallback[category] || null;
+  }
+  
+  // Get current category options
+  const categories = getClothingCategories(activity);
+  const categoryConfig = categories.find(c => c.key === category);
+  const currentOptions = categoryConfig?.options || [];
+  
+  // Determine placement
+  let insertIndex: number;
+  if (recommendedItem) {
+    const recommendedIndex = currentOptions.findIndex(
+      opt => opt.toLowerCase() === recommendedItem!.toLowerCase()
+    );
+    if (recommendedIndex >= 0) {
+      // Place after recommended item
+      insertIndex = recommendedIndex + 1;
+    } else {
+      // Recommended item not in list, add to end
+      insertIndex = currentOptions.length;
+    }
+  } else {
+    // No recommendation available, add to end
+    insertIndex = currentOptions.length;
+  }
+  
+  // If brand/model lookup available, refine placement based on warmness
+  const gearInfo = lookupGearItem(itemName);
+  if (gearInfo?.warmnessLevel) {
+    // Find items with similar warmness and place accordingly
+    // (More sophisticated logic here)
+  }
+  
+  // Save custom item (with position metadata if needed)
+  await addCustomClothingOption(category, itemName, activity);
+  
+  // Note: Actual insertion into UI list would happen in ClothingPicker component
+  // This function provides the intelligence for where to place it
+}
+```
+
+**Considerations**:
+- **Context-dependent**: Placement might vary if user adds item in different weather conditions
+- **Solution**: Store placement relative to temperature range, or use warmness level (more stable)
+- **User override**: Always allow user to manually reorder if placement isn't right
+- **Visual feedback**: Show "Placed after [Recommended Item] based on current conditions" message
+
+#### Recommendation: **Option E (Recommendation-Based Placement)** as primary, with Option A as fallback
+- Primary: Use recommendation engine to intelligently place items
+- Fallback: If recommendation unavailable, add to end
+- Future: Combine with brand/model lookup for even smarter placement
+- Rationale: Leverages existing recommendation knowledge, provides context, maintains logical ordering
 
 ### 3. Implementation Details
 
