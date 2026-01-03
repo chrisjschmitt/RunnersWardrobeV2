@@ -103,17 +103,19 @@ export function generateClothingSuggestions(
   const categories = getClothingCategories(activity);
   const suggestions: ClothingSuggestion[] = [];
   
-  // Compare each category and generate suggestions
-  for (const cat of categories) {
+  // Only suggest adding or removing layers (midLayer and outerLayer)
+  const layerCategories = categories.filter(cat => cat.key === 'midLayer' || cat.key === 'outerLayer');
+  
+  for (const cat of layerCategories) {
     const current = currentClothing[cat.key]?.toLowerCase() || 'none';
     const defaultItem = fallbackDefaults[cat.key]?.toLowerCase() || 'none';
     
-    // Skip if they match
+    // Skip if they match and no temperature adjustment needed
     if (current === defaultItem && !needsWarmer && !needsCooler) {
       continue;
     }
 
-    // Generate a reason based on T_comfort difference and category
+    // Generate a reason based on T_comfort difference
     const reason = generateReason(
       cat.key,
       current,
@@ -129,21 +131,18 @@ export function generateClothingSuggestions(
     );
     
     if (reason) {
-      // Determine suggested item based on whether we need warmer or cooler
+      // For layers, suggest adding (default item) if needs warmer, removing (none) if needs cooler
       let suggestedItem = defaultItem;
-      if (needsWarmer) {
-        // Suggest warmer option (prefer default if it's warmer, otherwise keep current)
-        suggestedItem = defaultItem !== 'none' && isWarmerOption(cat.key, defaultItem, current) 
-          ? defaultItem 
-          : getWarmerOption(cat.key, current, categories);
-      } else if (needsCooler) {
-        // Suggest cooler option (prefer default if it's cooler, otherwise keep current)
-        suggestedItem = defaultItem !== 'none' && isCoolerOption(cat.key, defaultItem, current)
-          ? defaultItem
-          : getCoolerOption(cat.key, current, categories);
+      if (needsWarmer && current === 'none' && defaultItem !== 'none') {
+        suggestedItem = defaultItem;
+      } else if (needsCooler && current !== 'none' && defaultItem === 'none') {
+        suggestedItem = 'none';
+      } else if (current === defaultItem) {
+        // If they match but we have a temperature difference, skip
+        continue;
       }
 
-      if (suggestedItem && suggestedItem !== current) {
+      if (suggestedItem !== current) {
         suggestions.push({
           category: cat.key,
           categoryLabel: cat.label,
@@ -190,6 +189,11 @@ function generateReason(
     return null;
   }
 
+  // Only generate suggestions for layers (midLayer and outerLayer)
+  if (categoryKey !== 'midLayer' && categoryKey !== 'outerLayer') {
+    return null;
+  }
+
   // Determine if we should use strong language (low confidence)
   const isLowConfidence = confidence !== undefined && confidence < 40;
   
@@ -204,134 +208,44 @@ function generateReason(
     
     if (needsWarmer) {
       // Current T_comfort is colder than historical - suggest adding layers
-      if (categoryKey === 'midLayer' || categoryKey === 'outerLayer') {
-        if (current === 'none' && suggested !== 'none') {
-          if (diffAbs >= 5) {
-            return `Current conditions are ${diffFormatted}${diffSymbol} colder than your historical sessions. Add a layer for warmth.`;
-          } else {
-            if (isLowConfidence) {
-              return `Current conditions are ${diffFormatted}${diffSymbol} colder than your historical sessions. Add a layer for warmth.`;
-            }
-            return `Current conditions are ${diffFormatted}${diffSymbol} colder than your historical sessions. Consider adding a layer.`;
-          }
-        }
-      }
-      
-      if (categoryKey === 'baseLayer' || categoryKey === 'tops') {
-        // Check if suggested is warmer than current
-        if (isWarmerOption(categoryKey, suggested, current)) {
-          if (diffAbs >= 5) {
-            return `Current conditions are ${diffFormatted}${diffSymbol} colder. Upgrade to a warmer top.`;
-          } else {
-            if (isLowConfidence) {
-              return `Current conditions are ${diffFormatted}${diffSymbol} colder. Use a warmer top.`;
-            }
-            return `Current conditions are ${diffFormatted}${diffSymbol} colder. Consider a warmer top.`;
-          }
-        }
-      }
-      
-      if (categoryKey === 'headCover' || categoryKey === 'gloves') {
-        if (current === 'none' && suggested !== 'none') {
-          if (diffAbs >= 5) {
-            return `Current conditions are ${diffFormatted}${diffSymbol} colder. Essential for protecting extremities.`;
-          } else {
-            if (isLowConfidence) {
-              return `Current conditions are ${diffFormatted}${diffSymbol} colder. Wear this to protect extremities.`;
-            }
-            return `Current conditions are ${diffFormatted}${diffSymbol} colder. Recommended for warmth.`;
-          }
-        }
-      }
-      
-      if (categoryKey === 'bottoms') {
-        if (current.includes('short') && (suggested.includes('tight') || suggested.includes('pant'))) {
+      if (current === 'none' && suggested !== 'none') {
+        if (diffAbs >= 5) {
+          return `Current conditions are ${diffFormatted}${diffSymbol} colder than your historical sessions. Add a layer for warmth.`;
+        } else {
           if (isLowConfidence) {
-            return `Current conditions are ${diffFormatted}${diffSymbol} colder. Wear long bottoms.`;
+            return `Current conditions are ${diffFormatted}${diffSymbol} colder than your historical sessions. Add a layer for warmth.`;
           }
-          return `Current conditions are ${diffFormatted}${diffSymbol} colder. Long bottoms recommended.`;
+          return `Current conditions are ${diffFormatted}${diffSymbol} colder than your historical sessions. Consider adding a layer.`;
         }
       }
     }
     
     if (needsCooler) {
       // Current T_comfort is warmer than historical - suggest removing layers
-      if (categoryKey === 'midLayer' || categoryKey === 'outerLayer') {
-        if (current !== 'none' && suggested === 'none') {
-          if (isLowConfidence) {
-            return `Current conditions are ${diffFormatted}${diffSymbol} warmer than your historical sessions. Remove this layer.`;
-          }
-          return `Current conditions are ${diffFormatted}${diffSymbol} warmer than your historical sessions. Consider removing this layer.`;
+      if (current !== 'none' && suggested === 'none') {
+        if (isLowConfidence) {
+          return `Current conditions are ${diffFormatted}${diffSymbol} warmer than your historical sessions. Remove this layer.`;
         }
-      }
-      
-      if (categoryKey === 'baseLayer' || categoryKey === 'tops') {
-        if (isWarmerOption(categoryKey, current, suggested)) {
-          if (isLowConfidence) {
-            return `Current conditions are ${diffFormatted}${diffSymbol} warmer. Use a lighter top.`;
-          }
-          return `Current conditions are ${diffFormatted}${diffSymbol} warmer. Consider a lighter top.`;
-        }
+        return `Current conditions are ${diffFormatted}${diffSymbol} warmer than your historical sessions. Consider removing this layer.`;
       }
     }
   }
 
   // Fallback to T_comfort-based suggestions if no historical comparison available
-  // Layer-related suggestions
-  if (categoryKey === 'midLayer' || categoryKey === 'outerLayer') {
-    if (current === 'none' && suggested !== 'none') {
-      if (isVeryCold) {
-        return 'Very cold conditions typically require an additional layer';
-      } else if (isCold) {
-        return 'Cold conditions often benefit from an extra layer';
-      }
+  if (current === 'none' && suggested !== 'none') {
+    if (isVeryCold) {
+      return 'Very cold conditions typically require an additional layer';
+    } else if (isCold) {
+      return 'Cold conditions often benefit from an extra layer';
     }
   }
 
-  if (categoryKey === 'baseLayer' || categoryKey === 'tops') {
-    if (current.includes('short') && suggested.includes('long')) {
-      return 'Long sleeves are more appropriate for this temperature';
-    }
+  // If current has a layer but suggested is none, and we're not in a needsCooler scenario, don't suggest
+  if (current !== 'none' && suggested === 'none' && !needsCooler) {
+    return null;
   }
 
-  // Head/gloves suggestions
-  if (categoryKey === 'headCover' || categoryKey === 'gloves') {
-    if (current === 'none' && suggested !== 'none') {
-      if (isVeryCold) {
-        return 'Essential for protecting extremities in very cold weather';
-      } else if (isCold) {
-        return 'Recommended for cold conditions';
-      }
-    }
-  }
-
-  // Bottoms suggestions
-  if (categoryKey === 'bottoms') {
-    if (current.includes('short') && (suggested.includes('tight') || suggested.includes('pant'))) {
-      if (isCold) {
-        return 'Long bottoms are more appropriate for this temperature';
-      }
-    }
-  }
-
-  // Rain gear
-  if (categoryKey === 'rainGear' && isRaining) {
-    if (current === 'none' && suggested !== 'none') {
-      return 'Rain protection is recommended when precipitation is expected';
-    }
-  }
-
-  // Generic fallback
-  if (suggested !== 'none' && current === 'none') {
-    return 'Consider adding this item based on typical recommendations';
-  }
-
-  if (current !== 'none' && suggested === 'none') {
-    return null; // Don't suggest removing items unless explicitly needed
-  }
-
-  // Different items - provide generic suggestion
-  return 'Default recommendation differs from your current selection';
+  return null;
 }
 
 function generateExplanation(
@@ -395,73 +309,4 @@ function generateExplanation(
   return baseExplanation;
 }
 
-// Helper functions to determine if options are warmer/cooler
-function isWarmerOption(_categoryKey: string, option1: string, option2: string): boolean {
-  const warmTerms = ['merino', 'base layer + jacket', 'base layer + fleece', 'expedition', 'heavy', 'fleece', 'puffy', 'jacket', 'softshell'];
-  const coldTerms = ['t-shirt', 'singlet', 'tank', 'short sleeve', 'short', 'none'];
-  
-  const opt1Lower = option1.toLowerCase();
-  const opt2Lower = option2.toLowerCase();
-  
-  const opt1Warm = warmTerms.some(term => opt1Lower.includes(term));
-  const opt2Warm = warmTerms.some(term => opt2Lower.includes(term));
-  const opt2Cold = coldTerms.some(term => opt2Lower.includes(term));
-  
-  // Option1 is warmer if it has warm terms and option2 doesn't, or option2 has cold terms
-  return (opt1Warm && !opt2Warm) || (opt1Warm && opt2Cold);
-}
-
-function isLighterOption(categoryKey: string, option1: string, option2: string): boolean {
-  return isWarmerOption(categoryKey, option2, option1); // Reversed
-}
-
-function isCoolerOption(categoryKey: string, option1: string, option2: string): boolean {
-  return isLighterOption(categoryKey, option1, option2);
-}
-
-function getWarmerOption(categoryKey: string, current: string, categories: any[]): string {
-  const category = categories.find(c => c.key === categoryKey);
-  if (!category) return current;
-  
-  const warmTerms = ['merino', 'base layer + jacket', 'base layer + fleece', 'expedition', 'heavy', 'fleece', 'puffy', 'jacket', 'softshell'];
-  
-  // Find a warmer option than current
-  for (const option of category.options) {
-    const optLower = option.toLowerCase();
-    const currentLower = current.toLowerCase();
-    
-    // If current has cold terms and option has warm terms, it's warmer
-    const hasColdTerm = ['t-shirt', 'singlet', 'tank', 'short'].some(term => currentLower.includes(term));
-    const hasWarmTerm = warmTerms.some(term => optLower.includes(term));
-    
-    if (hasColdTerm && hasWarmTerm) {
-      return option;
-    }
-  }
-  
-  return current; // No warmer option found
-}
-
-function getCoolerOption(categoryKey: string, current: string, categories: any[]): string {
-  const category = categories.find(c => c.key === categoryKey);
-  if (!category) return current;
-  
-  const warmTerms = ['merino', 'base layer + jacket', 'base layer + fleece', 'expedition', 'heavy', 'fleece', 'puffy', 'jacket', 'softshell'];
-  const currentLower = current.toLowerCase();
-  const hasWarmTerm = warmTerms.some(term => currentLower.includes(term));
-  
-  if (!hasWarmTerm) return current; // Already cool enough
-  
-  // Find a cooler option
-  for (const option of category.options) {
-    const optLower = option.toLowerCase();
-    const hasOptWarmTerm = warmTerms.some(term => optLower.includes(term));
-    
-    if (!hasOptWarmTerm && optLower !== currentLower) {
-      return option;
-    }
-  }
-  
-  return current; // No cooler option found
-}
 

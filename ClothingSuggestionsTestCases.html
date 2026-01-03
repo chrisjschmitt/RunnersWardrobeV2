@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clothing Suggestions Test Cases - TrailKit</title>
+    <style>
+        :root {
+            --bg-primary: #0f172a;
+            --bg-secondary: #1e293b;
+            --bg-tertiary: #334155;
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --accent-orange: #f97316;
+            --accent-blue: #3b82f6;
+            --accent-green: #22c55e;
+            --accent-yellow: #eab308;
+            --accent-purple: #a855f7;
+            --accent-red: #ef4444;
+            --accent-cyan: #06b6d4;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+            padding: 2rem;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+            color: var(--accent-orange);
+        }
+
+        .subtitle {
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+            margin-bottom: 2rem;
+        }
+
+        h2 {
+            font-size: 1.5rem;
+            margin: 2rem 0 1rem;
+            color: var(--accent-blue);
+            border-bottom: 2px solid var(--bg-tertiary);
+            padding-bottom: 0.5rem;
+        }
+
+        h3 {
+            font-size: 1.2rem;
+            margin: 1.5rem 0 0.75rem;
+            color: var(--accent-cyan);
+        }
+
+        .test-case {
+            background: var(--bg-secondary);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin: 1rem 0;
+            border-left: 4px solid var(--accent-blue);
+        }
+
+        .test-case h4 {
+            color: var(--accent-yellow);
+            margin-bottom: 0.75rem;
+            font-size: 1.1rem;
+        }
+
+        .test-case strong {
+            color: var(--accent-green);
+        }
+
+        .test-case ul {
+            margin: 0.5rem 0 0.5rem 2rem;
+        }
+
+        .test-case li {
+            margin: 0.25rem 0;
+        }
+
+        .code-block {
+            background: var(--bg-tertiary);
+            border-radius: 8px;
+            padding: 1rem;
+            margin: 1rem 0;
+            overflow-x: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .code-block code {
+            color: var(--accent-cyan);
+        }
+
+        .matrix {
+            background: var(--bg-secondary);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1rem 0;
+        }
+
+        th {
+            background: var(--bg-tertiary);
+            color: var(--accent-yellow);
+            padding: 0.75rem;
+            text-align: left;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        td {
+            padding: 0.75rem;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        tr:nth-child(even) {
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 4px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin: 0.25rem;
+        }
+
+        .badge-low {
+            background: var(--accent-red);
+            color: white;
+        }
+
+        .badge-medium {
+            background: var(--accent-yellow);
+            color: var(--bg-primary);
+        }
+
+        .badge-high {
+            background: var(--accent-green);
+            color: white;
+        }
+
+        .note {
+            background: rgba(59, 130, 246, 0.1);
+            border-left: 4px solid var(--accent-blue);
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 8px;
+        }
+
+        .note strong {
+            color: var(--accent-blue);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Clothing Suggestions Test Cases</h1>
+        <p class="subtitle">Comprehensive test scenarios for the clothing suggestions feature that appears when confidence is medium or low</p>
+
+        <h2>1. Confidence Level Filtering</h2>
+
+        <div class="test-case">
+            <h4>TC-1.1: High Confidence (No Suggestions)</h4>
+            <p><strong>Input:</strong> Confidence = 75%, matchingRuns = 5</p>
+            <p><strong>Expected:</strong> <code>null</code> (no suggestions generated)</p>
+            <p><strong>Reason:</strong> Suggestions only appear for confidence &lt; 70%</p>
+        </div>
+
+        <div class="test-case">
+            <h4>TC-1.2: Medium Confidence (Suggestions Generated)</h4>
+            <p><strong>Input:</strong> Confidence = 55%, matchingRuns = 3</p>
+            <p><strong>Expected:</strong> Suggestions object with confidence = 55</p>
+            <p><strong>Language:</strong> Uses "Consider" (softer language)</p>
+        </div>
+
+        <div class="test-case">
+            <h4>TC-1.3: Low Confidence (Suggestions Generated)</h4>
+            <p><strong>Input:</strong> Confidence = 35%, matchingRuns = 2</p>
+            <p><strong>Expected:</strong> Suggestions object with confidence = 35</p>
+            <p><strong>Language:</strong> Uses "Add", "Use", "Wear", "Remove" (strong language)</p>
+        </div>
+
+        <h2>2. T_comfort-based Suggestions - Needs Warmer</h2>
+
+        <div class="test-case">
+            <h4>TC-2.1: Current Colder Than Historical (Fahrenheit)</h4>
+            <p><strong>Setup:</strong></p>
+            <ul>
+                <li>Current T_comfort: -15°C</li>
+                <li>Historical T_comfort: -10°C</li>
+                <li>Difference: -5°C = -9°F</li>
+                <li>Current clothing: T-shirt, Shorts, No mid-layer</li>
+                <li>Confidence: 45% <span class="badge badge-medium">Medium</span></li>
+            </ul>
+            <p><strong>Expected Suggestions:</strong></p>
+            <ul>
+                <li>Mid-layer: "Current conditions are 9°F colder than your historical sessions. Consider adding a layer."</li>
+                <li>Tops: "Current conditions are 9°F colder. Consider a warmer top."</li>
+            </ul>
+            <p><strong>Temperature Unit:</strong> Fahrenheit</p>
+        </div>
+
+        <div class="test-case">
+            <h4>TC-2.2: Current Colder Than Historical (Celsius)</h4>
+            <p><strong>Setup:</strong> Same as TC-2.1 but temperatureUnit = 'celsius'</p>
+            <p><strong>Expected:</strong> All temperature differences shown in °C (e.g., "5.0°C colder")</p>
+        </div>
+
+        <div class="test-case">
+            <h4>TC-2.3: Low Confidence - Strong Language for Warmer</h4>
+            <p><strong>Setup:</strong> Same as TC-2.1 but confidence = 35% <span class="badge badge-low">Low</span></p>
+            <p><strong>Expected Language:</strong></p>
+            <ul>
+                <li>"Add a layer for warmth" (not "Consider adding")</li>
+                <li>"Use a warmer top" (not "Consider a warmer top")</li>
+                <li>"Wear this to protect extremities" (not "Recommended for warmth")</li>
+            </ul>
+        </div>
+
+        <div class="test-case">
+            <h4>TC-2.4: Medium Confidence - Softer Language for Warmer</h4>
+            <p><strong>Setup:</strong> Same as TC-2.1 but confidence = 55% <span class="badge badge-medium">Medium</span></p>
+            <p><strong>Expected Language:</strong></p>
+            <ul>
+                <li>"Consider adding a layer"</li>
+                <li>"Consider a warmer top"</li>
+                <li>"Recommended for warmth"</li>
+            </ul>
+        </div>
+
+        <div class="test-case">
+            <h4>TC-2.5: Significant Difference (≥5°C / ≥9°F)</h4>
+            <p><strong>Setup:</strong> Difference = -6°C = -10.8°F</p>
+            <p><strong>Expected:</strong> Stronger language even for medium confidence</p>
+            <p><strong>Example:</strong> "Add a layer for warmth" (not "Consider")</p>
+        </div>
+
+        <h2>3. T_comfort-based Suggestions - Needs Cooler</h2>
+
+        <div class="test-case">
+            <h4>TC-3.1: Current Warmer Than Historical (Fahrenheit)</h4>
+            <p><strong>Setup:</strong></p>
+            <ul>
+                <li>Current T_comfort: 10°C</li>
+                <li>Historical T_comfort: 5°C</li>
+                <li>Difference: +5°C = +9°F</li>
+                <li>Current clothing: Base layer + jacket, Fleece mid-layer, Jacket outer-layer</li>
+                <li>Confidence: 45% <span class="badge badge-medium">Medium</span></li>
+            </ul>
+            <p><strong>Expected Suggestions:</strong></p>
+            <ul>
+                <li>Mid-layer: "Current conditions are 9°F warmer than your historical sessions. Consider removing this layer."</li>
+                <li>Tops: "Current conditions are 9°F warmer. Consider a lighter top."</li>
+            </ul>
+        </div>
+
+        <div class="test-case">
+            <h4>TC-3.2: Current Warmer Than Historical (Celsius)</h4>
+            <p><strong>Setup:</strong> Same as TC-3.1 but temperatureUnit = 'celsius'</p>
+            <p><strong>Expected:</strong> All temperature differences shown in °C</p>
+        </div>
+
+        <div class="test-case">
+            <h4>TC-3.3: Low Confidence - Strong Language for Cooler</h4>
+            <p><strong>Setup:</strong> Same as TC-3.1 but confidence = 35% <span class="badge badge-low">Low</span></p>
+            <p><strong>Expected Language:</strong></p>
+            <ul>
+                <li>"Remove this layer" (not "Consider removing")</li>
+                <li>"Use a lighter top" (not "Consider a lighter top")</li>
+            </ul>
+        </div>
+
+        <h2>4. Explanation Text</h2>
+
+        <div class="test-case">
+            <h4>TC-4.1: Low Confidence with T_comfort Difference</h4>
+            <p><strong>Setup:</strong> Confidence = 35% <span class="badge badge-low">Low</span>, difference = -5°C, temperatureUnit = 'fahrenheit'</p>
+            <p><strong>Expected Explanation:</strong></p>
+            <div class="code-block">
+                "Low confidence (35%) from 2 sessions. Current conditions are 9°F colder than your historical sessions. Add layers for warmth."
+            </div>
+            <p><strong>Key:</strong> Uses "Add layers" (strong) not "Consider adding layers"</p>
+        </div>
+
+        <div class="test-case">
+            <h4>TC-4.2: Medium Confidence with T_comfort Difference</h4>
+            <p><strong>Setup:</strong> Confidence = 55% <span class="badge badge-medium">Medium</span>, difference = -5°C, temperatureUnit = 'fahrenheit'</p>
+            <p><strong>Expected Explanation:</strong></p>
+            <div class="code-block">
+                "Medium confidence (55%) from 2 sessions. Current conditions are 9°F colder than your historical sessions. Consider adding layers."
+            </div>
+            <p><strong>Key:</strong> Uses "Consider adding layers" (softer)</p>
+        </div>
+
+        <div class="test-case">
+            <h4>TC-4.3: Temperature Unit Formatting (Celsius)</h4>
+            <p><strong>Setup:</strong> Difference = -5°C, temperatureUnit = 'celsius'</p>
+            <p><strong>Expected:</strong> "5.0°C colder" (with decimal)</p>
+            <p><strong>Not:</strong> "9°F colder"</p>
+        </div>
+
+        <div class="test-case">
+            <h4>TC-4.4: Temperature Unit Formatting (Fahrenheit)</h4>
+            <p><strong>Setup:</strong> Difference = -5°C, temperatureUnit = 'fahrenheit'</p>
+            <p><strong>Expected:</strong> "9°F colder" (rounded to whole number)</p>
+            <p><strong>Not:</strong> "5.0°C colder"</p>
+        </div>
+
+        <div class="test-case">
+            <h4>TC-4.5: No Historical Data</h4>
+            <p><strong>Setup:</strong> matchingRuns = 0, similarConditions = []</p>
+            <p><strong>Expected Explanation:</strong> "No similar sessions found. These suggestions are based on typical recommendations for these conditions."</p>
+        </div>
+
+        <div class="test-case">
+            <h4>TC-4.6: Single Historical Session</h4>
+            <p><strong>Setup:</strong> matchingRuns = 1</p>
+            <p><strong>Expected Explanation:</strong> "Based on only 1 similar session."</p>
+        </div>
+
+        <h2>5. Edge Cases</h2>
+
+        <div class="test-case">
+            <h4>TC-5.1: Temperature Difference Too Small</h4>
+            <p><strong>Setup:</strong> Difference = -1.5°C (&lt; 2°C threshold)</p>
+            <p><strong>Expected:</strong> No T_comfort-based suggestions (may have fallback suggestions comparing to defaults)</p>
+        </div>
+
+        <div class="test-case">
+            <h4>TC-5.2: Multiple Historical Sessions (Average Calculation)</h4>
+            <p><strong>Setup:</strong></p>
+            <ul>
+                <li>Historical T_comforts: -10°C, -12°C, -8°C</li>
+                <li>Average: -10°C</li>
+                <li>Current: -15°C</li>
+                <li>Difference: -5°C</li>
+            </ul>
+            <p><strong>Expected:</strong> Suggestions based on average historical T_comfort</p>
+        </div>
+
+        <div class="test-case">
+            <h4>TC-5.3: Undefined Confidence</h4>
+            <p><strong>Setup:</strong> confidence = undefined</p>
+            <p><strong>Expected:</strong> Suggestions still generated (uses fallback logic, no confidence-based language)</p>
+        </div>
+
+        <div class="test-case">
+            <h4>TC-5.4: Exact Match (No Suggestions)</h4>
+            <p><strong>Setup:</strong> Current clothing exactly matches fallback defaults, no T_comfort difference</p>
+            <p><strong>Expected:</strong> Empty suggestions array or minimal suggestions</p>
+        </div>
+
+        <h2>6. Clothing Category-Specific Suggestions</h2>
+
+        <div class="test-case">
+            <h4>TC-6.1: Gloves/Head Cover for Cold Conditions</h4>
+            <p><strong>Setup:</strong></p>
+            <ul>
+                <li>Current T_comfort: -15°C</li>
+                <li>Historical: -10°C</li>
+                <li>Current: gloves = 'None', headCover = 'None'</li>
+                <li>Confidence: 35% <span class="badge badge-low">Low</span></li>
+            </ul>
+            <p><strong>Expected:</strong></p>
+            <ul>
+                <li>Suggestion for gloves or headCover</li>
+                <li>Reason: "Wear this to protect extremities" (low confidence) or "Recommended for warmth" (medium)</li>
+            </ul>
+        </div>
+
+        <div class="test-case">
+            <h4>TC-6.2: Long Bottoms When Shorts Too Light</h4>
+            <p><strong>Setup:</strong></p>
+            <ul>
+                <li>Current: bottoms = 'Shorts'</li>
+                <li>Suggested: bottoms = 'Tights' or 'Pants'</li>
+                <li>Current T_comfort: -15°C</li>
+                <li>Historical: -10°C</li>
+            </ul>
+            <p><strong>Expected:</strong></p>
+            <ul>
+                <li>Suggestion: "Wear long bottoms" (low confidence) or "Long bottoms recommended" (medium)</li>
+                <li>Reason includes temperature difference</li>
+            </ul>
+        </div>
+
+        <div class="test-case">
+            <h4>TC-6.3: Warmer Tops When T-shirt Too Light</h4>
+            <p><strong>Setup:</strong></p>
+            <ul>
+                <li>Current: tops = 'T-shirt'</li>
+                <li>Suggested: tops = 'Base layer' or 'Base layer + jacket'</li>
+                <li>Current T_comfort: -15°C</li>
+                <li>Historical: -10°C</li>
+            </ul>
+            <p><strong>Expected:</strong></p>
+            <ul>
+                <li>Suggestion: "Use a warmer top" (low confidence) or "Consider a warmer top" (medium)</li>
+                <li>Reason includes temperature difference</li>
+            </ul>
+        </div>
+
+        <h2>Test Data Examples</h2>
+
+        <h3>Example 1: Low Confidence, Needs Warmer (Fahrenheit)</h3>
+        <div class="code-block">
+<code>{
+  currentClothing: {
+    tops: 'T-shirt',
+    bottoms: 'Shorts',
+    shoes: 'Running shoes',
+    midLayer: 'None',
+    outerLayer: 'None',
+    gloves: 'None'
+  },
+  weather: { temperature: -5.8°F, feelsLike: -5.8°F }, // Results in -15°C T_comfort
+  activity: 'running',
+  confidence: 35,
+  matchingRuns: 2,
+  similarConditions: [
+    { /* RunRecord with -10°C T_comfort */ }
+  ],
+  temperatureUnit: 'fahrenheit'
+}</code>
+        </div>
+
+        <p><strong>Expected Output:</strong></p>
+        <div class="code-block">
+<code>{
+  suggestions: [
+    {
+      category: 'midLayer',
+      categoryLabel: 'Mid Layer',
+      current: 'None',
+      suggested: 'Fleece',
+      reason: 'Current conditions are 9°F colder than your historical sessions. Add a layer for warmth.'
+    },
+    {
+      category: 'tops',
+      categoryLabel: 'Top',
+      current: 'T-shirt',
+      suggested: 'Base layer',
+      reason: 'Current conditions are 9°F colder. Use a warmer top.'
+    }
+  ],
+  explanation: 'Low confidence (35%) from 2 sessions. Current conditions are 9°F colder than your historical sessions. Add layers for warmth.',
+  confidence: 35,
+  matchingRuns: 2
+}</code>
+        </div>
+
+        <h3>Example 2: Medium Confidence, Needs Cooler (Celsius)</h3>
+        <div class="code-block">
+<code>{
+  currentClothing: {
+    tops: 'Base layer + jacket',
+    bottoms: 'Tights',
+    shoes: 'Running shoes',
+    midLayer: 'Fleece',
+    outerLayer: 'Jacket'
+  },
+  weather: { temperature: 50°F, feelsLike: 50°F }, // Results in 10°C T_comfort
+  activity: 'running',
+  confidence: 55,
+  matchingRuns: 3,
+  similarConditions: [
+    { /* RunRecord with 5°C T_comfort */ }
+  ],
+  temperatureUnit: 'celsius'
+}</code>
+        </div>
+
+        <p><strong>Expected Output:</strong></p>
+        <div class="code-block">
+<code>{
+  suggestions: [
+    {
+      category: 'midLayer',
+      categoryLabel: 'Mid Layer',
+      current: 'Fleece',
+      suggested: 'None',
+      reason: 'Current conditions are 5.0°C warmer than your historical sessions. Consider removing this layer.'
+    }
+  ],
+  explanation: 'Medium confidence (55%) from 3 sessions. Current conditions are 5.0°C warmer than your historical sessions. Consider removing layers.',
+  confidence: 55,
+  matchingRuns: 3
+}</code>
+        </div>
+
+        <h2>Language Strength Matrix</h2>
+        <div class="matrix">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Confidence</th>
+                        <th>Temperature Difference</th>
+                        <th>Language Style</th>
+                        <th>Examples</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><span class="badge badge-low">Low</span> (&lt; 40%)</td>
+                        <td>Any</td>
+                        <td>Strong/Imperative</td>
+                        <td>"Add", "Use", "Wear", "Remove"</td>
+                    </tr>
+                    <tr>
+                        <td><span class="badge badge-medium">Medium</span> (40-69%)</td>
+                        <td>&lt; 5°C / &lt; 9°F</td>
+                        <td>Softer/Suggestive</td>
+                        <td>"Consider", "Recommended"</td>
+                    </tr>
+                    <tr>
+                        <td><span class="badge badge-medium">Medium</span> (40-69%)</td>
+                        <td>≥ 5°C / ≥ 9°F</td>
+                        <td>Stronger</td>
+                        <td>"Add", "Upgrade"</td>
+                    </tr>
+                    <tr>
+                        <td><span class="badge badge-high">High</span> (≥ 70%)</td>
+                        <td>N/A</td>
+                        <td>N/A</td>
+                        <td>No suggestions generated</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <h2>Notes</h2>
+        <div class="note">
+            <p><strong>Temperature Threshold:</strong> Suggestions only trigger when T_comfort difference ≥ 2°C (≈3.6°F)</p>
+        </div>
+        <div class="note">
+            <p><strong>Unit Conversion:</strong></p>
+            <ul>
+                <li>Celsius: Shows 1 decimal place (e.g., "5.0°C")</li>
+                <li>Fahrenheit: Shows whole numbers (e.g., "9°F")</li>
+            </ul>
+        </div>
+        <div class="note">
+            <p><strong>Fallback Logic:</strong> If no historical data or T_comfort difference too small, suggestions compare current clothing to activity defaults</p>
+        </div>
+        <div class="note">
+            <p><strong>Confidence Impact:</strong> Low confidence always uses strong language, regardless of temperature difference magnitude</p>
+        </div>
+    </div>
+</body>
+</html>
+
