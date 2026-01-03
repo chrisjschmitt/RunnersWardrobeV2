@@ -618,7 +618,8 @@ function getMostCommonItem(
 function applyAccessoryLogic(
   clothing: ClothingItems,
   weather: WeatherData,
-  activity: ActivityType
+  activity: ActivityType,
+  adjustedTempF?: number // Optional T_comfort in Fahrenheit for extreme cold check
 ): ClothingItems {
   const result = { ...clothing };
   const categories = getClothingCategories(activity);
@@ -648,10 +649,11 @@ function applyAccessoryLogic(
   if (hasAccessories) {
     const currentAccessory = result.accessories?.toLowerCase() || 'none';
     
-    // Calculate T_comfort to check if we're in extreme cold
-    // We need to approximate this - use feels-like temp as a proxy
-    const tempC = (weather.feelsLike - 32) * 5 / 9;
-    const isExtremeCold = tempC < -15; // Extreme cold threshold
+    // Use T_comfort if provided, otherwise approximate from feels-like temp
+    // T_comfort is more accurate as it accounts for activity body heat
+    const isExtremeCold = adjustedTempF !== undefined 
+      ? adjustedTempF < 5  // Use T_comfort in Fahrenheit (< 5°F = < -15°C)
+      : (weather.feelsLike - 32) * 5 / 9 < -15; // Fallback to feels-like temp
     
     // Override based on current lighting - headlamp/sunglasses depend on NOW, not history
     if (needsSunglasses) {
@@ -709,7 +711,7 @@ export function getClothingRecommendation(
   const recentMatchResult = findRecentSimilarFeedback(currentWeather, feedbackHistory, activity, thermalPreference, activityLevel);
   if (recentMatchResult) {
     const { feedback: recentMatch, similarity: recentSimilarity } = recentMatchResult;
-    const clothing = applyAccessoryLogic(recentMatch.clothing, currentWeather, activity);
+    const clothing = applyAccessoryLogic(recentMatch.clothing, currentWeather, activity, adjustedTempF);
     
     // Calculate confidence from actual similarity score
     // For a single recent match: (1/5) × 30 + similarity × 70
@@ -1179,8 +1181,8 @@ export function getClothingRecommendation(
     }
   }
 
-  // Apply accessory logic
-  const finalClothing = applyAccessoryLogic(clothing, currentWeather, activity);
+  // Apply accessory logic (pass T_comfort for accurate extreme cold detection)
+  const finalClothing = applyAccessoryLogic(clothing, currentWeather, activity, adjustedTempF);
 
   const avgSimilarity = similarRuns.length > 0
     ? similarRuns.reduce((sum, r) => sum + r.score, 0) / similarRuns.length
@@ -1323,7 +1325,10 @@ export function getFallbackRecommendation(
       // Then prioritize by recency
       return new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime();
     });
-    return applyAccessoryLogic(relevantFeedback[0].clothing, weather, activity);
+    // Calculate T_comfort for extreme cold check
+    const comfortBreakdown = calculateComfortTemperature(weather, activity, thermalPreference, activityLevel);
+    const adjustedTempF = comfortTempToFahrenheit(comfortBreakdown.comfortTempC);
+    return applyAccessoryLogic(relevantFeedback[0].clothing, weather, activity, adjustedTempF);
   }
 
   // Get base defaults for this activity
@@ -1401,7 +1406,8 @@ export function getFallbackRecommendation(
   }
 
   // Apply accessory logic (sunglasses/headlamp based on conditions)
-  return applyAccessoryLogic(clothing, weather, activity);
+  // Pass adjustedTempF for accurate extreme cold detection
+  return applyAccessoryLogic(clothing, weather, activity, adjustedTemp);
 }
 
 // Helper to apply a value only if the category exists AND the value is valid
