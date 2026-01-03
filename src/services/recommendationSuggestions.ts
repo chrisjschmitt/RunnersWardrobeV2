@@ -110,16 +110,37 @@ export function generateClothingSuggestions(
     const current = currentClothing[cat.key]?.toLowerCase() || 'none';
     const defaultItem = fallbackDefaults[cat.key]?.toLowerCase() || 'none';
     
-    // Skip if they match and no temperature adjustment needed
-    if (current === defaultItem && !needsWarmer && !needsCooler) {
+    // Determine what to suggest based on T_comfort difference
+    let suggestedItem: string | null = null;
+    
+    if (needsWarmer) {
+      // Current is colder than historical - suggest adding a layer
+      if (current === 'none') {
+        // No layer currently - suggest adding one (use default if available, otherwise suggest a generic layer)
+        suggestedItem = defaultItem !== 'none' ? defaultItem : (cat.key === 'midLayer' ? 'fleece' : 'jacket');
+      } else if (cat.key === 'outerLayer' && current === 'none') {
+        // Missing outerLayer - suggest adding it (this case is already handled above, but keeping for clarity)
+        suggestedItem = defaultItem !== 'none' ? defaultItem : 'jacket';
+      }
+      // Note: If user already has midLayer, we'll suggest outerLayer when processing outerLayer category
+      // If user already has both layers, we won't suggest anything (they're already warm enough)
+    } else if (needsCooler) {
+      // Current is warmer than historical - suggest removing a layer
+      if (current !== 'none') {
+        suggestedItem = 'none';
+      }
+    }
+    
+    // Skip if no suggestion or if suggested matches current
+    if (!suggestedItem || suggestedItem === current) {
       continue;
     }
-
+    
     // Generate a reason based on T_comfort difference
     const reason = generateReason(
       cat.key,
       current,
-      defaultItem,
+      suggestedItem,
       weather,
       currentComfortC,
       avgHistoricalComfortC,
@@ -131,26 +152,13 @@ export function generateClothingSuggestions(
     );
     
     if (reason) {
-      // For layers, suggest adding (default item) if needs warmer, removing (none) if needs cooler
-      let suggestedItem = defaultItem;
-      if (needsWarmer && current === 'none' && defaultItem !== 'none') {
-        suggestedItem = defaultItem;
-      } else if (needsCooler && current !== 'none' && defaultItem === 'none') {
-        suggestedItem = 'none';
-      } else if (current === defaultItem) {
-        // If they match but we have a temperature difference, skip
-        continue;
-      }
-
-      if (suggestedItem !== current) {
-        suggestions.push({
-          category: cat.key,
-          categoryLabel: cat.label,
-          current: currentClothing[cat.key] || 'None',
-          suggested: suggestedItem,
-          reason
-        });
-      }
+      suggestions.push({
+        category: cat.key,
+        categoryLabel: cat.label,
+        current: currentClothing[cat.key] || 'None',
+        suggested: suggestedItem,
+        reason
+      });
     }
   }
 
@@ -208,6 +216,7 @@ function generateReason(
     if (needsWarmer) {
       // Current T_comfort is colder than historical - suggest adding layers
       if (current === 'none' && suggested !== 'none') {
+        // No layer currently - suggest adding one
         if (diffAbs >= 5) {
           return `Current conditions are ${diffFormatted}${diffSymbol} colder than your historical sessions. Add a layer for warmth.`;
         } else {
@@ -216,12 +225,20 @@ function generateReason(
           }
           return `Current conditions are ${diffFormatted}${diffSymbol} colder than your historical sessions. Consider adding a layer.`;
         }
+      } else if (current !== 'none' && suggested !== 'none' && suggested !== current) {
+        // Already has a layer - suggest adding an additional layer
+        if (diffAbs >= 5) {
+          return `Current conditions are ${diffFormatted}${diffSymbol} colder than your historical sessions. Add an additional layer for warmth.`;
+        } else if (isLowConfidence) {
+          return `Current conditions are ${diffFormatted}${diffSymbol} colder than your historical sessions. Consider adding an additional layer.`;
+        }
+        return `Current conditions are ${diffFormatted}${diffSymbol} colder than your historical sessions. Consider adding an additional layer.`;
       }
     }
     
     if (needsCooler) {
       // Current T_comfort is warmer than historical - suggest removing layers
-      if (current !== 'none' && suggested === 'none') {
+      if (current !== 'none') {
         if (isLowConfidence) {
           return `Current conditions are ${diffFormatted}${diffSymbol} warmer than your historical sessions. Remove this layer.`;
         }
