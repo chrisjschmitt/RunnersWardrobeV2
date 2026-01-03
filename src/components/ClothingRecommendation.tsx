@@ -1,5 +1,4 @@
-import { useState } from 'react';
-// import { useMemo } from 'react'; // Temporarily disabled
+import { useState, useMemo } from 'react';
 import type { ClothingRecommendation as ClothingRec, ClothingItems, ActivityType, RunRecord, ThermalPreference, WeatherData, ActivityLevel } from '../types';
 import { getClothingCategories } from '../types';
 import { ClothingPicker } from './ClothingPicker';
@@ -8,7 +7,7 @@ import { getClothingInfo, type ClothingInfo } from '../data/clothingInfo';
 import { formatTemperature } from '../services/temperatureUtils';
 import type { TemperatureUnit } from '../services/temperatureUtils';
 import { calculateComfortTemperature } from '../services/recommendationEngine';
-// import { generateClothingSuggestions } from '../services/recommendationSuggestions'; // Temporarily disabled
+import { generateClothingSuggestions } from '../services/recommendationSuggestions';
 
 // Icons for different clothing categories
 const CATEGORY_ICONS: Record<string, string> = {
@@ -57,13 +56,13 @@ export function ClothingRecommendation({
   activity = 'running',
   temperatureUnit = 'fahrenheit',
   thermalPreference = 'average',
-  weather: _weather, // Temporarily unused
-  activityLevel: _activityLevel // Temporarily unused
+  weather,
+  activityLevel
 }: ClothingRecommendationProps) {
   const [editingCategory, setEditingCategory] = useState<string | null>(null);
   const [showingInfo, setShowingInfo] = useState<ClothingInfo | null>(null);
   const [showSimilarSessions, setShowSimilarSessions] = useState(false);
-  // const [showSuggestions, setShowSuggestions] = useState(false); // Temporarily disabled
+  const [showSuggestions, setShowSuggestions] = useState(false);
   
   // Get categories for this activity
   const categories = getClothingCategories(activity);
@@ -76,23 +75,22 @@ export function ClothingRecommendation({
   const hasHistory = recommendation !== null;
 
   // Generate suggestions when confidence is low/medium and weather is available
-  // Temporarily disabled until suggestions logic is fixed
-  // const suggestions = useMemo(() => {
-  //   if (!weather || !clothing || !baseClothing) return null;
-  //   if (!hasHistory || !recommendation) return null; // Only suggest when we have a recommendation (not pure fallback)
-  //   if (recommendation.confidence >= 70) return null; // Only suggest for low/medium confidence
-  //   
-  //   return generateClothingSuggestions(
-  //     clothing,
-  //     weather,
-  //     activity,
-  //     thermalPreference,
-  //     activityLevel,
-  //     recommendation.confidence,
-  //     recommendation.matchingRuns
-  //   );
-  // }, [weather, clothing, baseClothing, hasHistory, recommendation, activity, thermalPreference, activityLevel]);
-  // const suggestions = null; // Temporarily disabled - not used when panel is hidden
+  const suggestions = useMemo(() => {
+    if (!weather || !clothing || !baseClothing) return null;
+    if (!hasHistory || !recommendation) return null; // Only suggest when we have a recommendation (not pure fallback)
+    if (recommendation.confidence >= 70) return null; // Only suggest for low/medium confidence
+    
+    return generateClothingSuggestions(
+      clothing,
+      weather,
+      activity,
+      thermalPreference,
+      activityLevel,
+      recommendation.confidence,
+      recommendation.matchingRuns,
+      recommendation.similarConditions
+    );
+  }, [weather, clothing, baseClothing, hasHistory, recommendation, activity, thermalPreference, activityLevel]);
   
   // Highlight important categories
   const highlightCategories = ['tops', 'jersey', 'bottoms', 'baseLayer', 'outerLayer'];
@@ -246,7 +244,67 @@ export function ClothingRecommendation({
               )}
 
               {/* Suggestions - collapsible, below history */}
-              {/* Temporarily hidden until suggestions logic is fixed */}
+              {suggestions && suggestions.suggestions.length > 0 && (
+                <div className="mt-4">
+                  <button
+                    onClick={() => setShowSuggestions(!showSuggestions)}
+                    className="w-full p-3 rounded-lg text-left transition-colors"
+                    style={{ 
+                      backgroundColor: confidenceBgColor,
+                      border: `1px solid ${confidenceColor}`,
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.backgroundColor = confidenceHoverBgColor;
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.backgroundColor = confidenceBgColor;
+                    }}
+                  >
+                    <div className="flex items-center justify-between">
+                      <p className="text-sm" style={{ color: confidenceColor }}>
+                        <strong>Suggestions:</strong> {suggestions.explanation}
+                      </p>
+                      <svg 
+                        className={`w-4 h-4 transition-transform ${showSuggestions ? 'rotate-180' : ''}`}
+                        style={{ color: confidenceColor }}
+                        fill="none" 
+                        stroke="currentColor" 
+                        viewBox="0 0 24 24"
+                      >
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                      </svg>
+                    </div>
+                  </button>
+                  
+                  {showSuggestions && (
+                    <div className="mt-2 space-y-3 animate-fade-in">
+                      {suggestions.suggestions.map((suggestion, index) => (
+                        <div 
+                          key={index}
+                          className="p-3 rounded-lg bg-[rgba(255,255,255,0.05)] border border-[rgba(255,255,255,0.1)]"
+                        >
+                          <div className="flex items-start justify-between gap-3">
+                            <div className="flex-1">
+                              <div className="text-sm font-medium mb-1">
+                                {suggestion.categoryLabel}
+                              </div>
+                              <div className="text-xs text-[var(--color-text-muted)] mb-2">
+                                Current: <span className="font-medium">{suggestion.current}</span>
+                              </div>
+                              <div className="text-xs mb-2">
+                                Suggested: <span className="font-medium text-[var(--color-accent)]">{suggestion.suggested}</span>
+                              </div>
+                              <div className="text-xs text-[var(--color-text-muted)] italic">
+                                {suggestion.reason}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           );
         })()}
