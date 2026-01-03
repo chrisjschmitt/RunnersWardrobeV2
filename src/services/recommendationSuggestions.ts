@@ -306,12 +306,23 @@ function generateReason(
     }
     
     if (needsCooler) {
-      // Current T_comfort is warmer than historical - suggest removing layers
+      // Current T_comfort is warmer than historical - suggest removing layers or lighter tops
       if (current !== 'none' && suggested === 'none') {
+        // For activities with layers, suggest removing
         if (isLowConfidence) {
           return `Current conditions are ${diffFormatted}${diffSymbol} warmer than your historical sessions. Remove this layer.`;
         }
         return `Current conditions are ${diffFormatted}${diffSymbol} warmer than your historical sessions. Consider removing this layer.`;
+      } else if (current !== 'none' && suggested !== 'none' && suggested !== current && categoryKey === 'tops') {
+        // For running-style activities, suggest lighter tops
+        if (diffAbs >= 5) {
+          return `Current conditions are ${diffFormatted}${diffSymbol} warmer than your historical sessions. Use a lighter top.`;
+        } else {
+          if (isLowConfidence) {
+            return `Current conditions are ${diffFormatted}${diffSymbol} warmer than your historical sessions. Use a lighter top.`;
+          }
+          return `Current conditions are ${diffFormatted}${diffSymbol} warmer than your historical sessions. Consider using a lighter top.`;
+        }
       }
     }
   }
@@ -329,6 +340,10 @@ function generateReason(
   
   if (needsCooler && current !== 'none' && suggested === 'none') {
     return 'Warmer conditions may allow removing a layer.';
+  }
+  
+  if (needsCooler && current !== 'none' && suggested !== 'none' && suggested !== current && categoryKey === 'tops') {
+    return 'Warmer conditions may allow using a lighter top.';
   }
 
   // Fallback to T_comfort-based suggestions if no historical comparison available
