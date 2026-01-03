@@ -3,6 +3,26 @@
 ## Overview
 Allow users to add their own clothing items to any activity's categories, making the app more personalized and useful for users with specific gear.
 
+## Current Implementation Status
+
+**Note**: Custom clothing functionality already exists in the codebase!
+- Database: `customClothing` table in IndexedDB (schema version 3+)
+- Storage: Activity-specific keys (`${activity}:${category}`)
+- Functions: `getCustomClothingOptions()`, `addCustomClothingOption()`, `deleteCustomClothingOption()`
+- UI: `ClothingPicker` component has basic custom item support
+
+**Current Behavior**:
+- Custom items are added to the end of the category list
+- Category is determined by which category's picker is open
+- Items are activity-specific (stored with activity context)
+- Custom items can be deleted via long-press/delete action
+
+**Current Limitations**:
+- Category selection happens implicitly (based on which picker is open)
+- No explicit category selection UI when adding items
+- Items always added to end (no positioning options)
+- No validation or guidance on category selection
+
 ## Primary Concerns
 
 ### 1. Category Selection
