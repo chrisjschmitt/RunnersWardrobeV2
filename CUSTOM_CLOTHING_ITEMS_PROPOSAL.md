@@ -189,6 +189,159 @@ If the above feels too complex, consider:
 - Select from list instead of individual items
 - Still requires category selection, but groups items together
 
+## 7. Brand/Model Lookup for Auto-Classification (Advanced)
+
+### Concept
+Allow users to enter brand and model information (e.g., "Patagonia R1 Hoody", "Arcteryx Beta AR", "Nike Dri-FIT Long Sleeve"), then use external databases/APIs to automatically determine:
+1. **Category** (top, midLayer, outerLayer, etc.)
+2. **Warmness level** (for intelligent ordering)
+3. **Additional metadata** (material, features, use cases)
+
+### Feasibility & Implementation Options
+
+#### Option A: External APIs/Databases
+
+**Potential Sources**:
+1. **REI API** (if available) - Large outdoor gear database
+2. **Backcountry API** (if available) - Outdoor gear specifications
+3. **Manufacturer APIs** - Direct from Patagonia, Arcteryx, etc. (unlikely to have public APIs)
+4. **Open Source Gear Databases** - Community-maintained databases
+5. **Product Search APIs** - Google Shopping API, Bing Product API (limited specificity)
+
+**Challenges**:
+- Most retailers don't have public APIs for product specifications
+- Would require API keys and rate limiting
+- May not have detailed warmness/insulation specs
+- Legal/ToS concerns with scraping
+
+#### Option B: Local Knowledge Base (More Feasible)
+
+**Approach**: Build a curated database of popular gear items
+- Start with common items (Patagonia R1, Arcteryx Beta AR, etc.)
+- Store: brand, model, category, warmness level
+- Expand based on user submissions (crowdsourced)
+
+**Implementation**:
+```typescript
+interface GearDatabaseEntry {
+  brand: string;
+  model: string;
+  category: 'tops' | 'midLayer' | 'outerLayer' | 'bottoms' | 'etc';
+  warmnessLevel: 'light' | 'moderate' | 'warm' | 'heavy';
+  activityTypes?: ActivityType[]; // Some gear is activity-specific
+  description?: string;
+}
+
+// Local JSON file or IndexedDB table
+const GEAR_DATABASE: GearDatabaseEntry[] = [
+  { brand: 'Patagonia', model: 'R1 Hoody', category: 'midLayer', warmnessLevel: 'moderate' },
+  { brand: 'Arcteryx', model: 'Beta AR', category: 'outerLayer', warmnessLevel: 'heavy' },
+  { brand: 'Nike', model: 'Dri-FIT Long Sleeve', category: 'tops', warmnessLevel: 'light' },
+  // ... more entries
+];
+```
+
+**User Flow**:
+1. User types "Patagonia R1 Hoody"
+2. System searches database (case-insensitive, partial match)
+3. If found: Auto-selects category and warmness level
+4. If not found: Falls back to manual category selection
+5. Optional: "Not found? Help us improve" → User can submit entry
+
+**Pros**:
+- Works offline
+- No API dependencies
+- Fast and reliable
+- Can be expanded over time
+- No legal/ToS concerns
+
+**Cons**:
+- Requires manual curation (or crowdsourcing)
+- Won't have every product
+- Needs maintenance as new products release
+
+#### Option C: Hybrid Approach (Recommended)
+
+1. **Local database** for common/popular items (fast, offline)
+2. **Fuzzy matching** for partial brand/model names
+3. **Fallback to manual selection** if not found
+4. **User submissions** to expand database (with moderation)
+5. **Future enhancement**: Optional API integration for real-time lookups
+
+**Example Implementation**:
+```typescript
+function lookupGearItem(input: string): GearDatabaseEntry | null {
+  // Normalize input
+  const normalized = input.toLowerCase().trim();
+  
+  // Try exact match first
+  let match = GEAR_DATABASE.find(entry => 
+    `${entry.brand} ${entry.model}`.toLowerCase() === normalized
+  );
+  
+  // Try fuzzy match (contains)
+  if (!match) {
+    match = GEAR_DATABASE.find(entry => 
+      normalized.includes(entry.brand.toLowerCase()) &&
+      normalized.includes(entry.model.toLowerCase())
+    );
+  }
+  
+  // Try brand-only match (suggest options)
+  if (!match) {
+    const brandMatches = GEAR_DATABASE.filter(entry =>
+      normalized.includes(entry.brand.toLowerCase())
+    );
+    if (brandMatches.length > 0) {
+      // Show suggestions to user
+      return { suggestions: brandMatches };
+    }
+  }
+  
+  return match || null;
+}
+```
+
+### Warmness Level Classification
+
+If we have warmness level from lookup, we can:
+1. **Order items** within category by warmness (light → heavy)
+2. **Group items** visually in picker (Light / Moderate / Warm / Heavy sections)
+3. **Suggest placement** when user adds custom item ("This is a warm item, place after 'Fleece'?")
+
+### Data Sources for Building Database
+
+1. **Common gear lists** - Popular items from REI, Backcountry, etc.
+2. **User submissions** - "Help improve our database" feature
+3. **Manufacturer websites** - Manual curation (legal, public info)
+4. **Community contributions** - If open-sourcing the database
+5. **Existing gear databases** - Outdoor Gear Lab, etc. (with permission)
+
+### Recommended Approach
+
+**Phase 1**: Start with local database of ~100-200 popular items
+- Focus on major brands (Patagonia, Arcteryx, Nike, Adidas, etc.)
+- Cover common categories and warmness levels
+- Ship with app (JSON file in codebase)
+
+**Phase 2**: Add user submission system
+- "Not in database? Submit this item" button
+- User provides: brand, model, category, warmness
+- Queue for manual review/addition
+
+**Phase 3**: Consider API integration (if reliable sources become available)
+- Keep local database as primary
+- Use API as fallback/enhancement
+- Cache API results locally
+
+### UI/UX Considerations
+
+1. **Auto-complete/suggestions** as user types
+2. **Visual indicators** when item is recognized (checkmark icon)
+3. **Preview** of auto-detected category/warmness before confirming
+4. **Override option** - "This isn't right" → manual selection
+5. **Learn from usage** - Track which items users correct
+
 ## Questions to Consider
 
 1. **Scope**: Should custom items work in recommendations, or just be selectable?
@@ -205,4 +358,7 @@ If the above feels too complex, consider:
 
 5. **Mobile UX**: How to make category selection easy on mobile?
    - Recommendation: Full-screen modal with clear category cards/icons
+
+6. **Brand/Model Lookup**: Should we implement automatic classification via lookup?
+   - Recommendation: Yes, start with local database (Option C - Hybrid), expand over time
 
