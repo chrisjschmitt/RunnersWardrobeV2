@@ -88,9 +88,10 @@ export function ClothingRecommendation({
       activityLevel,
       recommendation.confidence,
       recommendation.matchingRuns,
-      recommendation.similarConditions
+      recommendation.similarConditions,
+      temperatureUnit
     );
-  }, [weather, clothing, baseClothing, hasHistory, recommendation, activity, thermalPreference, activityLevel]);
+  }, [weather, clothing, baseClothing, hasHistory, recommendation, activity, thermalPreference, activityLevel, temperatureUnit]);
   
   // Highlight important categories
   const highlightCategories = ['tops', 'jersey', 'bottoms', 'baseLayer', 'outerLayer'];

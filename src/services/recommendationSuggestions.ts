@@ -5,6 +5,7 @@
 import type { ClothingItems, ActivityType, WeatherData, ThermalPreference, ActivityLevel, RunRecord } from '../types';
 import { getFallbackRecommendation, calculateComfortTemperature } from './recommendationEngine';
 import { getClothingCategories } from '../types';
+import type { TemperatureUnit } from './temperatureUtils';
 
 export interface ClothingSuggestion {
   category: string;
@@ -36,7 +37,8 @@ export function generateClothingSuggestions(
   activityLevel?: ActivityLevel,
   confidence?: number,
   matchingRuns?: number,
-  similarConditions?: RunRecord[]
+  similarConditions?: RunRecord[],
+  temperatureUnit: TemperatureUnit = 'fahrenheit'
 ): SuggestionContext | null {
   // Only suggest when confidence is low/medium
   if (confidence !== undefined && confidence >= 70) {
@@ -121,7 +123,8 @@ export function generateClothingSuggestions(
       avgHistoricalComfortC,
       comfortDiffC,
       needsWarmer,
-      needsCooler
+      needsCooler,
+      temperatureUnit
     );
     
     if (reason) {
@@ -152,7 +155,7 @@ export function generateClothingSuggestions(
   }
 
   // Generate explanation with T_comfort context
-  const explanation = generateExplanation(confidence, matchingRuns, currentComfortC, avgHistoricalComfortC, comfortDiffC);
+  const explanation = generateExplanation(confidence, matchingRuns, currentComfortC, avgHistoricalComfortC, comfortDiffC, temperatureUnit);
 
   return {
     suggestions,
@@ -171,7 +174,8 @@ function generateReason(
   avgHistoricalComfortC: number | null,
   comfortDiffC: number,
   needsWarmer: boolean,
-  needsCooler: boolean
+  needsCooler: boolean,
+  temperatureUnit: TemperatureUnit = 'fahrenheit'
 ): string | null {
   // Use T_comfort for cold/warm assessments (convert to Fahrenheit for thresholds)
   const currentComfortF = (currentComfortC * 9 / 5) + 32;
@@ -186,16 +190,21 @@ function generateReason(
 
   // Primary guidance: Add or remove layers based on T_comfort difference
   if (avgHistoricalComfortC !== null && Math.abs(comfortDiffC) >= 2) {
-    const diffF = Math.abs(comfortDiffC * 9 / 5);
+    // Format the absolute difference in the user's preferred unit
+    const diffAbs = Math.abs(comfortDiffC);
+    const diffFormatted = temperatureUnit === 'celsius' 
+      ? diffAbs.toFixed(1) 
+      : (diffAbs * 9 / 5).toFixed(0);
+    const diffSymbol = temperatureUnit === 'celsius' ? '°C' : '°F';
     
     if (needsWarmer) {
       // Current T_comfort is colder than historical - suggest adding layers
       if (categoryKey === 'midLayer' || categoryKey === 'outerLayer') {
         if (current === 'none' && suggested !== 'none') {
-          if (diffF >= 9) {
-            return `Current conditions are ${diffF.toFixed(0)}°F colder than your historical sessions. Add a layer for warmth.`;
+          if (diffAbs >= 5) {
+            return `Current conditions are ${diffFormatted}${diffSymbol} colder than your historical sessions. Add a layer for warmth.`;
           } else {
-            return `Current conditions are ${diffF.toFixed(0)}°F colder than your historical sessions. Consider adding a layer.`;
+            return `Current conditions are ${diffFormatted}${diffSymbol} colder than your historical sessions. Consider adding a layer.`;
           }
         }
       }
@@ -203,27 +212,27 @@ function generateReason(
       if (categoryKey === 'baseLayer' || categoryKey === 'tops') {
         // Check if suggested is warmer than current
         if (isWarmerOption(categoryKey, suggested, current)) {
-          if (diffF >= 9) {
-            return `Current conditions are ${diffF.toFixed(0)}°F colder. Upgrade to a warmer top.`;
+          if (diffAbs >= 5) {
+            return `Current conditions are ${diffFormatted}${diffSymbol} colder. Upgrade to a warmer top.`;
           } else {
-            return `Current conditions are ${diffF.toFixed(0)}°F colder. Consider a warmer top.`;
+            return `Current conditions are ${diffFormatted}${diffSymbol} colder. Consider a warmer top.`;
           }
         }
       }
       
       if (categoryKey === 'headCover' || categoryKey === 'gloves') {
         if (current === 'none' && suggested !== 'none') {
-          if (diffF >= 9) {
-            return `Current conditions are ${diffF.toFixed(0)}°F colder. Essential for protecting extremities.`;
+          if (diffAbs >= 5) {
+            return `Current conditions are ${diffFormatted}${diffSymbol} colder. Essential for protecting extremities.`;
           } else {
-            return `Current conditions are ${diffF.toFixed(0)}°F colder. Recommended for warmth.`;
+            return `Current conditions are ${diffFormatted}${diffSymbol} colder. Recommended for warmth.`;
           }
         }
       }
       
       if (categoryKey === 'bottoms') {
         if (current.includes('short') && (suggested.includes('tight') || suggested.includes('pant'))) {
-          return `Current conditions are ${diffF.toFixed(0)}°F colder. Long bottoms recommended.`;
+          return `Current conditions are ${diffFormatted}${diffSymbol} colder. Long bottoms recommended.`;
         }
       }
     }
@@ -232,13 +241,13 @@ function generateReason(
       // Current T_comfort is warmer than historical - suggest removing layers
       if (categoryKey === 'midLayer' || categoryKey === 'outerLayer') {
         if (current !== 'none' && suggested === 'none') {
-          return `Current conditions are ${diffF.toFixed(0)}°F warmer than your historical sessions. Consider removing this layer.`;
+          return `Current conditions are ${diffFormatted}${diffSymbol} warmer than your historical sessions. Consider removing this layer.`;
         }
       }
       
       if (categoryKey === 'baseLayer' || categoryKey === 'tops') {
         if (isWarmerOption(categoryKey, current, suggested)) {
-          return `Current conditions are ${diffF.toFixed(0)}°F warmer. Consider a lighter top.`;
+          return `Current conditions are ${diffFormatted}${diffSymbol} warmer. Consider a lighter top.`;
         }
       }
     }
@@ -307,7 +316,8 @@ function generateExplanation(
   matchingRuns: number | undefined,
   _currentComfortC?: number,
   avgHistoricalComfortC?: number | null,
-  comfortDiffC?: number
+  comfortDiffC?: number,
+  temperatureUnit: TemperatureUnit = 'fahrenheit'
 ): string {
   if (confidence === undefined || matchingRuns === undefined) {
     return 'Comparing with typical recommendations for these conditions';
@@ -328,12 +338,17 @@ function generateExplanation(
 
   // Add T_comfort comparison if available
   if (avgHistoricalComfortC !== null && comfortDiffC !== undefined && Math.abs(comfortDiffC) >= 2) {
-    const diffF = Math.abs(comfortDiffC * 9 / 5);
+    // Format the absolute difference in the user's preferred unit
+    const diffAbs = Math.abs(comfortDiffC);
+    const diffFormatted = temperatureUnit === 'celsius' 
+      ? diffAbs.toFixed(1) 
+      : (diffAbs * 9 / 5).toFixed(0);
+    const diffSymbol = temperatureUnit === 'celsius' ? '°C' : '°F';
     
     if (comfortDiffC < 0) {
-      baseExplanation += ` Current conditions are ${diffF.toFixed(0)}°F colder than your historical sessions. Consider adding layers.`;
+      baseExplanation += ` Current conditions are ${diffFormatted}${diffSymbol} colder than your historical sessions. Consider adding layers.`;
     } else {
-      baseExplanation += ` Current conditions are ${diffF.toFixed(0)}°F warmer than your historical sessions. Consider removing layers.`;
+      baseExplanation += ` Current conditions are ${diffFormatted}${diffSymbol} warmer than your historical sessions. Consider removing layers.`;
     }
   } else if (matchingRuns > 0) {
     baseExplanation += ' Consider these recommendations:';
