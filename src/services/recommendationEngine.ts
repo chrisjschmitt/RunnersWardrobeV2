@@ -648,6 +648,11 @@ function applyAccessoryLogic(
   if (hasAccessories) {
     const currentAccessory = result.accessories?.toLowerCase() || 'none';
     
+    // Calculate T_comfort to check if we're in extreme cold
+    // We need to approximate this - use feels-like temp as a proxy
+    const tempC = (weather.feelsLike - 32) * 5 / 9;
+    const isExtremeCold = tempC < -15; // Extreme cold threshold
+    
     // Override based on current lighting - headlamp/sunglasses depend on NOW, not history
     if (needsSunglasses) {
       result.accessories = 'Sunglasses';
@@ -655,7 +660,26 @@ function applyAccessoryLogic(
       result.accessories = 'Headlamp';
     } else if (currentAccessory === 'headlamp' || currentAccessory === 'sunglasses') {
       // It's neither sunny nor dark - remove lighting-specific accessory from historical vote
-      result.accessories = 'None';
+      // BUT preserve non-lighting accessories (neck gaiters, etc.) in extreme cold
+      if (!isExtremeCold) {
+        // Only remove if not extreme cold - preserve neck gaiters in extreme cold
+        result.accessories = 'None';
+      }
+    } else if (currentAccessory === 'none' && isExtremeCold) {
+      // If we're in extreme cold and have no accessory, add a cold-weather accessory
+      // This ensures fallback defaults work even if something cleared the accessory
+      const category = categories.find(c => c.key === 'accessories');
+      if (category) {
+        const coldAccessory = category.options.find(opt => 
+          opt.toLowerCase().includes('neck') || 
+          opt.toLowerCase().includes('gaiter') || 
+          opt.toLowerCase().includes('buff') ||
+          opt.toLowerCase().includes('scarf')
+        );
+        if (coldAccessory) {
+          result.accessories = coldAccessory;
+        }
+      }
     }
   }
   
@@ -841,6 +865,7 @@ export function getClothingRecommendation(
     // If no preference matches, return null (keep existing value)
     return null;
   };
+
 
   // ============ TEMPERATURE ADJUSTMENT ============
   // If current conditions are significantly colder/warmer than historical sessions,
@@ -1032,8 +1057,35 @@ export function getClothingRecommendation(
     if (outerLayer) clothing[outerKey.key] = outerLayer;
   }
 
-  // NOTE: Gloves override removed - activity defaults already handle gloves for cold temps,
-  // and users may prefer their own choices (mittens, light gloves, etc.)
+  // Gloves override for extreme cold - force gloves in potentially harmful temperatures
+  const glovesKey = categories.find(c => c.key === 'gloves');
+  if (glovesKey && adjustedTemp < 5 && clothing[glovesKey.key]?.toLowerCase() === 'none') {
+    // Extreme cold (< 5°F / < -15°C): must have gloves
+    const extremeColdGloves = findValidOption('gloves', ['Heavy mittens', 'Heavy gloves', 'Mittens', 'Gloves']);
+    if (extremeColdGloves) {
+      clothing[glovesKey.key] = extremeColdGloves;
+      debugSafetyOverrides.push({
+        name: '🧤 Gloves (extreme cold)',
+        triggered: true,
+        action: `→ ${extremeColdGloves}`,
+      });
+    }
+  }
+
+  // Accessories override for extreme cold - preserve neck gaiters and other cold-weather accessories
+  const accessoriesKey = categories.find(c => c.key === 'accessories');
+  if (accessoriesKey && adjustedTemp < 5 && clothing[accessoriesKey.key]?.toLowerCase() === 'none') {
+    // Extreme cold (< 5°F / < -15°C): should have neck gaiter or other cold-weather accessory
+    const extremeColdAccessories = findValidOption('accessories', ['Neck gaiter', 'Buff', 'Scarf', 'Face mask']);
+    if (extremeColdAccessories) {
+      clothing[accessoriesKey.key] = extremeColdAccessories;
+      debugSafetyOverrides.push({
+        name: '🧣 Accessories (extreme cold)',
+        triggered: true,
+        action: `→ ${extremeColdAccessories}`,
+      });
+    }
+  }
 
   // Head cover override for cold
   const headKey = categories.find(c => c.key === 'headCover' || c.key === 'helmet');
@@ -1323,17 +1375,43 @@ export function getFallbackRecommendation(
     }
   }
 
+  // Apply safety overrides for extreme cold (same as main recommendation function)
+  // Gloves override for extreme cold
+  const glovesKey = categories.find(c => c.key === 'gloves');
+  if (glovesKey && adjustedTemp < 5 && clothing[glovesKey.key]?.toLowerCase() === 'none') {
+    // Use applyIfExists helper to set gloves if valid option exists
+    const gloveOptions = ['Heavy mittens', 'Heavy gloves', 'Mittens', 'Gloves'];
+    for (const option of gloveOptions) {
+      if (applyIfExists(clothing, categories, 'gloves', option)) {
+        break; // Found and applied, stop
+      }
+    }
+  }
+
+  // Accessories override for extreme cold
+  const accessoriesKey = categories.find(c => c.key === 'accessories');
+  if (accessoriesKey && adjustedTemp < 5 && clothing[accessoriesKey.key]?.toLowerCase() === 'none') {
+    // Use applyIfExists helper to set accessories if valid option exists
+    const accessoryOptions = ['Neck gaiter', 'Buff', 'Scarf', 'Face mask'];
+    for (const option of accessoryOptions) {
+      if (applyIfExists(clothing, categories, 'accessories', option)) {
+        break; // Found and applied, stop
+      }
+    }
+  }
+
   // Apply accessory logic (sunglasses/headlamp based on conditions)
   return applyAccessoryLogic(clothing, weather, activity);
 }
 
 // Helper to apply a value only if the category exists AND the value is valid
+// Returns true if the value was applied, false otherwise
 function applyIfExists(
   clothing: ClothingItems, 
   categories: ClothingCategory[], 
   key: string, 
   value: string
-): void {
+): boolean {
   const category = categories.find(c => c.key === key);
   if (category) {
     // Check if the value exists in options (case-insensitive)
@@ -1342,7 +1420,9 @@ function applyIfExists(
     );
     if (validOption) {
       clothing[key] = validOption; // Use the properly-cased version
+      return true;
     }
     // If value isn't valid, don't change the default
   }
+  return false;
 }
