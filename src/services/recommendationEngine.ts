@@ -655,32 +655,86 @@ function applyAccessoryLogic(
       ? adjustedTempF < 5  // Use T_comfort in Fahrenheit (< 5°F = < -15°C)
       : (weather.feelsLike - 32) * 5 / 9 < -15; // Fallback to feels-like temp
     
-    // Override based on current lighting - headlamp/sunglasses depend on NOW, not history
-    if (needsSunglasses) {
-      result.accessories = 'Sunglasses';
-    } else if (needsHeadlamp) {
-      result.accessories = 'Headlamp';
-    } else if (currentAccessory === 'headlamp' || currentAccessory === 'sunglasses') {
-      // It's neither sunny nor dark - remove lighting-specific accessory from historical vote
-      // BUT preserve non-lighting accessories (neck gaiters, etc.) in extreme cold
-      if (!isExtremeCold) {
-        // Only remove if not extreme cold - preserve neck gaiters in extreme cold
-        result.accessories = 'None';
-      }
-    } else if (currentAccessory === 'none' && isExtremeCold) {
-      // If we're in extreme cold and have no accessory, add a cold-weather accessory
-      // This ensures fallback defaults work even if something cleared the accessory
-      const category = categories.find(c => c.key === 'accessories');
-      if (category) {
-        const coldAccessory = category.options.find(opt => 
-          opt.toLowerCase().includes('neck') || 
-          opt.toLowerCase().includes('gaiter') || 
-          opt.toLowerCase().includes('buff') ||
-          opt.toLowerCase().includes('scarf')
-        );
-        if (coldAccessory) {
-          result.accessories = coldAccessory;
+    // In extreme cold, prioritize cold-weather accessories over lighting accessories
+    // Safety is more important than comfort (you can squint, but you can't un-freeze)
+    if (isExtremeCold) {
+      // Check if we have a cold-weather accessory already set
+      const hasColdAccessory = currentAccessory.includes('neck') || 
+                               currentAccessory.includes('gaiter') || 
+                               currentAccessory.includes('buff') ||
+                               currentAccessory.includes('scarf') ||
+                               currentAccessory.includes('hand warmers');
+      
+      if (!hasColdAccessory) {
+        // Try to find a cold-weather accessory option
+        const category = categories.find(c => c.key === 'accessories');
+        if (category) {
+          const coldAccessory = category.options.find(opt => 
+            opt.toLowerCase().includes('neck') || 
+            opt.toLowerCase().includes('gaiter') || 
+            opt.toLowerCase().includes('buff') ||
+            opt.toLowerCase().includes('scarf') ||
+            opt.toLowerCase().includes('hand warmers')
+          );
+          if (coldAccessory) {
+            // If it's also sunny, combine with sunglasses if possible
+            if (needsSunglasses) {
+              const combinedOption = category.options.find(opt => 
+                opt.toLowerCase().includes('sunglasses') && 
+                (opt.toLowerCase().includes('neck') || opt.toLowerCase().includes('gaiter') || opt.toLowerCase().includes('buff'))
+              );
+              result.accessories = combinedOption || coldAccessory;
+            } else {
+              result.accessories = coldAccessory;
+            }
+          } else if (needsSunglasses) {
+            // No cold-weather option available, but still need sunglasses
+            result.accessories = 'Sunglasses';
+          } else if (needsHeadlamp) {
+            result.accessories = 'Headlamp';
+          }
+          // If no cold-weather option exists and it's not sunny/dark, leave as is (safety override should have set it)
         }
+      } else {
+        // Already have cold-weather accessory, but also check if we need lighting
+        if (needsSunglasses && !currentAccessory.includes('sunglasses')) {
+          // Try to combine with sunglasses
+          const category = categories.find(c => c.key === 'accessories');
+          if (category) {
+            const combinedOption = category.options.find(opt => 
+              opt.toLowerCase().includes('sunglasses') && 
+              (opt.toLowerCase().includes('neck') || opt.toLowerCase().includes('gaiter') || opt.toLowerCase().includes('buff'))
+            );
+            if (combinedOption) {
+              result.accessories = combinedOption;
+            } else {
+              // Can't combine, prioritize cold-weather accessory (safety first)
+              // Keep the existing cold-weather accessory
+            }
+          }
+        } else if (needsHeadlamp && !currentAccessory.includes('headlamp')) {
+          // Similar logic for headlamp
+          const category = categories.find(c => c.key === 'accessories');
+          if (category) {
+            const combinedOption = category.options.find(opt => 
+              opt.toLowerCase().includes('headlamp') && 
+              (opt.toLowerCase().includes('neck') || opt.toLowerCase().includes('gaiter') || opt.toLowerCase().includes('buff'))
+            );
+            if (combinedOption) {
+              result.accessories = combinedOption;
+            }
+          }
+        }
+      }
+    } else {
+      // Not extreme cold - normal lighting-based logic
+      if (needsSunglasses) {
+        result.accessories = 'Sunglasses';
+      } else if (needsHeadlamp) {
+        result.accessories = 'Headlamp';
+      } else if (currentAccessory === 'headlamp' || currentAccessory === 'sunglasses') {
+        // It's neither sunny nor dark - remove lighting-specific accessory from historical vote
+        result.accessories = 'None';
       }
     }
   }

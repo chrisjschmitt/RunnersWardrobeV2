@@ -80,7 +80,7 @@ export const ACTIVITY_CONFIGS: Record<ActivityType, ActivityInfo> = {
       { key: 'socks', label: 'Socks', defaultValue: 'Regular', options: ['No-show', 'Regular', 'Wool', 'Compression'] },
       { key: 'gloves', label: 'Gloves', defaultValue: 'None', options: ['None', 'Light gloves', 'Heavy gloves', 'Mittens'] },
       { key: 'rainGear', label: 'Rain Gear', defaultValue: 'None', options: ['None', 'Light rain jacket', 'Waterproof jacket'] },
-      { key: 'accessories', label: 'Accessories', defaultValue: 'None', options: ['None', 'Sunglasses', 'Headlamp', 'Sunglasses + watch', 'Headlamp + reflective vest'] },
+      { key: 'accessories', label: 'Accessories', defaultValue: 'None', options: ['None', 'Sunglasses', 'Headlamp', 'Neck gaiter', 'Sunglasses + watch', 'Headlamp + reflective vest', 'Sunglasses + neck gaiter'] },
     ]
   },
   trail_running: {
