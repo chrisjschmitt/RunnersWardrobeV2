@@ -430,8 +430,8 @@ describe('Clothing Suggestions', () => {
       if (result && result.suggestions && result.suggestions.length > 0) {
         const suggestion = result.suggestions.find(s => s.category === 'tops');
         expect(suggestion).toBeDefined();
-        // Low confidence should use "Remove" not "Consider"
-        expect(suggestion?.reason).toMatch(/Remove/);
+        // Low confidence should use strong language (not "Consider")
+        expect(suggestion?.reason).toMatch(/Use a lighter top/);
         expect(suggestion?.reason).not.toContain('Consider');
       }
     });
