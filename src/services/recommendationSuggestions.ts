@@ -119,13 +119,11 @@ export function generateClothingSuggestions(
   // Only suggest adding or removing layers (midLayer and outerLayer)
   const layerCategories = categories.filter(cat => cat.key === 'midLayer' || cat.key === 'outerLayer');
   
-  console.log('[Suggestions Debug] Before layer loop', {
-    categoriesCount: categories.length,
-    layerCategoriesCount: layerCategories.length,
-    layerCategories: layerCategories.map(cat => cat.key),
-    activity,
-    allCategoryKeys: categories.map(cat => cat.key)
-  });
+  console.log('[Suggestions Debug] Before layer loop - categoriesCount:', categories.length);
+  console.log('[Suggestions Debug] Before layer loop - layerCategoriesCount:', layerCategories.length);
+  console.log('[Suggestions Debug] Before layer loop - layerCategories:', layerCategories.map(cat => cat.key));
+  console.log('[Suggestions Debug] Before layer loop - activity:', activity);
+  console.log('[Suggestions Debug] Before layer loop - allCategoryKeys:', categories.map(cat => cat.key));
   
   for (const cat of layerCategories) {
     const current = currentClothing[cat.key]?.toLowerCase() || 'none';
