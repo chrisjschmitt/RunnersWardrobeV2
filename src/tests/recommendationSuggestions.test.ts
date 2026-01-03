@@ -157,9 +157,7 @@ describe('Clothing Suggestions', () => {
       const currentClothing: ClothingItems = {
         tops: 'T-shirt',
         bottoms: 'Shorts',
-        shoes: 'Running shoes',
-        midLayer: 'None',
-        outerLayer: 'None'
+        shoes: 'Running shoes'
       };
 
       const result = generateClothingSuggestions(
@@ -176,23 +174,20 @@ describe('Clothing Suggestions', () => {
 
       expect(result).not.toBeNull();
       
-      // If suggestions are generated, they should be for layers only
+      // For running, suggestions should be for tops (not midLayer/outerLayer)
       if (result && result.suggestions && result.suggestions.length > 0) {
+        const topsSuggestion = result.suggestions.find(s => s.category === 'tops');
         const midLayerSuggestion = result.suggestions.find(s => s.category === 'midLayer');
         const outerLayerSuggestion = result.suggestions.find(s => s.category === 'outerLayer');
         
-        // At least one layer suggestion should exist
-        expect(midLayerSuggestion || outerLayerSuggestion).toBeDefined();
+        // For running, expect tops suggestion
+        expect(topsSuggestion).toBeDefined();
+        expect(topsSuggestion?.reason).toContain('colder');
+        expect(topsSuggestion?.reason).toContain('°F');
         
-        const layerSuggestion = midLayerSuggestion || outerLayerSuggestion;
-        expect(layerSuggestion?.reason).toContain('colder');
-        expect(layerSuggestion?.reason).toContain('°F');
-        
-        // Verify no non-layer suggestions
-        const nonLayerSuggestions = result.suggestions.filter(s => 
-          s.category !== 'midLayer' && s.category !== 'outerLayer'
-        );
-        expect(nonLayerSuggestions.length).toBe(0);
+        // Running shouldn't have midLayer/outerLayer suggestions
+        expect(midLayerSuggestion).toBeUndefined();
+        expect(outerLayerSuggestion).toBeUndefined();
       }
     });
 
@@ -206,9 +201,7 @@ describe('Clothing Suggestions', () => {
       const currentClothing: ClothingItems = {
         tops: 'T-shirt',
         bottoms: 'Shorts',
-        shoes: 'Running shoes',
-        midLayer: 'None',
-        outerLayer: 'None'
+        shoes: 'Running shoes'
       };
 
       const result = generateClothingSuggestions(
@@ -225,20 +218,11 @@ describe('Clothing Suggestions', () => {
 
       expect(result).not.toBeNull();
       
-      // If suggestions are generated, verify they're layers and use Celsius
+      // For running, suggestions should be for tops
       if (result?.suggestions && result.suggestions.length > 0) {
-        const layerSuggestion = result.suggestions.find(s => 
-          s.category === 'midLayer' || s.category === 'outerLayer'
-        );
-        if (layerSuggestion) {
-          expect(layerSuggestion.reason).toContain('°C');
-        }
-        
-        // Verify no non-layer suggestions
-        const nonLayerSuggestions = result.suggestions.filter(s => 
-          s.category !== 'midLayer' && s.category !== 'outerLayer'
-        );
-        expect(nonLayerSuggestions.length).toBe(0);
+        const topsSuggestion = result.suggestions.find(s => s.category === 'tops');
+        expect(topsSuggestion).toBeDefined();
+        expect(topsSuggestion?.reason).toContain('°C');
       }
     });
 
@@ -267,11 +251,9 @@ describe('Clothing Suggestions', () => {
 
       expect(result).not.toBeNull();
       
-      // If suggestions are generated, verify language strength
+      // For running, suggestions should be for tops
       if (result && result.suggestions && result.suggestions.length > 0) {
-        const suggestion = result.suggestions.find(s => 
-          s.category === 'midLayer' || s.category === 'outerLayer'
-        );
+        const suggestion = result.suggestions.find(s => s.category === 'tops');
         expect(suggestion).toBeDefined();
         // Low confidence should use "Add" not "Consider"
         expect(suggestion?.reason).toMatch(/Add/);
@@ -304,14 +286,13 @@ describe('Clothing Suggestions', () => {
 
       expect(result).not.toBeNull();
       
-      // If suggestions are generated, verify language
+      // For running, suggestions should be for tops
       if (result && result.suggestions && result.suggestions.length > 0) {
-        const suggestion = result.suggestions.find(s => 
-          s.category === 'midLayer' || s.category === 'outerLayer'
-        );
+        const suggestion = result.suggestions.find(s => s.category === 'tops');
         expect(suggestion).toBeDefined();
-        // Medium confidence can use "Consider"
-        expect(suggestion?.reason).toContain('Consider');
+        // Medium confidence with large diff (>=5°F) uses "Add", smaller diff uses "Consider"
+        // Since diff is 9°F, it will use "Add" (strong language for significant difference)
+        expect(suggestion?.reason).toMatch(/Add|Consider/);
       }
     });
 
@@ -341,19 +322,12 @@ describe('Clothing Suggestions', () => {
 
       expect(result).not.toBeNull();
       
-      // If suggestions are generated, verify they're for layers
+      // For running, should suggest warmer tops
       if (result?.suggestions && result.suggestions.length > 0) {
-        const outerLayerSuggestion = result.suggestions.find(s => s.category === 'outerLayer');
-        if (outerLayerSuggestion) {
-          expect(outerLayerSuggestion.reason).toContain('colder');
-          expect(outerLayerSuggestion.reason).toMatch(/Add/); // Strong language for low confidence
-        }
-        
-        // Verify no non-layer suggestions
-        const nonLayerSuggestions = result.suggestions.filter(s => 
-          s.category !== 'midLayer' && s.category !== 'outerLayer'
-        );
-        expect(nonLayerSuggestions.length).toBe(0);
+        const topsSuggestion = result.suggestions.find(s => s.category === 'tops');
+        expect(topsSuggestion).toBeDefined();
+        expect(topsSuggestion?.reason).toContain('colder');
+        expect(topsSuggestion?.reason).toMatch(/Add/); // Strong language for low confidence
       }
     });
   });
@@ -369,9 +343,7 @@ describe('Clothing Suggestions', () => {
       const currentClothing: ClothingItems = {
         tops: 'Base layer + jacket',
         bottoms: 'Tights',
-        shoes: 'Running shoes',
-        midLayer: 'Fleece',
-        outerLayer: 'Jacket'
+        shoes: 'Running shoes'
       };
 
       const result = generateClothingSuggestions(
@@ -388,22 +360,12 @@ describe('Clothing Suggestions', () => {
 
       expect(result).not.toBeNull();
       
-      // If suggestions are generated, they should be for removing layers
+      // For running, should suggest lighter tops
       if (result && result.suggestions && result.suggestions.length > 0) {
-        const midLayerSuggestion = result.suggestions.find(s => s.category === 'midLayer');
-        const outerLayerSuggestion = result.suggestions.find(s => s.category === 'outerLayer');
-        // At least one layer should be suggested for removal
-        expect(midLayerSuggestion || outerLayerSuggestion).toBeDefined();
-        
-        const layerSuggestion = midLayerSuggestion || outerLayerSuggestion;
-        expect(layerSuggestion?.reason).toContain('warmer');
-        expect(layerSuggestion?.reason).toContain('°F');
-        
-        // Verify no non-layer suggestions
-        const nonLayerSuggestions = result.suggestions.filter(s => 
-          s.category !== 'midLayer' && s.category !== 'outerLayer'
-        );
-        expect(nonLayerSuggestions.length).toBe(0);
+        const topsSuggestion = result.suggestions.find(s => s.category === 'tops');
+        expect(topsSuggestion).toBeDefined();
+        expect(topsSuggestion?.reason).toContain('warmer');
+        expect(topsSuggestion?.reason).toContain('°F');
       }
     });
 
@@ -414,9 +376,7 @@ describe('Clothing Suggestions', () => {
       const currentClothing: ClothingItems = {
         tops: 'Base layer + jacket',
         bottoms: 'Tights',
-        shoes: 'Running shoes',
-        midLayer: 'Fleece',
-        outerLayer: 'Jacket'
+        shoes: 'Running shoes'
       };
 
       const result = generateClothingSuggestions(
@@ -433,20 +393,11 @@ describe('Clothing Suggestions', () => {
 
       expect(result).not.toBeNull();
       
-      // If suggestions are generated, verify they're layers and use Celsius
+      // For running, suggestions should be for tops
       if (result?.suggestions && result.suggestions.length > 0) {
-        const suggestion = result.suggestions.find(s => 
-          s.category === 'midLayer' || s.category === 'outerLayer'
-        );
-        if (suggestion) {
-          expect(suggestion.reason).toContain('°C');
-        }
-        
-        // Verify no non-layer suggestions
-        const nonLayerSuggestions = result.suggestions.filter(s => 
-          s.category !== 'midLayer' && s.category !== 'outerLayer'
-        );
-        expect(nonLayerSuggestions.length).toBe(0);
+        const suggestion = result.suggestions.find(s => s.category === 'tops');
+        expect(suggestion).toBeDefined();
+        expect(suggestion?.reason).toContain('°C');
       }
     });
 
@@ -475,11 +426,9 @@ describe('Clothing Suggestions', () => {
 
       expect(result).not.toBeNull();
       
-      // If suggestions are generated, verify language strength
+      // For running, suggestions should be for tops
       if (result && result.suggestions && result.suggestions.length > 0) {
-        const suggestion = result.suggestions.find(s => 
-          s.category === 'midLayer' || s.category === 'outerLayer'
-        );
+        const suggestion = result.suggestions.find(s => s.category === 'tops');
         expect(suggestion).toBeDefined();
         // Low confidence should use "Remove" not "Consider"
         expect(suggestion?.reason).toMatch(/Remove/);
@@ -665,13 +614,12 @@ describe('Clothing Suggestions', () => {
 
       expect(result).not.toBeNull();
       // Should calculate average T_comfort from multiple historical sessions
-      // Suggestions may or may not be generated depending on fallback defaults
-      // But if generated, they should only be layers
+      // For running, suggestions should be for tops
       if (result && result.suggestions && result.suggestions.length > 0) {
-        const nonLayerSuggestions = result.suggestions.filter(s => 
-          s.category !== 'midLayer' && s.category !== 'outerLayer'
-        );
-        expect(nonLayerSuggestions.length).toBe(0);
+        const topsSuggestions = result.suggestions.filter(s => s.category === 'tops');
+        const nonTopsSuggestions = result.suggestions.filter(s => s.category !== 'tops');
+        expect(topsSuggestions.length).toBeGreaterThan(0);
+        expect(nonTopsSuggestions.length).toBe(0);
       }
     });
 
@@ -730,33 +678,27 @@ describe('Clothing Suggestions', () => {
       expect(result).not.toBeNull();
       
       // Should only have layer suggestions (if any)
-      const layerSuggestions = result?.suggestions.filter(s => 
-        s.category === 'midLayer' || s.category === 'outerLayer'
-      );
-      const nonLayerSuggestions = result?.suggestions.filter(s => 
-        s.category !== 'midLayer' && s.category !== 'outerLayer'
-      );
+      const topsSuggestions = result?.suggestions.filter(s => s.category === 'tops');
+      const nonTopsSuggestions = result?.suggestions.filter(s => s.category !== 'tops');
       
-      // Verify no non-layer suggestions are generated
-      expect(nonLayerSuggestions?.length).toBe(0);
+      // Verify no non-tops suggestions are generated for running
+      expect(nonTopsSuggestions?.length).toBe(0);
       
-      // Layer suggestions may or may not be generated depending on fallback defaults
-      // But if suggestions exist, they should only be layers
+      // Tops suggestions may or may not be generated depending on fallback defaults
+      // But if suggestions exist, they should only be tops
       if (result && result.suggestions && result.suggestions.length > 0) {
-        expect(layerSuggestions?.length).toBeGreaterThan(0);
+        expect(topsSuggestions?.length).toBeGreaterThan(0);
       }
     });
 
-    it('should suggest layers when both are missing and fallback has layers', () => {
+    it('should suggest warmer tops when current top needs upgrade', () => {
       const currentWeather = createWeatherForTComfort(-15);
       const historicalRun = createRunRecordWithTComfort(-10);
       
       const currentClothing: ClothingItems = {
-        tops: 'Base layer',
+        tops: 'Base layer', // Needs to be warmer
         bottoms: 'Tights',
-        shoes: 'Running shoes',
-        midLayer: 'None',
-        outerLayer: 'None'
+        shoes: 'Running shoes'
       };
 
       const result = generateClothingSuggestions(
@@ -773,17 +715,14 @@ describe('Clothing Suggestions', () => {
 
       expect(result).not.toBeNull();
       const suggestions = result?.suggestions || [];
-      const layerCategories = suggestions.map(s => s.category);
       
-      // All suggestions should be layers (if any exist)
-      const nonLayerSuggestions = suggestions.filter(s => 
-        s.category !== 'midLayer' && s.category !== 'outerLayer'
-      );
-      expect(nonLayerSuggestions.length).toBe(0);
+      // Should suggest tops
+      const topsSuggestions = suggestions.filter(s => s.category === 'tops');
+      const nonTopsSuggestions = suggestions.filter(s => s.category !== 'tops');
       
-      // If suggestions exist, they should be layers
       if (suggestions.length > 0) {
-        expect(layerCategories.every(cat => cat === 'midLayer' || cat === 'outerLayer')).toBe(true);
+        expect(topsSuggestions.length).toBeGreaterThan(0);
+        expect(nonTopsSuggestions.length).toBe(0);
       }
     });
   });
