@@ -80,16 +80,29 @@ export function generateClothingSuggestions(
       historicalCount++;
     }
 
-    avgHistoricalComfortC = totalHistoricalComfort / historicalCount;
-    comfortDiffC = currentComfortC - avgHistoricalComfortC; // Positive = current is warmer, negative = current is colder
+    if (historicalCount > 0) {
+      avgHistoricalComfortC = totalHistoricalComfort / historicalCount;
+      comfortDiffC = currentComfortC - avgHistoricalComfortC; // Positive = current is warmer, negative = current is colder
 
-    // Determine if we need to suggest warmer or cooler clothing
-    // Only suggest if difference is significant (≥2°C to avoid noise)
-    if (Math.abs(comfortDiffC) >= 2) {
-      needsWarmer = comfortDiffC < 0; // Current is colder than historical
-      needsCooler = comfortDiffC > 0; // Current is warmer than historical
+      // Determine if we need to suggest warmer or cooler clothing
+      // Only suggest if difference is significant (≥2°C to avoid noise)
+      if (Math.abs(comfortDiffC) >= 2) {
+        needsWarmer = comfortDiffC < 0; // Current is colder than historical
+        needsCooler = comfortDiffC > 0; // Current is warmer than historical
+      }
     }
   }
+  
+  // Debug logging (can be removed later)
+  console.log('[Suggestions Debug]', {
+    currentComfortC,
+    avgHistoricalComfortC,
+    comfortDiffC,
+    needsWarmer,
+    needsCooler,
+    similarConditionsCount: similarConditions?.length || 0,
+    confidence
+  });
 
   // Get fallback defaults for comparison (as a reference point)
   const fallbackDefaults = getFallbackRecommendation(
@@ -150,6 +163,19 @@ export function generateClothingSuggestions(
       temperatureUnit,
       confidence
     );
+    
+    // Debug logging
+    console.log('[Suggestions Debug] Layer check', {
+      category: cat.key,
+      current,
+      suggestedItem,
+      defaultItem,
+      needsWarmer,
+      needsCooler,
+      reason: reason || 'NO REASON GENERATED',
+      comfortDiffC,
+      avgHistoricalComfortC
+    });
     
     if (reason) {
       suggestions.push({
@@ -238,13 +264,28 @@ function generateReason(
     
     if (needsCooler) {
       // Current T_comfort is warmer than historical - suggest removing layers
-      if (current !== 'none') {
+      if (current !== 'none' && suggested === 'none') {
         if (isLowConfidence) {
           return `Current conditions are ${diffFormatted}${diffSymbol} warmer than your historical sessions. Remove this layer.`;
         }
         return `Current conditions are ${diffFormatted}${diffSymbol} warmer than your historical sessions. Consider removing this layer.`;
       }
     }
+  }
+  
+  // Fallback: If we have needsWarmer/needsCooler set but no historical comparison,
+  // or if the conditions above didn't match, still generate a reason if we're suggesting something
+  if (needsWarmer && current === 'none' && suggested !== 'none') {
+    // Very cold conditions - suggest adding a layer
+    if (isVeryCold) {
+      return 'Very cold conditions require an additional layer for warmth.';
+    } else if (isCold) {
+      return 'Cold conditions typically benefit from an extra layer.';
+    }
+  }
+  
+  if (needsCooler && current !== 'none' && suggested === 'none') {
+    return 'Warmer conditions may allow removing a layer.';
   }
 
   // Fallback to T_comfort-based suggestions if no historical comparison available
