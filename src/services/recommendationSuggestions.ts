@@ -116,16 +116,23 @@ export function generateClothingSuggestions(
   const categories = getClothingCategories(activity);
   const suggestions: ClothingSuggestion[] = [];
   
-  // Only suggest adding or removing layers (midLayer and outerLayer)
+  // For activities with midLayer/outerLayer (hiking, etc.), suggest those
+  // For activities without them (running), suggest upgrading/downgrading tops
   const layerCategories = categories.filter(cat => cat.key === 'midLayer' || cat.key === 'outerLayer');
+  const hasLayerCategories = layerCategories.length > 0;
+  
+  // If no layer categories, use tops category for running-style activities
+  const categoriesToCheck = hasLayerCategories 
+    ? layerCategories 
+    : categories.filter(cat => cat.key === 'tops');
   
   console.log('[Suggestions Debug] Before layer loop - categoriesCount:', categories.length);
-  console.log('[Suggestions Debug] Before layer loop - layerCategoriesCount:', layerCategories.length);
-  console.log('[Suggestions Debug] Before layer loop - layerCategories:', layerCategories.map(cat => cat.key));
+  console.log('[Suggestions Debug] Before layer loop - hasLayerCategories:', hasLayerCategories);
+  console.log('[Suggestions Debug] Before layer loop - categoriesToCheckCount:', categoriesToCheck.length);
+  console.log('[Suggestions Debug] Before layer loop - categoriesToCheck:', categoriesToCheck.map(cat => cat.key));
   console.log('[Suggestions Debug] Before layer loop - activity:', activity);
-  console.log('[Suggestions Debug] Before layer loop - allCategoryKeys:', categories.map(cat => cat.key));
   
-  for (const cat of layerCategories) {
+  for (const cat of categoriesToCheck) {
     const current = currentClothing[cat.key]?.toLowerCase() || 'none';
     const defaultItem = fallbackDefaults[cat.key]?.toLowerCase() || 'none';
     
@@ -143,20 +150,35 @@ export function generateClothingSuggestions(
     let suggestedItem: string | null = null;
     
     if (needsWarmer) {
-      // Current is colder than historical - suggest adding a layer
-      if (current === 'none') {
-        // No layer currently - suggest adding one (use default if available, otherwise suggest a generic layer)
-        suggestedItem = defaultItem !== 'none' ? defaultItem : (cat.key === 'midLayer' ? 'fleece' : 'jacket');
-      } else if (cat.key === 'outerLayer' && current === 'none') {
-        // Missing outerLayer - suggest adding it (this case is already handled above, but keeping for clarity)
-        suggestedItem = defaultItem !== 'none' ? defaultItem : 'jacket';
+      // Current is colder than historical - suggest adding a layer or upgrading tops
+      if (hasLayerCategories) {
+        // For activities with midLayer/outerLayer
+        if (current === 'none') {
+          // No layer currently - suggest adding one (use default if available, otherwise suggest a generic layer)
+          suggestedItem = defaultItem !== 'none' ? defaultItem : (cat.key === 'midLayer' ? 'fleece' : 'jacket');
+        } else if (cat.key === 'outerLayer' && current === 'none') {
+          // Missing outerLayer - suggest adding it
+          suggestedItem = defaultItem !== 'none' ? defaultItem : 'jacket';
+        }
+      } else {
+        // For running-style activities without separate layers, suggest warmer tops
+        // Find a warmer top option from the category options
+        const warmerOptions = ['Base layer + fleece + softshell', 'Base layer + jacket', 'Long sleeve', 'Base layer'];
+        const warmerOption = warmerOptions.find(opt => cat.options.includes(opt) && opt.toLowerCase() !== current);
+        suggestedItem = warmerOption ? warmerOption.toLowerCase() : (defaultItem !== 'none' ? defaultItem : 'long sleeve');
       }
-      // Note: If user already has midLayer, we'll suggest outerLayer when processing outerLayer category
-      // If user already has both layers, we won't suggest anything (they're already warm enough)
     } else if (needsCooler) {
-      // Current is warmer than historical - suggest removing a layer
-      if (current !== 'none') {
-        suggestedItem = 'none';
+      // Current is warmer than historical - suggest removing a layer or downgrading tops
+      if (hasLayerCategories) {
+        // For activities with midLayer/outerLayer
+        if (current !== 'none') {
+          suggestedItem = 'none';
+        }
+      } else {
+        // For running-style activities, suggest lighter tops
+        const lighterOptions = ['T-shirt', 'Singlet', 'Long sleeve'];
+        const lighterOption = lighterOptions.find(opt => cat.options.includes(opt) && opt.toLowerCase() !== current);
+        suggestedItem = lighterOption ? lighterOption.toLowerCase() : (current !== 't-shirt' ? 't-shirt' : null);
       }
     }
     
@@ -243,8 +265,8 @@ function generateReason(
     return null;
   }
 
-  // Only generate suggestions for layers (midLayer and outerLayer)
-  if (categoryKey !== 'midLayer' && categoryKey !== 'outerLayer') {
+  // Only generate suggestions for layers (midLayer and outerLayer) or tops (for running-style activities)
+  if (categoryKey !== 'midLayer' && categoryKey !== 'outerLayer' && categoryKey !== 'tops') {
     return null;
   }
 
