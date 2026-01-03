@@ -7,7 +7,7 @@
 
 import { describe, it, expect } from 'vitest';
 import { generateClothingSuggestions } from '../services/recommendationSuggestions';
-import type { WeatherData, RunRecord, ClothingItems, ActivityType, ActivityLevel } from '../types';
+import type { WeatherData, RunRecord, ClothingItems } from '../types';
 
 // Helper to create mock weather data
 function createWeatherData(
@@ -177,9 +177,9 @@ describe('Clothing Suggestions', () => {
       expect(result).not.toBeNull();
       
       // If suggestions are generated, they should be for layers only
-      if (result?.suggestions.length > 0) {
-        const midLayerSuggestion = result?.suggestions.find(s => s.category === 'midLayer');
-        const outerLayerSuggestion = result?.suggestions.find(s => s.category === 'outerLayer');
+      if (result && result.suggestions && result.suggestions.length > 0) {
+        const midLayerSuggestion = result.suggestions.find(s => s.category === 'midLayer');
+        const outerLayerSuggestion = result.suggestions.find(s => s.category === 'outerLayer');
         
         // At least one layer suggestion should exist
         expect(midLayerSuggestion || outerLayerSuggestion).toBeDefined();
@@ -268,7 +268,7 @@ describe('Clothing Suggestions', () => {
       expect(result).not.toBeNull();
       
       // If suggestions are generated, verify language strength
-      if (result?.suggestions.length > 0) {
+      if (result && result.suggestions && result.suggestions.length > 0) {
         const suggestion = result.suggestions.find(s => 
           s.category === 'midLayer' || s.category === 'outerLayer'
         );
@@ -305,7 +305,7 @@ describe('Clothing Suggestions', () => {
       expect(result).not.toBeNull();
       
       // If suggestions are generated, verify language
-      if (result?.suggestions.length > 0) {
+      if (result && result.suggestions && result.suggestions.length > 0) {
         const suggestion = result.suggestions.find(s => 
           s.category === 'midLayer' || s.category === 'outerLayer'
         );
@@ -389,7 +389,7 @@ describe('Clothing Suggestions', () => {
       expect(result).not.toBeNull();
       
       // If suggestions are generated, they should be for removing layers
-      if (result?.suggestions.length > 0) {
+      if (result && result.suggestions && result.suggestions.length > 0) {
         const midLayerSuggestion = result.suggestions.find(s => s.category === 'midLayer');
         const outerLayerSuggestion = result.suggestions.find(s => s.category === 'outerLayer');
         // At least one layer should be suggested for removal
@@ -476,7 +476,7 @@ describe('Clothing Suggestions', () => {
       expect(result).not.toBeNull();
       
       // If suggestions are generated, verify language strength
-      if (result?.suggestions.length > 0) {
+      if (result && result.suggestions && result.suggestions.length > 0) {
         const suggestion = result.suggestions.find(s => 
           s.category === 'midLayer' || s.category === 'outerLayer'
         );
@@ -667,7 +667,7 @@ describe('Clothing Suggestions', () => {
       // Should calculate average T_comfort from multiple historical sessions
       // Suggestions may or may not be generated depending on fallback defaults
       // But if generated, they should only be layers
-      if (result?.suggestions.length > 0) {
+      if (result && result.suggestions && result.suggestions.length > 0) {
         const nonLayerSuggestions = result.suggestions.filter(s => 
           s.category !== 'midLayer' && s.category !== 'outerLayer'
         );
@@ -742,7 +742,7 @@ describe('Clothing Suggestions', () => {
       
       // Layer suggestions may or may not be generated depending on fallback defaults
       // But if suggestions exist, they should only be layers
-      if (result?.suggestions.length > 0) {
+      if (result && result.suggestions && result.suggestions.length > 0) {
         expect(layerSuggestions?.length).toBeGreaterThan(0);
       }
     });

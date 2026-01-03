@@ -169,7 +169,7 @@ function generateReason(
   categoryKey: string,
   current: string,
   suggested: string,
-  weather: WeatherData,
+  _weather: WeatherData,
   currentComfortC: number,
   avgHistoricalComfortC: number | null,
   comfortDiffC: number,
@@ -182,7 +182,6 @@ function generateReason(
   const currentComfortF = (currentComfortC * 9 / 5) + 32;
   const isCold = currentComfortF < 40; // ~4.4°C
   const isVeryCold = currentComfortF < 25; // ~-3.9°C
-  const isRaining = weather.precipitation > 0;
 
   // Skip if current is already appropriate (e.g., both have gloves in cold weather)
   if (current === 'none' && suggested === 'none' && !needsWarmer && !needsCooler) {
