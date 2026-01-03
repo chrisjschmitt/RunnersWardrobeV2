@@ -123,6 +123,16 @@ export function generateClothingSuggestions(
     const current = currentClothing[cat.key]?.toLowerCase() || 'none';
     const defaultItem = fallbackDefaults[cat.key]?.toLowerCase() || 'none';
     
+    // Debug logging BEFORE we determine suggestedItem
+    console.log('[Suggestions Debug] Layer check START', {
+      category: cat.key,
+      current,
+      defaultItem,
+      needsWarmer,
+      needsCooler,
+      comfortDiffC
+    });
+    
     // Determine what to suggest based on T_comfort difference
     let suggestedItem: string | null = null;
     
@@ -144,6 +154,15 @@ export function generateClothingSuggestions(
       }
     }
     
+    // Debug logging AFTER we determine suggestedItem
+    console.log('[Suggestions Debug] Layer check AFTER suggestedItem', {
+      category: cat.key,
+      current,
+      suggestedItem,
+      defaultItem,
+      willSkip: !suggestedItem || suggestedItem === current
+    });
+    
     // Skip if no suggestion or if suggested matches current
     if (!suggestedItem || suggestedItem === current) {
       continue;
@@ -164,17 +183,13 @@ export function generateClothingSuggestions(
       confidence
     );
     
-    // Debug logging
-    console.log('[Suggestions Debug] Layer check', {
+    // Debug logging after reason generation
+    console.log('[Suggestions Debug] Layer check REASON', {
       category: cat.key,
       current,
       suggestedItem,
-      defaultItem,
-      needsWarmer,
-      needsCooler,
       reason: reason || 'NO REASON GENERATED',
-      comfortDiffC,
-      avgHistoricalComfortC
+      comfortDiffC
     });
     
     if (reason) {
