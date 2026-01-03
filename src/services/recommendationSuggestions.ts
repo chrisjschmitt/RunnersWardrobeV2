@@ -124,7 +124,8 @@ export function generateClothingSuggestions(
       comfortDiffC,
       needsWarmer,
       needsCooler,
-      temperatureUnit
+      temperatureUnit,
+      confidence
     );
     
     if (reason) {
@@ -175,7 +176,8 @@ function generateReason(
   comfortDiffC: number,
   needsWarmer: boolean,
   needsCooler: boolean,
-  temperatureUnit: TemperatureUnit = 'fahrenheit'
+  temperatureUnit: TemperatureUnit = 'fahrenheit',
+  confidence?: number
 ): string | null {
   // Use T_comfort for cold/warm assessments (convert to Fahrenheit for thresholds)
   const currentComfortF = (currentComfortC * 9 / 5) + 32;
@@ -188,6 +190,9 @@ function generateReason(
     return null;
   }
 
+  // Determine if we should use strong language (low confidence)
+  const isLowConfidence = confidence !== undefined && confidence < 40;
+  
   // Primary guidance: Add or remove layers based on T_comfort difference
   if (avgHistoricalComfortC !== null && Math.abs(comfortDiffC) >= 2) {
     // Format the absolute difference in the user's preferred unit
@@ -204,6 +209,9 @@ function generateReason(
           if (diffAbs >= 5) {
             return `Current conditions are ${diffFormatted}${diffSymbol} colder than your historical sessions. Add a layer for warmth.`;
           } else {
+            if (isLowConfidence) {
+              return `Current conditions are ${diffFormatted}${diffSymbol} colder than your historical sessions. Add a layer for warmth.`;
+            }
             return `Current conditions are ${diffFormatted}${diffSymbol} colder than your historical sessions. Consider adding a layer.`;
           }
         }
@@ -215,6 +223,9 @@ function generateReason(
           if (diffAbs >= 5) {
             return `Current conditions are ${diffFormatted}${diffSymbol} colder. Upgrade to a warmer top.`;
           } else {
+            if (isLowConfidence) {
+              return `Current conditions are ${diffFormatted}${diffSymbol} colder. Use a warmer top.`;
+            }
             return `Current conditions are ${diffFormatted}${diffSymbol} colder. Consider a warmer top.`;
           }
         }
@@ -225,6 +236,9 @@ function generateReason(
           if (diffAbs >= 5) {
             return `Current conditions are ${diffFormatted}${diffSymbol} colder. Essential for protecting extremities.`;
           } else {
+            if (isLowConfidence) {
+              return `Current conditions are ${diffFormatted}${diffSymbol} colder. Wear this to protect extremities.`;
+            }
             return `Current conditions are ${diffFormatted}${diffSymbol} colder. Recommended for warmth.`;
           }
         }
@@ -232,6 +246,9 @@ function generateReason(
       
       if (categoryKey === 'bottoms') {
         if (current.includes('short') && (suggested.includes('tight') || suggested.includes('pant'))) {
+          if (isLowConfidence) {
+            return `Current conditions are ${diffFormatted}${diffSymbol} colder. Wear long bottoms.`;
+          }
           return `Current conditions are ${diffFormatted}${diffSymbol} colder. Long bottoms recommended.`;
         }
       }
@@ -241,12 +258,18 @@ function generateReason(
       // Current T_comfort is warmer than historical - suggest removing layers
       if (categoryKey === 'midLayer' || categoryKey === 'outerLayer') {
         if (current !== 'none' && suggested === 'none') {
+          if (isLowConfidence) {
+            return `Current conditions are ${diffFormatted}${diffSymbol} warmer than your historical sessions. Remove this layer.`;
+          }
           return `Current conditions are ${diffFormatted}${diffSymbol} warmer than your historical sessions. Consider removing this layer.`;
         }
       }
       
       if (categoryKey === 'baseLayer' || categoryKey === 'tops') {
         if (isWarmerOption(categoryKey, current, suggested)) {
+          if (isLowConfidence) {
+            return `Current conditions are ${diffFormatted}${diffSymbol} warmer. Use a lighter top.`;
+          }
           return `Current conditions are ${diffFormatted}${diffSymbol} warmer. Consider a lighter top.`;
         }
       }
@@ -336,6 +359,9 @@ function generateExplanation(
     baseExplanation = `Medium confidence (${confidence}%) from ${matchingRuns} sessions.`;
   }
 
+  // Determine if we should use strong language (low confidence)
+  const isLowConfidence = confidence !== undefined && confidence < 40;
+  
   // Add T_comfort comparison if available
   if (avgHistoricalComfortC !== null && comfortDiffC !== undefined && Math.abs(comfortDiffC) >= 2) {
     // Format the absolute difference in the user's preferred unit
@@ -346,12 +372,24 @@ function generateExplanation(
     const diffSymbol = temperatureUnit === 'celsius' ? '°C' : '°F';
     
     if (comfortDiffC < 0) {
-      baseExplanation += ` Current conditions are ${diffFormatted}${diffSymbol} colder than your historical sessions. Consider adding layers.`;
+      if (isLowConfidence) {
+        baseExplanation += ` Current conditions are ${diffFormatted}${diffSymbol} colder than your historical sessions. Add layers for warmth.`;
+      } else {
+        baseExplanation += ` Current conditions are ${diffFormatted}${diffSymbol} colder than your historical sessions. Consider adding layers.`;
+      }
     } else {
-      baseExplanation += ` Current conditions are ${diffFormatted}${diffSymbol} warmer than your historical sessions. Consider removing layers.`;
+      if (isLowConfidence) {
+        baseExplanation += ` Current conditions are ${diffFormatted}${diffSymbol} warmer than your historical sessions. Remove layers to avoid overheating.`;
+      } else {
+        baseExplanation += ` Current conditions are ${diffFormatted}${diffSymbol} warmer than your historical sessions. Consider removing layers.`;
+      }
     }
   } else if (matchingRuns > 0) {
-    baseExplanation += ' Consider these recommendations:';
+    if (isLowConfidence) {
+      baseExplanation += ' Follow these recommendations:';
+    } else {
+      baseExplanation += ' Consider these recommendations:';
+    }
   }
 
   return baseExplanation;
