@@ -74,9 +74,9 @@ export const ACTIVITY_CONFIGS: Record<ActivityType, ActivityInfo> = {
     icon: '🏃',
     clothingCategories: [
       { key: 'headCover', label: 'Head', defaultValue: 'None', options: ['None', 'Cap', 'Visor', 'Headband', 'Beanie', 'Balaclava'] },
-      { key: 'tops', label: 'Top', defaultValue: 'T-shirt', options: ['Singlet', 'T-shirt', 'Long sleeve', 'Base layer', 'Base layer + jacket', 'Vest + long sleeve'] },
+      { key: 'tops', label: 'Top', defaultValue: 'T-shirt', options: ['Singlet', 'T-shirt', 'Long sleeve', 'Base layer', 'Base layer + jacket', 'Base layer + fleece + softshell', 'Vest + long sleeve'] },
       { key: 'bottoms', label: 'Bottom', defaultValue: 'Shorts', options: ['Short shorts', 'Shorts', 'Capris', 'Tights', 'Shorts over tights'] },
-      { key: 'shoes', label: 'Shoes', defaultValue: 'Running shoes', options: ['Running shoes', 'Racing flats', 'Track spikes'] },
+      { key: 'shoes', label: 'Shoes', defaultValue: 'Running shoes', options: ['Running shoes', 'Insulated running shoes', 'Racing flats', 'Track spikes'] },
       { key: 'socks', label: 'Socks', defaultValue: 'Regular', options: ['No-show', 'Regular', 'Wool', 'Compression'] },
       { key: 'gloves', label: 'Gloves', defaultValue: 'None', options: ['None', 'Light gloves', 'Heavy gloves', 'Mittens'] },
       { key: 'rainGear', label: 'Rain Gear', defaultValue: 'None', options: ['None', 'Light rain jacket', 'Waterproof jacket'] },

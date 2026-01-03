@@ -138,7 +138,7 @@ describe('Running Defaults', () => {
     const defaults = ACTIVITY_TEMP_DEFAULTS[activity].extremeCold;
     expect(defaults.headCover).toBe('Balaclava');
     expect(defaults.gloves).toBe('Heavy mittens');
-    expect(defaults.tops).toBe('Base layer + jacket');
+    expect(defaults.tops).toBe('Base layer + fleece + softshell');
     expect(defaults.bottoms).toBe('Tights');
     expect(defaults.accessories).toBe('Neck gaiter');
   });

@@ -51,9 +51,9 @@ export const ACTIVITY_TEMP_DEFAULTS: Record<ActivityType, TempRangeDefaults> = {
   running: {
     extremeCold: {
       headCover: 'Balaclava',
-      tops: 'Base layer + jacket',
+      tops: 'Base layer + fleece + softshell',
       bottoms: 'Tights',
-      shoes: 'Running shoes',
+      shoes: 'Insulated running shoes',
       socks: 'Wool',
       gloves: 'Heavy mittens',
       rainGear: 'None',
@@ -63,7 +63,7 @@ export const ACTIVITY_TEMP_DEFAULTS: Record<ActivityType, TempRangeDefaults> = {
       headCover: 'Balaclava',
       tops: 'Base layer + jacket',
       bottoms: 'Tights',
-      shoes: 'Running shoes',
+      shoes: 'Insulated running shoes',
       socks: 'Wool',
       gloves: 'Heavy gloves',
       rainGear: 'None',
