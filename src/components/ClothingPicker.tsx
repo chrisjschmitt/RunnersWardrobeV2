@@ -59,10 +59,19 @@ export function ClothingPicker({
     const loadCustomOptions = async () => {
       setIsLoading(true);
       try {
+        if (category === 'shoes') {
+          console.log(`[Custom Options Debug] Loading custom options for category: ${category}, activity: ${activity}`);
+        }
         const options = await getCustomClothingOptions(category, activity);
+        if (category === 'shoes') {
+          console.log(`[Custom Options Debug] Loaded options from DB:`, options);
+        }
         setCustomOptions(options);
       } catch (error) {
         console.error('Failed to load custom options:', error);
+        if (category === 'shoes') {
+          console.error(`[Custom Options Debug] Error loading custom options:`, error);
+        }
       } finally {
         setIsLoading(false);
       }

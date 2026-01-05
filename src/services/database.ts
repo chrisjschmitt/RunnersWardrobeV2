@@ -155,7 +155,18 @@ export async function deleteFeedback(id: number): Promise<void> {
 export async function getCustomClothingOptions(category: string, activity?: ActivityType): Promise<string[]> {
   // Build compound key for activity-specific options
   const key = activity ? `${activity}:${category}` : category;
+  
+  // Debug logging for shoes category
+  if (category === 'shoes') {
+    console.log(`[DB Debug] getCustomClothingOptions - category: ${category}, activity: ${activity}, key: ${key}`);
+  }
+  
   const record = await db.customClothing.where('category').equals(key).first();
+  
+  if (category === 'shoes') {
+    console.log(`[DB Debug] Found record:`, record);
+  }
+  
   return record?.options || [];
 }
 
