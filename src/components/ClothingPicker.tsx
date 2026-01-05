@@ -80,10 +80,37 @@ export function ClothingPicker({
     'midLayer', 'outerLayer', 'baseLayer', 'armWarmers', 'boots'
   ];
   const isTemperatureOrdered = temperatureOrderedCategories.includes(category);
+  
+  // Debug logging when picker opens
+  useEffect(() => {
+    if (category === 'tops' || category === 'bottoms' || category === 'shoes') {
+      console.log(`[Warmth Indicator Debug] Picker opened for category: ${category}, activity: ${activity}`);
+      console.log(`[Warmth Indicator Debug] currentValue: "${currentValue}"`);
+      console.log(`[Warmth Indicator Debug] isTemperatureOrdered: ${isTemperatureOrdered}`);
+      console.log(`[Warmth Indicator Debug] defaultOptions:`, defaultOptions);
+      console.log(`[Warmth Indicator Debug] allOptions:`, allOptions);
+    }
+  }, [category, activity, currentValue, isTemperatureOrdered, defaultOptions, allOptions]);
 
   // Helper to determine if an option is warmer or cooler than current
   const getWarmthIndicator = (option: string): 'warmer' | 'cooler' | 'same' | null => {
-    if (!isTemperatureOrdered || !currentValue || currentValue.trim() === '') {
+    // Debug logging (remove after testing)
+    if (category === 'tops' || category === 'bottoms' || category === 'shoes') {
+      console.log(`[Warmth Indicator Debug] category: ${category}, currentValue: "${currentValue}", option: "${option}", isTemperatureOrdered: ${isTemperatureOrdered}`);
+      console.log(`[Warmth Indicator Debug] defaultOptions:`, defaultOptions);
+    }
+    
+    if (!isTemperatureOrdered) {
+      if (category === 'tops' || category === 'bottoms' || category === 'shoes') {
+        console.log(`[Warmth Indicator Debug] Category not in temperatureOrderedCategories list`);
+      }
+      return null;
+    }
+    
+    if (!currentValue || currentValue.trim() === '') {
+      if (category === 'tops' || category === 'bottoms' || category === 'shoes') {
+        console.log(`[Warmth Indicator Debug] currentValue is empty or whitespace`);
+      }
       return null;
     }
     
@@ -99,17 +126,14 @@ export function ClothingPicker({
       opt => normalize(opt) === normalizedOption
     );
     
-    // Debug logging (remove after testing)
     if (category === 'tops' || category === 'bottoms' || category === 'shoes') {
-      console.log(`[Warmth Indicator Debug] category: ${category}, currentValue: "${currentValue}", option: "${option}"`);
-      console.log(`[Warmth Indicator Debug] currentIndex: ${currentIndex}, optionIndex: ${optionIndex}, isTemperatureOrdered: ${isTemperatureOrdered}`);
-      console.log(`[Warmth Indicator Debug] defaultOptions:`, defaultOptions);
+      console.log(`[Warmth Indicator Debug] currentIndex: ${currentIndex}, optionIndex: ${optionIndex}`);
     }
     
     // If current value is not in defaults (custom item), can't determine warmth
     if (currentIndex === -1) {
       if (category === 'tops' || category === 'bottoms' || category === 'shoes') {
-        console.log(`[Warmth Indicator Debug] currentValue not found in defaults`);
+        console.log(`[Warmth Indicator Debug] currentValue "${currentValue}" not found in defaults`);
       }
       return null;
     }
