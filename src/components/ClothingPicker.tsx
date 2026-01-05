@@ -103,6 +103,12 @@ export function ClothingPicker({
       return null;
     }
     
+    // Debug logging for bottoms category
+    if (category === 'bottoms') {
+      console.log(`[Bottoms Debug] getWarmthIndicator - category: ${category}, currentValue: "${currentValue}", option: "${option}"`);
+      console.log(`[Bottoms Debug] defaultOptions:`, defaultOptions);
+    }
+    
     // Normalize strings for comparison (trim and lowercase)
     const normalize = (str: string) => str.trim().toLowerCase();
     const normalizedCurrent = normalize(currentValue);
@@ -112,6 +118,10 @@ export function ClothingPicker({
     let currentIndex = defaultOptions.findIndex(
       opt => normalize(opt) === normalizedCurrent
     );
+    
+    if (category === 'bottoms') {
+      console.log(`[Bottoms Debug] currentIndex after exact match: ${currentIndex}`);
+    }
     
     // If no exact match, try fuzzy matching (check if current value contains a default option or vice versa)
     if (currentIndex === -1) {
@@ -169,19 +179,31 @@ export function ClothingPicker({
       opt => normalize(opt) === normalizedOption
     );
     
+    if (category === 'bottoms') {
+      console.log(`[Bottoms Debug] optionIndex: ${optionIndex}, currentIndex: ${currentIndex}`);
+    }
+    
     // If current value is not in defaults and fuzzy match failed, can't determine warmth
     if (currentIndex === -1) {
+      if (category === 'bottoms') {
+        console.log(`[Bottoms Debug] Returning null - currentIndex is -1`);
+      }
       return null;
     }
     
     // If option is not in defaults (custom item), can't determine warmth for that option
     if (optionIndex === -1) {
+      if (category === 'bottoms') {
+        console.log(`[Bottoms Debug] Returning null - optionIndex is -1`);
+      }
       return null;
     }
     
-    if (optionIndex > currentIndex) return 'warmer';
-    if (optionIndex < currentIndex) return 'cooler';
-    return 'same';
+    const result = optionIndex > currentIndex ? 'warmer' : (optionIndex < currentIndex ? 'cooler' : 'same');
+    if (category === 'bottoms') {
+      console.log(`[Bottoms Debug] Returning: ${result}`);
+    }
+    return result;
   };
 
   const handleSelect = (value: string) => {
