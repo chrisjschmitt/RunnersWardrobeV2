@@ -1075,6 +1075,8 @@ export function getClothingRecommendation(
   ];
 
   // Base layer override for cold - prevent T-shirt recommendations in freezing weather
+  // Use actual temperature for extreme cold checks to prevent dangerous recommendations
+  // even if T_comfort is elevated due to activity level
   const baseKey = categories.find(c => c.key === 'baseLayer' || c.key === 'tops');
   if (baseKey) {
     const currentBase = clothing[baseKey.key]?.toLowerCase() || '';
@@ -1084,7 +1086,23 @@ export function getClothingRecommendation(
                        currentBase.includes('sleeveless') ||
                        currentBase.includes('short sleeve');
     
-    if (adjustedTemp < 25 && isTooLight) {
+    // For extreme cold (< 5°F / < -15°C), use actual temperature to ensure safety
+    // T_comfort can be elevated by activity, but actual temp still requires warm layers
+    const actualTempF = currentWeather.temperature;
+    const isExtremeCold = actualTempF < 5; // < -15°C
+    
+    if (isExtremeCold && isTooLight) {
+      // Extreme cold: must have heavy base layer regardless of T_comfort
+      const warmTop = findValidOption(baseKey.key, WARM_TOPS);
+      if (warmTop) {
+        clothing[baseKey.key] = warmTop;
+        debugSafetyOverrides.push({
+          name: '👕 Base layer (extreme cold)',
+          triggered: true,
+          action: `→ ${warmTop} (actual temp: ${actualTempF.toFixed(1)}°F)`,
+        });
+      }
+    } else if (adjustedTemp < 25 && isTooLight) {
       // Very cold: need heavy base layer
       const warmTop = findValidOption(baseKey.key, WARM_TOPS);
       if (warmTop) clothing[baseKey.key] = warmTop;
