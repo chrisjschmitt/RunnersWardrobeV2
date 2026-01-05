@@ -81,36 +81,14 @@ export function ClothingPicker({
   ];
   const isTemperatureOrdered = temperatureOrderedCategories.includes(category);
   
-  // Debug logging when picker opens
-  useEffect(() => {
-    if (category === 'tops' || category === 'bottoms' || category === 'shoes') {
-      console.log(`[Warmth Indicator Debug] Picker opened for category: ${category}, activity: ${activity}`);
-      console.log(`[Warmth Indicator Debug] currentValue: "${currentValue}"`);
-      console.log(`[Warmth Indicator Debug] isTemperatureOrdered: ${isTemperatureOrdered}`);
-      console.log(`[Warmth Indicator Debug] defaultOptions:`, defaultOptions);
-      console.log(`[Warmth Indicator Debug] allOptions:`, allOptions);
-    }
-  }, [category, activity, currentValue, isTemperatureOrdered, defaultOptions, allOptions]);
 
   // Helper to determine if an option is warmer or cooler than current
   const getWarmthIndicator = (option: string): 'warmer' | 'cooler' | 'same' | null => {
-    // Debug logging (remove after testing)
-    if (category === 'tops' || category === 'bottoms' || category === 'shoes') {
-      console.log(`[Warmth Indicator Debug] category: ${category}, currentValue: "${currentValue}", option: "${option}", isTemperatureOrdered: ${isTemperatureOrdered}`);
-      console.log(`[Warmth Indicator Debug] defaultOptions:`, defaultOptions);
-    }
-    
     if (!isTemperatureOrdered) {
-      if (category === 'tops' || category === 'bottoms' || category === 'shoes') {
-        console.log(`[Warmth Indicator Debug] Category not in temperatureOrderedCategories list`);
-      }
       return null;
     }
     
     if (!currentValue || currentValue.trim() === '') {
-      if (category === 'tops' || category === 'bottoms' || category === 'shoes') {
-        console.log(`[Warmth Indicator Debug] currentValue is empty or whitespace`);
-      }
       return null;
     }
     
@@ -119,22 +97,27 @@ export function ClothingPicker({
     const normalizedCurrent = normalize(currentValue);
     const normalizedOption = normalize(option);
     
-    const currentIndex = defaultOptions.findIndex(
+    // Find exact match first
+    let currentIndex = defaultOptions.findIndex(
       opt => normalize(opt) === normalizedCurrent
     );
+    
+    // If no exact match, try fuzzy matching (check if current value contains a default option or vice versa)
+    if (currentIndex === -1) {
+      currentIndex = defaultOptions.findIndex(opt => {
+        const normalizedOpt = normalize(opt);
+        // Check if current value contains the default option, or default option contains current value
+        // This handles cases like "Base layer + fleece + jacket" matching "Base layer + jacket"
+        return normalizedCurrent.includes(normalizedOpt) || normalizedOpt.includes(normalizedCurrent);
+      });
+    }
+    
     const optionIndex = defaultOptions.findIndex(
       opt => normalize(opt) === normalizedOption
     );
     
-    if (category === 'tops' || category === 'bottoms' || category === 'shoes') {
-      console.log(`[Warmth Indicator Debug] currentIndex: ${currentIndex}, optionIndex: ${optionIndex}`);
-    }
-    
-    // If current value is not in defaults (custom item), can't determine warmth
+    // If current value is not in defaults and fuzzy match failed, can't determine warmth
     if (currentIndex === -1) {
-      if (category === 'tops' || category === 'bottoms' || category === 'shoes') {
-        console.log(`[Warmth Indicator Debug] currentValue "${currentValue}" not found in defaults`);
-      }
       return null;
     }
     
