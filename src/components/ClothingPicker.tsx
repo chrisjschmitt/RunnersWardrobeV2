@@ -104,12 +104,29 @@ export function ClothingPicker({
     
     // If no exact match, try fuzzy matching (check if current value contains a default option or vice versa)
     if (currentIndex === -1) {
-      currentIndex = defaultOptions.findIndex(opt => {
-        const normalizedOpt = normalize(opt);
-        // Check if current value contains the default option, or default option contains current value
-        // This handles cases like "Base layer + fleece + jacket" matching "Base layer + jacket"
-        return normalizedCurrent.includes(normalizedOpt) || normalizedOpt.includes(normalizedCurrent);
-      });
+      // Try to find the best match by checking if current value contains a default option
+      // or if a default option contains the current value
+      // This handles cases like "Base layer + fleece + jacket" matching "Base layer + jacket"
+      for (let i = 0; i < defaultOptions.length; i++) {
+        const normalizedOpt = normalize(defaultOptions[i]);
+        // Check if current value contains the default option (e.g., "Base layer + fleece + jacket" contains "Base layer + jacket")
+        if (normalizedCurrent.includes(normalizedOpt)) {
+          currentIndex = i;
+          break;
+        }
+        // Check if default option contains current value (e.g., "Base layer + jacket" contains "Base layer")
+        if (normalizedOpt.includes(normalizedCurrent)) {
+          currentIndex = i;
+          break;
+        }
+      }
+      
+      // Debug for shoes category
+      if (category === 'shoes' && currentIndex === -1) {
+        console.log(`[Shoes Debug] currentValue: "${currentValue}", normalized: "${normalizedCurrent}"`);
+        console.log(`[Shoes Debug] defaultOptions:`, defaultOptions);
+        console.log(`[Shoes Debug] Trying to find fuzzy match...`);
+      }
     }
     
     const optionIndex = defaultOptions.findIndex(
