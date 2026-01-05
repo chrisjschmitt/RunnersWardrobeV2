@@ -77,7 +77,7 @@ export function ClothingPicker({
   // Only show warmth indicators for these categories
   const temperatureOrderedCategories = [
     'headCover', 'tops', 'bottoms', 'shoes', 'socks', 'gloves', 'rainGear',
-    'midLayer', 'outerLayer', 'baseLayer'
+    'midLayer', 'outerLayer', 'baseLayer', 'armWarmers', 'boots'
   ];
   const isTemperatureOrdered = temperatureOrderedCategories.includes(category);
 
