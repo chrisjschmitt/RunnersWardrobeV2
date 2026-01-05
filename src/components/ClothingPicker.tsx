@@ -73,6 +73,33 @@ export function ClothingPicker({
   // Combine default and custom options
   const allOptions = [...defaultOptions, ...customOptions.filter(opt => !defaultOptions.includes(opt))];
 
+  // Categories that are ordered from coolest to warmest
+  // Only show warmth indicators for these categories
+  const temperatureOrderedCategories = [
+    'headCover', 'tops', 'bottoms', 'shoes', 'socks', 'gloves', 'rainGear',
+    'midLayer', 'outerLayer', 'baseLayer'
+  ];
+  const isTemperatureOrdered = temperatureOrderedCategories.includes(category);
+
+  // Helper to determine if an option is warmer or cooler than current
+  const getWarmthIndicator = (option: string): 'warmer' | 'cooler' | 'same' | null => {
+    if (!isTemperatureOrdered || !currentValue) return null;
+    
+    const currentIndex = defaultOptions.findIndex(
+      opt => opt.toLowerCase() === currentValue.toLowerCase()
+    );
+    const optionIndex = defaultOptions.findIndex(
+      opt => opt.toLowerCase() === option.toLowerCase()
+    );
+    
+    // If either option is not in defaults (custom item), can't determine warmth
+    if (currentIndex === -1 || optionIndex === -1) return null;
+    
+    if (optionIndex > currentIndex) return 'warmer';
+    if (optionIndex < currentIndex) return 'cooler';
+    return 'same';
+  };
+
   const handleSelect = (value: string) => {
     onSelect(value);
     onClose();
@@ -136,6 +163,7 @@ export function ClothingPicker({
                 {allOptions.map((option) => {
                   const isCustom = customOptions.includes(option);
                   const isSelected = option.toLowerCase() === currentValue.toLowerCase();
+                  const warmthIndicator = getWarmthIndicator(option);
                   
                   return (
                     <div
@@ -153,6 +181,32 @@ export function ClothingPicker({
                         {option}
                         {isCustom && (
                           <span className="text-xs opacity-60">(custom)</span>
+                        )}
+                        {warmthIndicator && !isSelected && (
+                          <span className={`text-xs flex items-center gap-1 ${
+                            warmthIndicator === 'warmer' 
+                              ? 'text-orange-400' 
+                              : warmthIndicator === 'cooler'
+                              ? 'text-blue-400'
+                              : ''
+                          }`}>
+                            {warmthIndicator === 'warmer' && (
+                              <>
+                                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 10l7-7m0 0l7 7m-7-7v18" />
+                                </svg>
+                                <span>Warmer</span>
+                              </>
+                            )}
+                            {warmthIndicator === 'cooler' && (
+                              <>
+                                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+                                </svg>
+                                <span>Cooler</span>
+                              </>
+                            )}
+                          </span>
                         )}
                       </button>
                       <div className="flex items-center gap-2">

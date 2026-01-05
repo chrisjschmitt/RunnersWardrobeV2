@@ -74,10 +74,10 @@ export const ACTIVITY_CONFIGS: Record<ActivityType, ActivityInfo> = {
     icon: '🏃',
     clothingCategories: [
       { key: 'headCover', label: 'Head', defaultValue: 'None', options: ['None', 'Cap', 'Visor', 'Headband', 'Beanie', 'Balaclava'] },
-      { key: 'tops', label: 'Top', defaultValue: 'T-shirt', options: ['Singlet', 'T-shirt', 'Long sleeve', 'Base layer', 'Base layer + jacket', 'Base layer + fleece + softshell', 'Vest + long sleeve'] },
+      { key: 'tops', label: 'Top', defaultValue: 'T-shirt', options: ['Singlet', 'T-shirt', 'Long sleeve', 'Base layer', 'Vest + long sleeve', 'Base layer + jacket', 'Base layer + fleece + softshell'] },
       { key: 'bottoms', label: 'Bottom', defaultValue: 'Shorts', options: ['Short shorts', 'Shorts', 'Capris', 'Tights', 'Shorts over tights'] },
-      { key: 'shoes', label: 'Shoes', defaultValue: 'Running shoes', options: ['Running shoes', 'Insulated running shoes', 'Racing flats', 'Track spikes'] },
-      { key: 'socks', label: 'Socks', defaultValue: 'Regular', options: ['No-show', 'Regular', 'Wool', 'Compression'] },
+      { key: 'shoes', label: 'Shoes', defaultValue: 'Running shoes', options: ['Racing flats', 'Track spikes', 'Running shoes', 'Insulated running shoes'] },
+      { key: 'socks', label: 'Socks', defaultValue: 'Regular', options: ['No-show', 'Regular', 'Compression', 'Wool'] },
       { key: 'gloves', label: 'Gloves', defaultValue: 'None', options: ['None', 'Light gloves', 'Heavy gloves', 'Mittens'] },
       { key: 'rainGear', label: 'Rain Gear', defaultValue: 'None', options: ['None', 'Light rain jacket', 'Waterproof jacket'] },
       { key: 'accessories', label: 'Accessories', defaultValue: 'None', options: ['None', 'Sunglasses', 'Headlamp', 'Neck gaiter', 'Sunglasses + watch', 'Headlamp + reflective vest', 'Sunglasses + neck gaiter'] },
@@ -106,7 +106,7 @@ export const ACTIVITY_CONFIGS: Record<ActivityType, ActivityInfo> = {
     clothingCategories: [
       { key: 'headCover', label: 'Head', defaultValue: 'None', options: ['None', 'Sun hat', 'Cap', 'Beanie', 'Balaclava'] },
       { key: 'baseLayer', label: 'Base Layer', defaultValue: 'T-shirt', options: ['None', 'T-shirt', 'Long sleeve', 'Merino base', 'Synthetic base'] },
-      { key: 'midLayer', label: 'Mid Layer', defaultValue: 'None', options: ['None', 'Fleece', 'Light puffy', 'Heavy puffy', 'Softshell'] },
+      { key: 'midLayer', label: 'Mid Layer', defaultValue: 'None', options: ['None', 'Fleece', 'Softshell', 'Light puffy', 'Heavy puffy'] },
       { key: 'outerLayer', label: 'Outer Layer', defaultValue: 'None', options: ['None', 'Wind jacket', 'Rain jacket', 'Hardshell', 'Insulated jacket'] },
       { key: 'bottoms', label: 'Pants', defaultValue: 'Hiking pants', options: ['Shorts', 'Convertible pants', 'Hiking pants', 'Softshell pants', 'Insulated pants', 'Rain pants'] },
       { key: 'shoes', label: 'Footwear', defaultValue: 'Hiking boots', options: ['Trail runners', 'Hiking shoes', 'Hiking boots', 'Waterproof boots', 'Mountaineering boots'] },
