@@ -71,7 +71,36 @@ export function ClothingPicker({
   }, [category, activity]);
 
   // Combine default and custom options
-  const allOptions = [...defaultOptions, ...customOptions.filter(opt => !defaultOptions.includes(opt))];
+  // Always include custom options, even if they're similar to defaults
+  // (users should be able to see and delete their custom items)
+  const normalizeForComparison = (str: string) => str.trim().toLowerCase();
+  
+  // Debug logging for custom options
+  if (category === 'shoes') {
+    console.log(`[Custom Options Debug] category: ${category}, customOptions:`, customOptions);
+    console.log(`[Custom Options Debug] defaultOptions:`, defaultOptions);
+  }
+  
+  const filteredCustomOptions = customOptions.filter(opt => {
+    const normalizedOpt = normalizeForComparison(opt);
+    const isExactMatch = defaultOptions.some(def => normalizeForComparison(def) === normalizedOpt);
+    if (category === 'shoes') {
+      console.log(`[Custom Options Debug] "${opt}" - isExactMatch: ${isExactMatch}`);
+    }
+    // Only filter out if it's an exact match (case-insensitive)
+    // This allows similar items like "All weather running shows" vs "Running shoes"
+    return !isExactMatch;
+  });
+  
+  if (category === 'shoes') {
+    console.log(`[Custom Options Debug] filteredCustomOptions:`, filteredCustomOptions);
+  }
+  
+  const allOptions = [...defaultOptions, ...filteredCustomOptions];
+  
+  if (category === 'shoes') {
+    console.log(`[Custom Options Debug] allOptions:`, allOptions);
+  }
 
   // Categories that are ordered from coolest to warmest
   // Only show warmth indicators for these categories
@@ -128,9 +157,18 @@ export function ClothingPicker({
           word.length > 3 && !['all', 'weather', 'the', 'and', 'for', 'with'].includes(word)
         );
         
+        // Debug for shoes
+        if (category === 'shoes') {
+          console.log(`[Shoes Debug] Word-based matching - currentWords:`, currentWords);
+        }
+        
         for (let i = 0; i < defaultOptions.length; i++) {
           const normalizedOpt = normalize(defaultOptions[i]);
           const optWords = normalizedOpt.split(/\s+/).filter(word => word.length > 3);
+          
+          if (category === 'shoes') {
+            console.log(`[Shoes Debug] Checking "${defaultOptions[i]}" - optWords:`, optWords);
+          }
           
           // Check if any key words from current match key words in default option
           // This handles cases like "All weather running shows" matching "Running shoes"
@@ -138,11 +176,19 @@ export function ClothingPicker({
             optWords.some(ow => cw.includes(ow) || ow.includes(cw))
           );
           
+          if (category === 'shoes') {
+            console.log(`[Shoes Debug] hasMatchingWords: ${hasMatchingWords}`);
+          }
+          
           if (hasMatchingWords && currentWords.length > 0 && optWords.length > 0) {
             // Find the best match by counting how many words match
             const matchingWordCount = currentWords.filter(cw => 
               optWords.some(ow => cw.includes(ow) || ow.includes(cw))
             ).length;
+            
+            if (category === 'shoes') {
+              console.log(`[Shoes Debug] matchingWordCount: ${matchingWordCount}, setting currentIndex to ${i}`);
+            }
             
             // If at least one significant word matches, use this option
             if (matchingWordCount > 0) {
@@ -150,6 +196,10 @@ export function ClothingPicker({
               break;
             }
           }
+        }
+        
+        if (category === 'shoes') {
+          console.log(`[Shoes Debug] Final currentIndex after word matching: ${currentIndex}`);
         }
       }
     }
@@ -234,7 +284,10 @@ export function ClothingPicker({
             <>
               <div className="space-y-2">
                 {allOptions.map((option) => {
-                  const isCustom = customOptions.includes(option);
+                  // Check if option is custom (case-insensitive comparison)
+                  const isCustom = customOptions.some(opt => 
+                    normalizeForComparison(opt) === normalizeForComparison(option)
+                  );
                   const isSelected = option.toLowerCase() === currentValue.toLowerCase();
                   const warmthIndicator = getWarmthIndicator(option);
                   
