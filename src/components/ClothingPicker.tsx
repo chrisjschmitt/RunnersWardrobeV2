@@ -83,17 +83,41 @@ export function ClothingPicker({
 
   // Helper to determine if an option is warmer or cooler than current
   const getWarmthIndicator = (option: string): 'warmer' | 'cooler' | 'same' | null => {
-    if (!isTemperatureOrdered || !currentValue) return null;
+    if (!isTemperatureOrdered || !currentValue || currentValue.trim() === '') {
+      return null;
+    }
+    
+    // Normalize strings for comparison (trim and lowercase)
+    const normalize = (str: string) => str.trim().toLowerCase();
+    const normalizedCurrent = normalize(currentValue);
+    const normalizedOption = normalize(option);
     
     const currentIndex = defaultOptions.findIndex(
-      opt => opt.toLowerCase() === currentValue.toLowerCase()
+      opt => normalize(opt) === normalizedCurrent
     );
     const optionIndex = defaultOptions.findIndex(
-      opt => opt.toLowerCase() === option.toLowerCase()
+      opt => normalize(opt) === normalizedOption
     );
     
-    // If either option is not in defaults (custom item), can't determine warmth
-    if (currentIndex === -1 || optionIndex === -1) return null;
+    // Debug logging (remove after testing)
+    if (category === 'tops' || category === 'bottoms' || category === 'shoes') {
+      console.log(`[Warmth Indicator Debug] category: ${category}, currentValue: "${currentValue}", option: "${option}"`);
+      console.log(`[Warmth Indicator Debug] currentIndex: ${currentIndex}, optionIndex: ${optionIndex}, isTemperatureOrdered: ${isTemperatureOrdered}`);
+      console.log(`[Warmth Indicator Debug] defaultOptions:`, defaultOptions);
+    }
+    
+    // If current value is not in defaults (custom item), can't determine warmth
+    if (currentIndex === -1) {
+      if (category === 'tops' || category === 'bottoms' || category === 'shoes') {
+        console.log(`[Warmth Indicator Debug] currentValue not found in defaults`);
+      }
+      return null;
+    }
+    
+    // If option is not in defaults (custom item), can't determine warmth for that option
+    if (optionIndex === -1) {
+      return null;
+    }
     
     if (optionIndex > currentIndex) return 'warmer';
     if (optionIndex < currentIndex) return 'cooler';
