@@ -182,15 +182,39 @@ export async function getCustomClothingOptions(category: string, activity?: Acti
 
 export async function addCustomClothingOption(category: string, option: string, activity?: ActivityType): Promise<void> {
   const key = activity ? `${activity}:${category}` : category;
+  
+  // Debug logging for shoes category
+  if (category === 'shoes') {
+    console.log(`[DB Debug] addCustomClothingOption - category: ${category}, option: "${option}", activity: ${activity}, key: ${key}`);
+  }
+  
   const existing = await db.customClothing.where('category').equals(key).first();
+  
+  if (category === 'shoes') {
+    console.log(`[DB Debug] Existing record:`, existing);
+  }
+  
   if (existing) {
     const options = existing.options || [];
     if (!options.includes(option)) {
       options.push(option);
       await db.customClothing.update(existing.id!, { options });
+      if (category === 'shoes') {
+        console.log(`[DB Debug] Updated existing record with new option`);
+      }
+    } else {
+      if (category === 'shoes') {
+        console.log(`[DB Debug] Option already exists in record`);
+      }
     }
   } else {
     await db.customClothing.add({ category: key, options: [option], activity });
+    if (category === 'shoes') {
+      console.log(`[DB Debug] Created new record with key "${key}"`);
+      // Verify it was saved
+      const verify = await db.customClothing.where('category').equals(key).first();
+      console.log(`[DB Debug] Verification - record after save:`, verify);
+    }
   }
 }
 
