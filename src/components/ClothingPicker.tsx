@@ -144,33 +144,82 @@ export function ClothingPicker({
       
       // If still no match, try word-based matching (extract key words and match)
       if (currentIndex === -1) {
-        // Extract key words from current value (remove common words like "all", "weather", etc.)
+        // Extract key words from current value (remove common words)
+        const commonWords = new Set(['all', 'weather', 'the', 'and', 'for', 'with', 'over', 'running', 'pants', 'shorts', 'insulated']);
         const currentWords = normalizedCurrent.split(/\s+/).filter(word => 
-          word.length > 3 && !['all', 'weather', 'the', 'and', 'for', 'with'].includes(word)
+          word.length > 3 && !commonWords.has(word)
         );
         
-        for (let i = 0; i < defaultOptions.length; i++) {
-          const normalizedOpt = normalize(defaultOptions[i]);
-          const optWords = normalizedOpt.split(/\s+/).filter(word => word.length > 3);
-          
-          // Check if any key words from current match key words in default option
-          // This handles cases like "All weather running shows" matching "Running shoes"
-          const hasMatchingWords = currentWords.some(cw => 
-            optWords.some(ow => cw.includes(ow) || ow.includes(cw))
+        if (category === 'bottoms') {
+          console.log(`[Bottoms Debug] Trying word-based matching - currentWords:`, currentWords);
+        }
+        
+        // For bottoms, try to match based on warmth keywords
+        // "Insulated running pants" should match "Tights" or "Shorts over tights" (warmest options)
+        if (category === 'bottoms') {
+          // Check for warmth indicators in current value
+          const hasWarmthKeywords = ['insulated', 'warm', 'thermal', 'fleece', 'lined'].some(kw => 
+            normalizedCurrent.includes(kw)
           );
           
-          if (hasMatchingWords && currentWords.length > 0 && optWords.length > 0) {
-            // Find the best match by counting how many words match
-            const matchingWordCount = currentWords.filter(cw => 
-              optWords.some(ow => cw.includes(ow) || ow.includes(cw))
-            ).length;
-            
-            // If at least one significant word matches, use this option
-            if (matchingWordCount > 0) {
-              currentIndex = i;
-              break;
+          if (hasWarmthKeywords) {
+            // Match to warmest options (Tights or Shorts over tights)
+            const warmestIndex = defaultOptions.length - 1; // Last item is warmest
+            currentIndex = warmestIndex;
+            if (category === 'bottoms') {
+              console.log(`[Bottoms Debug] Matched to warmest option (index ${warmestIndex}) based on warmth keywords`);
+            }
+          } else {
+            // Try word-based matching for other cases
+            for (let i = 0; i < defaultOptions.length; i++) {
+              const normalizedOpt = normalize(defaultOptions[i]);
+              const optWords = normalizedOpt.split(/\s+/).filter(word => word.length > 3 && !commonWords.has(word));
+              
+              // Check if any key words from current match key words in default option
+              const hasMatchingWords = currentWords.some(cw => 
+                optWords.some(ow => cw.includes(ow) || ow.includes(cw))
+              );
+              
+              if (hasMatchingWords && currentWords.length > 0 && optWords.length > 0) {
+                const matchingWordCount = currentWords.filter(cw => 
+                  optWords.some(ow => cw.includes(ow) || ow.includes(cw))
+                ).length;
+                
+                if (matchingWordCount > 0) {
+                  currentIndex = i;
+                  if (category === 'bottoms') {
+                    console.log(`[Bottoms Debug] Word-based match found at index ${i}`);
+                  }
+                  break;
+                }
+              }
             }
           }
+        } else {
+          // For other categories, use standard word-based matching
+          for (let i = 0; i < defaultOptions.length; i++) {
+            const normalizedOpt = normalize(defaultOptions[i]);
+            const optWords = normalizedOpt.split(/\s+/).filter(word => word.length > 3);
+            
+            const hasMatchingWords = currentWords.some(cw => 
+              optWords.some(ow => cw.includes(ow) || ow.includes(cw))
+            );
+            
+            if (hasMatchingWords && currentWords.length > 0 && optWords.length > 0) {
+              const matchingWordCount = currentWords.filter(cw => 
+                optWords.some(ow => cw.includes(ow) || ow.includes(cw))
+              ).length;
+              
+              if (matchingWordCount > 0) {
+                currentIndex = i;
+                break;
+              }
+            }
+          }
+        }
+        
+        if (category === 'bottoms') {
+          console.log(`[Bottoms Debug] Final currentIndex after word matching: ${currentIndex}`);
         }
       }
     }
