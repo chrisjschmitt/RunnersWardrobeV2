@@ -159,12 +159,22 @@ export async function getCustomClothingOptions(category: string, activity?: Acti
   // Debug logging for shoes category
   if (category === 'shoes') {
     console.log(`[DB Debug] getCustomClothingOptions - category: ${category}, activity: ${activity}, key: ${key}`);
+    
+    // Debug: Check all custom clothing records
+    const allRecords = await db.customClothing.toArray();
+    console.log(`[DB Debug] All custom clothing records in DB:`, allRecords);
+    
+    // Also check if there's a record without activity prefix
+    const recordWithoutActivity = await db.customClothing.where('category').equals(category).first();
+    if (recordWithoutActivity) {
+      console.log(`[DB Debug] Found record without activity prefix:`, recordWithoutActivity);
+    }
   }
   
   const record = await db.customClothing.where('category').equals(key).first();
   
   if (category === 'shoes') {
-    console.log(`[DB Debug] Found record:`, record);
+    console.log(`[DB Debug] Found record with key "${key}":`, record);
   }
   
   return record?.options || [];
