@@ -121,11 +121,36 @@ export function ClothingPicker({
         }
       }
       
-      // Debug for shoes category
-      if (category === 'shoes' && currentIndex === -1) {
-        console.log(`[Shoes Debug] currentValue: "${currentValue}", normalized: "${normalizedCurrent}"`);
-        console.log(`[Shoes Debug] defaultOptions:`, defaultOptions);
-        console.log(`[Shoes Debug] Trying to find fuzzy match...`);
+      // If still no match, try word-based matching (extract key words and match)
+      if (currentIndex === -1) {
+        // Extract key words from current value (remove common words like "all", "weather", etc.)
+        const currentWords = normalizedCurrent.split(/\s+/).filter(word => 
+          word.length > 3 && !['all', 'weather', 'the', 'and', 'for', 'with'].includes(word)
+        );
+        
+        for (let i = 0; i < defaultOptions.length; i++) {
+          const normalizedOpt = normalize(defaultOptions[i]);
+          const optWords = normalizedOpt.split(/\s+/).filter(word => word.length > 3);
+          
+          // Check if any key words from current match key words in default option
+          // This handles cases like "All weather running shows" matching "Running shoes"
+          const hasMatchingWords = currentWords.some(cw => 
+            optWords.some(ow => cw.includes(ow) || ow.includes(cw))
+          );
+          
+          if (hasMatchingWords && currentWords.length > 0 && optWords.length > 0) {
+            // Find the best match by counting how many words match
+            const matchingWordCount = currentWords.filter(cw => 
+              optWords.some(ow => cw.includes(ow) || ow.includes(cw))
+            ).length;
+            
+            // If at least one significant word matches, use this option
+            if (matchingWordCount > 0) {
+              currentIndex = i;
+              break;
+            }
+          }
+        }
       }
     }
     
