@@ -524,19 +524,22 @@ export function StartRun({ apiKey, hasApiKey, temperatureUnit, thermalPreference
   };
 
   const handleEndRun = () => {
-    // Check if activity ran >2 hours and weather changed significantly
+    // Check if weather changed significantly
     if (runStartTime && startWeather && weather) {
       const elapsed = Date.now() - runStartTime.getTime();
       const hours = elapsed / (1000 * 60 * 60);
       
-      if (hours >= 2 && hasSignificantWeatherChange(startWeather, weather)) {
+      // Show weather choice if:
+      // 1. Activity ran >2 hours AND weather changed significantly (normal case)
+      // 2. OR in test mode AND weather changed significantly (for testing)
+      if (hasSignificantWeatherChange(startWeather, weather) && (hours >= 2 || testMode)) {
         // Show weather choice prompt before feedback
         setShowWeatherChoice(true);
         return;
       }
     }
     
-    // No significant change or <2 hours - proceed to feedback with start weather
+    // No significant change or <2 hours (and not test mode) - proceed to feedback with start weather
     setRunState('feedback');
   };
 
