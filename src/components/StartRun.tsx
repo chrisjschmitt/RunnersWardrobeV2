@@ -9,6 +9,7 @@ import { WeatherDisplay } from './WeatherDisplay';
 import { ClothingRecommendation } from './ClothingRecommendation';
 import { FeedbackModal } from './FeedbackModal';
 import type { TemperatureUnit } from '../services/temperatureUtils';
+import { formatTemperature } from '../services/temperatureUtils';
 
 type RunState = 'idle' | 'running' | 'feedback';
 
@@ -31,25 +32,78 @@ interface PersistedActivityState {
   state: RunState;
   startTime: string | null;
   clothing: ClothingItems | null;
+  startWeather: string | null; // Serialized WeatherData JSON
 }
 
-function saveActivityState(activity: ActivityType, state: RunState, startTime: Date | null, clothing: ClothingItems | null) {
+// Serialize WeatherData for localStorage (convert Date objects to ISO strings)
+function serializeWeather(weather: WeatherData | null): string | null {
+  if (!weather) return null;
+  return JSON.stringify({
+    ...weather,
+    timestamp: weather.timestamp.toISOString(),
+    forecast: weather.forecast?.map(f => ({
+      ...f,
+      time: f.time.toISOString()
+    })),
+    sunrise: weather.sunrise?.toISOString(),
+    sunset: weather.sunset?.toISOString()
+  });
+}
+
+// Deserialize WeatherData from localStorage (convert ISO strings back to Date objects)
+function deserializeWeather(weatherJson: string | null): WeatherData | null {
+  if (!weatherJson) return null;
+  try {
+    const data = JSON.parse(weatherJson);
+    return {
+      ...data,
+      timestamp: new Date(data.timestamp),
+      forecast: data.forecast?.map((f: any) => ({
+        ...f,
+        time: new Date(f.time)
+      })),
+      sunrise: data.sunrise ? new Date(data.sunrise) : undefined,
+      sunset: data.sunset ? new Date(data.sunset) : undefined
+    };
+  } catch {
+    return null;
+  }
+}
+
+function saveActivityState(activity: ActivityType, state: RunState, startTime: Date | null, clothing: ClothingItems | null, startWeather: WeatherData | null = null) {
   const data: PersistedActivityState = {
     activity,
     state,
     startTime: startTime?.toISOString() || null,
-    clothing
+    clothing,
+    startWeather: serializeWeather(startWeather)
   };
   localStorage.setItem(ACTIVITY_STATE_KEY, JSON.stringify(data));
 }
 
-function loadActivityState(): PersistedActivityState | null {
+function loadActivityState(): (PersistedActivityState & { startWeatherData: WeatherData | null }) | null {
   try {
     const data = localStorage.getItem(ACTIVITY_STATE_KEY);
-    return data ? JSON.parse(data) : null;
+    if (!data) return null;
+    const parsed = JSON.parse(data) as PersistedActivityState;
+    return {
+      ...parsed,
+      startWeatherData: deserializeWeather(parsed.startWeather)
+    };
   } catch {
     return null;
   }
+}
+
+// Check if weather changed significantly (>5°C temp, precipitation change, >15 km/h wind change)
+function hasSignificantWeatherChange(startWeather: WeatherData | null, currentWeather: WeatherData | null): boolean {
+  if (!startWeather || !currentWeather) return false;
+  
+  const tempDiff = Math.abs(currentWeather.temperature - startWeather.temperature);
+  const precipitationChange = (startWeather.precipitation === 0) !== (currentWeather.precipitation === 0);
+  const windDiff = Math.abs(currentWeather.windSpeed - startWeather.windSpeed);
+  
+  return tempDiff > 5 || precipitationChange || windDiff > 15;
 }
 
 function clearActivityState() {
@@ -80,6 +134,9 @@ export function StartRun({ apiKey, hasApiKey, temperatureUnit, thermalPreference
   const [expertMode, setExpertMode] = useState(false);
   const [activityLevel, setActivityLevel] = useState<ActivityLevel | undefined>(undefined);
   const [duration, setDuration] = useState<ActivityDuration | undefined>(undefined);
+  const [startWeather, setStartWeather] = useState<WeatherData | null>(null); // Weather at activity start
+  const [showWeatherChoice, setShowWeatherChoice] = useState(false); // Show weather choice prompt
+  const [useStartWeather, setUseStartWeather] = useState(true); // Which weather to use when saving
 
   // Load expert mode settings on mount
   useEffect(() => {
@@ -106,6 +163,11 @@ export function StartRun({ apiKey, hasApiKey, temperatureUnit, thermalPreference
     if (saved && saved.state === 'running') {
       // Check if this is for the current activity
       if (saved.activity === activity) {
+        // Restore start weather if available
+        if (saved.startWeatherData) {
+          setStartWeather(saved.startWeatherData);
+        }
+        
         // Check if it's been running too long (2+ hours)
         if (saved.startTime) {
           const elapsed = Date.now() - new Date(saved.startTime).getTime();
@@ -134,11 +196,17 @@ export function StartRun({ apiKey, hasApiKey, temperatureUnit, thermalPreference
     const checkForgotten = () => {
       const saved = loadActivityState();
       if (saved && saved.state === 'running' && saved.startTime && saved.activity === activity) {
+        // Restore start weather if available
+        if (saved.startWeatherData) {
+          setStartWeather(saved.startWeatherData);
+        }
         const elapsed = Date.now() - new Date(saved.startTime).getTime();
         const hours = elapsed / (1000 * 60 * 60);
         if (hours >= 2) {
           setShowForgottenReminder(true);
           setForgottenDuration(formatDuration(elapsed));
+          setRunStartTime(new Date(saved.startTime));
+          setActualClothing(saved.clothing);
         }
       }
     };
@@ -433,21 +501,42 @@ export function StartRun({ apiKey, hasApiKey, temperatureUnit, thermalPreference
   };
 
   const handleStartRun = async () => {
-
     const startTime = new Date();
+    // Save current weather when activity starts
+    const weatherAtStart = weather;
+    if (weatherAtStart) {
+      setStartWeather(weatherAtStart);
+    }
     setRunState('running');
     setRunStartTime(startTime);
     setShowForgottenReminder(false);
+    setShowWeatherChoice(false);
+    setUseStartWeather(true); // Default to start weather
     // Persist state so it survives app close
-    saveActivityState(activity, 'running', startTime, actualClothing);
+    saveActivityState(activity, 'running', startTime, actualClothing, weatherAtStart || null);
   };
 
   const handleEndRun = () => {
+    // Check if activity ran >2 hours and weather changed significantly
+    if (runStartTime && startWeather && weather) {
+      const elapsed = Date.now() - runStartTime.getTime();
+      const hours = elapsed / (1000 * 60 * 60);
+      
+      if (hours >= 2 && hasSignificantWeatherChange(startWeather, weather)) {
+        // Show weather choice prompt before feedback
+        setShowWeatherChoice(true);
+        return;
+      }
+    }
+    
+    // No significant change or <2 hours - proceed to feedback with start weather
     setRunState('feedback');
   };
 
   const handleFeedbackSubmit = async (comfort: ComfortLevel, clothing: ClothingItems, comments?: string) => {
-    if (!weather) return;
+    // Use start weather if available and user selected it, otherwise use current weather
+    const weatherToSave = (useStartWeather && startWeather) ? startWeather : weather;
+    if (!weatherToSave) return;
 
     // Use local date instead of UTC to avoid timezone issues
     const now = new Date();
@@ -455,12 +544,12 @@ export function StartRun({ apiKey, hasApiKey, temperatureUnit, thermalPreference
 
     const feedback: Omit<RunFeedback, 'id'> = {
       date: localDate,
-      temperature: weather.temperature,
-      feelsLike: weather.feelsLike,
-      humidity: weather.humidity,
-      windSpeed: weather.windSpeed,
-      precipitation: weather.precipitation,
-      cloudCover: weather.cloudCover,
+      temperature: weatherToSave.temperature,
+      feelsLike: weatherToSave.feelsLike,
+      humidity: weatherToSave.humidity,
+      windSpeed: weatherToSave.windSpeed,
+      precipitation: weatherToSave.precipitation,
+      cloudCover: weatherToSave.cloudCover,
       clothing: clothing, // Store what they actually wore (possibly adjusted)
       comfort,
       timestamp: new Date(),
@@ -475,9 +564,14 @@ export function StartRun({ apiKey, hasApiKey, temperatureUnit, thermalPreference
     setRunState('idle');
     setHasUserEdits(false); // Reset edits flag after submitting feedback
     setShowForgottenReminder(false);
+    setShowWeatherChoice(false);
     
     // Clear persisted activity state
     clearActivityState();
+    
+    // Reset weather tracking
+    setStartWeather(null);
+    setUseStartWeather(true);
     
     // Track session for backup reminder
     incrementSessionCount();
@@ -489,8 +583,12 @@ export function StartRun({ apiKey, hasApiKey, temperatureUnit, thermalPreference
   const handleFeedbackCancel = () => {
     setRunState('idle');
     setShowForgottenReminder(false);
+    setShowWeatherChoice(false);
     // Clear persisted activity state
     clearActivityState();
+    // Reset weather tracking
+    setStartWeather(null);
+    setUseStartWeather(true);
   };
 
   if (!hasApiKey) {
@@ -613,6 +711,97 @@ export function StartRun({ apiKey, hasApiKey, temperatureUnit, thermalPreference
 
   return (
     <div className="space-y-6">
+      {/* Weather choice modal - shown when significant weather change detected */}
+      {showWeatherChoice && startWeather && weather && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
+          <div className="glass-card p-6 w-full max-w-md animate-slide-up">
+            <h2 className="text-xl font-bold text-center mb-2">Weather Changed During Activity</h2>
+            <p className="text-[var(--color-text-muted)] text-center text-sm mb-4">
+              The weather has changed significantly since you started. Which weather should we save with your activity?
+            </p>
+            
+            <div className="space-y-3 mb-6">
+              {/* Start weather option */}
+              <button
+                onClick={() => {
+                  setUseStartWeather(true);
+                  setShowWeatherChoice(false);
+                  setRunState('feedback');
+                }}
+                className={`w-full p-4 rounded-xl text-left transition-all border-2 ${
+                  useStartWeather
+                    ? 'bg-[rgba(34,197,94,0.15)] border-[var(--color-success)]'
+                    : 'bg-[rgba(255,255,255,0.05)] border-transparent hover:bg-[rgba(255,255,255,0.1)]'
+                }`}
+              >
+                <div className="flex items-start gap-3">
+                  <span className="text-2xl">🌡️</span>
+                  <div className="flex-1">
+                    <div className="font-semibold mb-1">Start Weather</div>
+                    <div className="text-sm text-[var(--color-text-muted)]">
+                      {formatTemperature(startWeather.temperature, temperatureUnit)} • {startWeather.description}
+                      {runStartTime && (
+                        <span className="block mt-1">at {runStartTime.toLocaleTimeString()}</span>
+                      )}
+                    </div>
+                  </div>
+                  {useStartWeather && (
+                    <svg className="w-5 h-5 text-[var(--color-success)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                  )}
+                </div>
+              </button>
+              
+              {/* Current weather option */}
+              <button
+                onClick={() => {
+                  setUseStartWeather(false);
+                  setShowWeatherChoice(false);
+                  setRunState('feedback');
+                }}
+                className={`w-full p-4 rounded-xl text-left transition-all border-2 ${
+                  !useStartWeather
+                    ? 'bg-[rgba(34,197,94,0.15)] border-[var(--color-success)]'
+                    : 'bg-[rgba(255,255,255,0.05)] border-transparent hover:bg-[rgba(255,255,255,0.1)]'
+                }`}
+              >
+                <div className="flex items-start gap-3">
+                  <span className="text-2xl">🌡️</span>
+                  <div className="flex-1">
+                    <div className="font-semibold mb-1">Current Weather</div>
+                    <div className="text-sm text-[var(--color-text-muted)]">
+                      {formatTemperature(weather.temperature, temperatureUnit)} • {weather.description}
+                      <span className="block mt-1">now</span>
+                    </div>
+                  </div>
+                  {!useStartWeather && (
+                    <svg className="w-5 h-5 text-[var(--color-success)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                  )}
+                </div>
+              </button>
+            </div>
+            
+            <div className="text-xs text-[var(--color-text-muted)] text-center mb-4">
+              💡 Tip: Use start weather for accurate recommendations based on what you actually experienced.
+            </div>
+            
+            <button
+              onClick={() => {
+                setShowWeatherChoice(false);
+                // Default to start weather if cancelled
+                setUseStartWeather(true);
+              }}
+              className="btn-secondary w-full"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Feedback modal */}
       {runState === 'feedback' && actualClothing && (
         <FeedbackModal
@@ -636,6 +825,18 @@ export function StartRun({ apiKey, hasApiKey, temperatureUnit, thermalPreference
               <p className="text-sm text-[var(--color-text-muted)] mb-3">
                 You started {forgottenDuration} ago. What would you like to do?
               </p>
+              
+              {/* Show weather comparison if significant change detected */}
+              {startWeather && weather && hasSignificantWeatherChange(startWeather, weather) && (
+                <div className="p-3 mb-3 bg-[rgba(251,146,60,0.15)] border border-orange-500/50 rounded-lg">
+                  <p className="text-sm font-medium text-orange-300 mb-2">⚠️ Weather changed:</p>
+                  <div className="space-y-1 text-xs text-orange-200/90">
+                    <div>Start: {formatTemperature(startWeather.temperature, temperatureUnit)} • {startWeather.description}</div>
+                    <div>Now: {formatTemperature(weather.temperature, temperatureUnit)} • {weather.description}</div>
+                  </div>
+                  <p className="text-xs text-orange-300/80 mt-2">You'll choose which weather to save when ending.</p>
+                </div>
+              )}
               <div className="flex flex-wrap gap-2">
                 <button
                   onClick={() => {
@@ -645,6 +846,10 @@ export function StartRun({ apiKey, hasApiKey, temperatureUnit, thermalPreference
                       setRunState('running');
                       setRunStartTime(saved.startTime ? new Date(saved.startTime) : new Date());
                       setActualClothing(saved.clothing);
+                      // Restore start weather if available
+                      if (saved.startWeatherData) {
+                        setStartWeather(saved.startWeatherData);
+                      }
                     }
                     setShowForgottenReminder(false);
                   }}
@@ -654,9 +859,15 @@ export function StartRun({ apiKey, hasApiKey, temperatureUnit, thermalPreference
                 </button>
                 <button
                   onClick={() => {
-                    // End and give feedback
-                    setRunState('feedback');
-                    setShowForgottenReminder(false);
+                    // Check for significant weather changes before ending
+                    if (startWeather && weather && hasSignificantWeatherChange(startWeather, weather)) {
+                      setShowWeatherChoice(true);
+                      setShowForgottenReminder(false);
+                    } else {
+                      // No significant change - proceed to feedback
+                      setRunState('feedback');
+                      setShowForgottenReminder(false);
+                    }
                   }}
                   className="px-4 py-2 bg-[var(--color-success)] text-white rounded-lg text-sm font-medium"
                 >
