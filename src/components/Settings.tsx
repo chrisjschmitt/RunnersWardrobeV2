@@ -3,7 +3,7 @@ import { getSettings, saveSettings } from '../services/database';
 import { isValidApiKeyFormat, isProxyMode } from '../services/weatherApi';
 import { formatTemperature, formatTemperatureDeltaC, formatWindSpeed, formatPrecipitation, type TemperatureUnit } from '../services/temperatureUtils';
 import { getLastRecommendationDebug } from '../services/recommendationEngine';
-import type { TestWeatherData, RecommendationDebugInfo, ThermalPreference, ActivityType } from '../types';
+import type { TestWeatherData, RecommendationDebugInfo, ThermalPreference, ActivityType, WeatherData } from '../types';
 import { THERMAL_OFFSETS, ACTIVITY_CONFIGS } from '../types';
 import { version } from '../../package.json';
 
@@ -176,6 +176,68 @@ export function Settings({
     alert('Session count reset to 0.');
   };
 
+  // Helper to get test weather icon
+  const getTestWeatherIcon = (tw: TestWeatherData): string => {
+    const desc = tw.description.toLowerCase();
+    if (desc.includes('rain')) return '10d';
+    if (desc.includes('snow')) return '13d';
+    if (desc.includes('cloud') || desc.includes('overcast')) return '04d';
+    if (desc.includes('partly')) return '02d';
+    if (desc.includes('fog')) return '50d';
+    if (tw.cloudCover > 70) return '04d';
+    if (tw.cloudCover > 30) return '03d';
+    return '01d'; // Clear
+  };
+
+  // Helper to convert TestWeatherData to WeatherData and serialize
+  const createAndSerializeStartWeather = (tw: TestWeatherData | null): string | null => {
+    if (!tw) {
+      // Create default test weather if none provided
+      const defaultWeather: TestWeatherData = {
+        temperature: 50,
+        feelsLike: 48,
+        humidity: 60,
+        windSpeed: 8,
+        precipitation: 0,
+        cloudCover: 30,
+        description: 'partly cloudy'
+      };
+      return createAndSerializeStartWeather(defaultWeather);
+    }
+
+    const today = new Date();
+    const threeHoursAgo = new Date(today.getTime() - 3 * 60 * 60 * 1000);
+    const sunrise = new Date(threeHoursAgo);
+    sunrise.setHours(6, 30, 0, 0);
+    const sunset = new Date(threeHoursAgo);
+    sunset.setHours(18, 30, 0, 0);
+
+    const weatherData: WeatherData = {
+      temperature: tw.temperature,
+      feelsLike: tw.feelsLike,
+      humidity: tw.humidity,
+      pressure: 30,
+      precipitation: tw.precipitation,
+      uvIndex: 5,
+      windSpeed: tw.windSpeed,
+      cloudCover: tw.cloudCover,
+      description: tw.description,
+      icon: getTestWeatherIcon(tw),
+      location: testMode ? '🧪 Test Mode' : 'Simulated Location',
+      timestamp: threeHoursAgo, // Use 3 hours ago as the start time
+      sunrise,
+      sunset
+    };
+
+    // Serialize (convert Date objects to ISO strings)
+    return JSON.stringify({
+      ...weatherData,
+      timestamp: weatherData.timestamp.toISOString(),
+      sunrise: weatherData.sunrise?.toISOString(),
+      sunset: weatherData.sunset?.toISOString()
+    });
+  };
+
   const simulateForgottenActivity = async () => {
     // Get the current selected activity from settings
     let activityToSimulate: ActivityType = 'running'; // Default fallback
@@ -189,12 +251,16 @@ export function Settings({
     }
     
     const threeHoursAgo = new Date(Date.now() - 3 * 60 * 60 * 1000);
+    
+    // Create start weather from test weather (if available) or use default
+    const startWeatherJson = createAndSerializeStartWeather(testWeather || localTestWeather);
+    
     const state = {
       activity: activityToSimulate,
       state: 'running' as const,
       startTime: threeHoursAgo.toISOString(),
       clothing: null,
-      startWeather: null
+      startWeather: startWeatherJson
     };
     localStorage.setItem('trailkit_activity_state', JSON.stringify(state));
     const activityName = ACTIVITY_CONFIGS[activityToSimulate]?.name || activityToSimulate;

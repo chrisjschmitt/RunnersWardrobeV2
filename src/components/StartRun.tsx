@@ -870,14 +870,22 @@ export function StartRun({ apiKey, hasApiKey, temperatureUnit, thermalPreference
                 <button
                   onClick={() => {
                     // Check for significant weather changes before ending
-                    if (startWeather && weather && hasSignificantWeatherChange(startWeather, weather)) {
-                      setShowWeatherChoice(true);
-                      setShowForgottenReminder(false);
-                    } else {
-                      // No significant change - proceed to feedback
-                      setRunState('feedback');
-                      setShowForgottenReminder(false);
+                    if (startWeather && weather) {
+                      const elapsed = runStartTime ? Date.now() - runStartTime.getTime() : 0;
+                      const hours = elapsed / (1000 * 60 * 60);
+                      
+                      // Show weather choice if weather changed significantly and:
+                      // - Activity >2 hours (normal case), OR
+                      // - In test mode (for testing)
+                      if (hasSignificantWeatherChange(startWeather, weather) && (hours >= 2 || testMode)) {
+                        setShowWeatherChoice(true);
+                        setShowForgottenReminder(false);
+                        return;
+                      }
                     }
+                    // No significant change or conditions not met - proceed to feedback
+                    setRunState('feedback');
+                    setShowForgottenReminder(false);
                   }}
                   className="px-4 py-2 bg-[var(--color-success)] text-white rounded-lg text-sm font-medium"
                 >
