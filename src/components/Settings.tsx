@@ -96,16 +96,53 @@ export function Settings({
     const activityState = localStorage.getItem('trailkit_activity_state');
     
     let activityInfo = 'None';
+    let activityStartTime = 'None';
+    let activityDuration = 'None';
+    let startWeatherInfo = null;
+    
     if (activityState) {
       try {
         const parsed = JSON.parse(activityState);
-        if (parsed.state === 'running' && parsed.startTime) {
-          const elapsed = Date.now() - new Date(parsed.startTime).getTime();
-          const hours = Math.floor(elapsed / (1000 * 60 * 60));
-          const mins = Math.floor((elapsed % (1000 * 60 * 60)) / (1000 * 60));
-          activityInfo = `${parsed.activity} - ${parsed.state} (${hours}h ${mins}m)`;
-        } else {
-          activityInfo = `${parsed.activity} - ${parsed.state}`;
+        activityInfo = `${parsed.activity || 'unknown'} - ${parsed.state || 'unknown'}`;
+        
+        if (parsed.startTime) {
+          const startDate = new Date(parsed.startTime);
+          activityStartTime = startDate.toLocaleString();
+          
+          if (parsed.state === 'running') {
+            const elapsed = Date.now() - startDate.getTime();
+            const hours = Math.floor(elapsed / (1000 * 60 * 60));
+            const minutes = Math.floor((elapsed % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((elapsed % (1000 * 60)) / 1000);
+            
+            if (hours > 0) {
+              activityDuration = `${hours}h ${minutes}m ${seconds}s`;
+              activityInfo += ` (${hours}h ${minutes}m)`;
+            } else if (minutes > 0) {
+              activityDuration = `${minutes}m ${seconds}s`;
+              activityInfo += ` (${minutes}m)`;
+            } else {
+              activityDuration = `${seconds}s`;
+            }
+          }
+        }
+        
+        // Parse start weather if available
+        if (parsed.startWeather) {
+          try {
+            const weatherData = JSON.parse(parsed.startWeather);
+            startWeatherInfo = {
+              temperature: weatherData.temperature,
+              feelsLike: weatherData.feelsLike,
+              humidity: weatherData.humidity,
+              windSpeed: weatherData.windSpeed,
+              precipitation: weatherData.precipitation,
+              description: weatherData.description || 'N/A',
+              timestamp: weatherData.timestamp ? new Date(weatherData.timestamp).toLocaleString() : 'N/A'
+            };
+          } catch {
+            startWeatherInfo = { error: 'Failed to parse weather data' };
+          }
         }
       } catch {
         activityInfo = 'Invalid data';
@@ -116,7 +153,9 @@ export function Settings({
       sessionCount,
       dismissedUntil: dismissedUntil ? new Date(dismissedUntil).toLocaleString() : 'Not dismissed',
       activityState: activityInfo,
-      activityStartTime: activityState ? (JSON.parse(activityState).startTime || 'None') : 'None',
+      activityStartTime,
+      activityDuration,
+      startWeatherInfo,
       firstLaunchTracked: firstLaunchTracked || 'No',
       onboardingComplete: onboardingComplete || 'No',
       userAgent: navigator.userAgent,
@@ -842,6 +881,32 @@ export function Settings({
                           <span className="text-[var(--color-text-muted)]">Activity start time:</span>
                           <span className="ml-2 font-mono text-xs break-all">{debug.activityStartTime}</span>
                         </div>
+                        <div className="text-sm">
+                          <span className="text-[var(--color-text-muted)]">Activity duration:</span>
+                          <span className="ml-2 font-mono text-xs">{debug.activityDuration}</span>
+                        </div>
+                        {debug.startWeatherInfo && (
+                          <>
+                            <div className="pt-2 mt-2 border-t border-[rgba(255,255,255,0.1)]">
+                              <div className="text-sm font-semibold text-[var(--color-accent)] mb-2">Start Weather:</div>
+                              {debug.startWeatherInfo.error ? (
+                                <div className="text-xs text-[var(--color-error)] font-mono">{debug.startWeatherInfo.error}</div>
+                              ) : (
+                                <div className="space-y-1 text-xs font-mono">
+                                  <div>Temp: <span className="text-[var(--color-accent)]">{formatTemperature(debug.startWeatherInfo.temperature, temperatureUnit)}</span></div>
+                                  <div>Feels: <span className="text-[var(--color-accent)]">{formatTemperature(debug.startWeatherInfo.feelsLike, temperatureUnit)}</span></div>
+                                  <div>Humidity: <span className="text-[var(--color-accent)]">{debug.startWeatherInfo.humidity}%</span></div>
+                                  <div>Wind: <span className="text-[var(--color-accent)]">{formatWindSpeed(debug.startWeatherInfo.windSpeed, temperatureUnit)}</span></div>
+                                  <div>Precip: <span className="text-[var(--color-accent)]">{formatPrecipitation(debug.startWeatherInfo.precipitation, temperatureUnit)}</span></div>
+                                  <div>Conditions: <span className="text-[var(--color-accent)]">{debug.startWeatherInfo.description}</span></div>
+                                  {debug.startWeatherInfo.timestamp !== 'N/A' && (
+                                    <div className="text-[var(--color-text-muted)] mt-1">Saved: {debug.startWeatherInfo.timestamp}</div>
+                                  )}
+                                </div>
+                              )}
+                            </div>
+                          </>
+                        )}
                         <div className="text-sm">
                           <span className="text-[var(--color-text-muted)]">First launch tracked:</span>
                           <span className="ml-2 font-mono">{debug.firstLaunchTracked}</span>
