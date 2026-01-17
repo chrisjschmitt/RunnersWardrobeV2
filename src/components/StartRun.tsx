@@ -187,7 +187,14 @@ export function StartRun({ apiKey, hasApiKey, temperatureUnit, thermalPreference
         setRunState('running');
         setRunStartTime(saved.startTime ? new Date(saved.startTime) : null);
         setActualClothing(saved.clothing);
+      } else {
+        // Different activity is running - ensure we're in idle state
+        // This prevents showing "Start" button when another activity is active
+        setRunState('idle');
       }
+    } else {
+      // No activity running - ensure idle state
+      setRunState('idle');
     }
   }, [activity]);
 
@@ -1149,23 +1156,52 @@ export function StartRun({ apiKey, hasApiKey, temperatureUnit, thermalPreference
         />
       )}
 
+      {/* Warning if different activity is running */}
+      {(() => {
+        const saved = loadActivityState();
+        if (saved && saved.state === 'running' && saved.activity !== activity) {
+          const otherActivityConfig = ACTIVITY_CONFIGS[saved.activity];
+          return (
+            <div className="glass-card p-4 border-2 border-[var(--color-warning)] animate-fade-in">
+              <div className="flex items-start gap-3">
+                <span className="text-2xl">⚠️</span>
+                <div className="flex-1">
+                  <p className="font-semibold text-[var(--color-warning)] mb-1">
+                    Another activity is running
+                  </p>
+                  <p className="text-sm text-[var(--color-text-muted)] mb-3">
+                    {otherActivityConfig?.icon} {otherActivityConfig?.name || saved.activity} is currently active. 
+                    Please end that activity first before starting a new one.
+                  </p>
+                </div>
+              </div>
+            </div>
+          );
+        }
+        return null;
+      })()}
+
       {/* Start run button */}
-      {weather && !isLoadingRec && (
-        <div className="animate-slide-up delay-400">
-          <button 
-            onClick={handleStartRun}
-            disabled={expertMode && runState === 'idle' && (!activityLevel || !duration)}
-            className="btn-primary w-full text-lg py-4 animate-pulse-glow disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            <span className="flex items-center justify-center gap-2">
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-              </svg>
-              Start {activityConfig.name}!
-            </span>
-          </button>
-        </div>
-      )}
+      {weather && !isLoadingRec && (() => {
+        const saved = loadActivityState();
+        const isOtherActivityRunning = !!(saved && saved.state === 'running' && saved.activity !== activity);
+        return (
+          <div className="animate-slide-up delay-400">
+            <button 
+              onClick={handleStartRun}
+              disabled={(expertMode && runState === 'idle' && (!activityLevel || !duration)) || isOtherActivityRunning}
+              className="btn-primary w-full text-lg py-4 animate-pulse-glow disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <span className="flex items-center justify-center gap-2">
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                </svg>
+                Start {activityConfig.name}!
+              </span>
+            </button>
+          </div>
+        );
+      })()}
     </div>
   );
 }

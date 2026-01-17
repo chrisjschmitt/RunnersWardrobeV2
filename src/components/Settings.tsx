@@ -3,8 +3,8 @@ import { getSettings, saveSettings } from '../services/database';
 import { isValidApiKeyFormat, isProxyMode } from '../services/weatherApi';
 import { formatTemperature, formatTemperatureDeltaC, formatWindSpeed, formatPrecipitation, type TemperatureUnit } from '../services/temperatureUtils';
 import { getLastRecommendationDebug } from '../services/recommendationEngine';
-import type { TestWeatherData, RecommendationDebugInfo, ThermalPreference } from '../types';
-import { THERMAL_OFFSETS } from '../types';
+import type { TestWeatherData, RecommendationDebugInfo, ThermalPreference, ActivityType } from '../types';
+import { THERMAL_OFFSETS, ACTIVITY_CONFIGS } from '../types';
 import { version } from '../../package.json';
 
 interface SettingsProps {
@@ -176,16 +176,29 @@ export function Settings({
     alert('Session count reset to 0.');
   };
 
-  const simulateForgottenActivity = () => {
+  const simulateForgottenActivity = async () => {
+    // Get the current selected activity from settings
+    let activityToSimulate: ActivityType = 'running'; // Default fallback
+    try {
+      const settings = await getSettings();
+      if (settings?.selectedActivity) {
+        activityToSimulate = settings.selectedActivity;
+      }
+    } catch {
+      // Use default if settings read fails
+    }
+    
     const threeHoursAgo = new Date(Date.now() - 3 * 60 * 60 * 1000);
     const state = {
-      activity: 'running',
-      state: 'running',
+      activity: activityToSimulate,
+      state: 'running' as const,
       startTime: threeHoursAgo.toISOString(),
-      clothing: null
+      clothing: null,
+      startWeather: null
     };
     localStorage.setItem('trailkit_activity_state', JSON.stringify(state));
-    alert('Simulated a forgotten running activity (started 3h ago). Go to Home to see the reminder.');
+    const activityName = ACTIVITY_CONFIGS[activityToSimulate]?.name || activityToSimulate;
+    alert(`Simulated a forgotten ${activityName.toLowerCase()} activity (started 3h ago). Go to Home to see the reminder.`);
     setShowDebugInfo(false);
   };
 
