@@ -224,7 +224,7 @@ export function Settings({
       cloudCover: tw.cloudCover,
       description: tw.description,
       icon: getTestWeatherIcon(tw),
-      location: testMode ? '🧪 Test Mode' : 'Simulated Location',
+      location: testMode ? '📱 Manual Mode' : 'Simulated Location',
       timestamp: threeHoursAgo, // Use 3 hours ago as the start time
       sunrise,
       sunset
@@ -647,14 +647,14 @@ export function Settings({
         </p>
       </div>
 
-      {/* Test Mode Section */}
+      {/* Manual Mode Section */}
       <div className="glass-card p-6 mb-6">
         <div className="flex items-center justify-between mb-4">
           <h3 className="font-semibold flex items-center gap-2">
             <svg className="w-5 h-5 text-[var(--color-accent)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
             </svg>
-            Test Mode
+            Manual Mode
           </h3>
           <button
             onClick={handleTestModeToggle}
@@ -669,7 +669,7 @@ export function Settings({
         </div>
 
         <p className="text-sm text-[var(--color-text-muted)] mb-4">
-          Test the app with custom weather conditions to verify recommendations.
+          Manually set weather conditions when you don't have internet. The app will use this data instead of fetching from the API.
         </p>
 
         {testMode && (
@@ -813,7 +813,7 @@ export function Settings({
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                 </svg>
-                Test Mode Active
+                Manual Mode Active
               </p>
               <p className="text-xs text-[var(--color-text-muted)] mt-1">
                 Go to Home tab to see recommendations for these conditions.

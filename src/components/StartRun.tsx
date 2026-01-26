@@ -378,7 +378,7 @@ export function StartRun({ apiKey, hasApiKey, temperatureUnit, thermalPreference
     }
   }, [weather, activity, thermalPreference, expertMode, activityLevel, duration, hasUserEdits]);
 
-  // Helper to get appropriate weather icon for test mode
+  // Helper to get appropriate weather icon for manual mode
   const getTestWeatherIcon = (tw: TestWeatherData): string => {
     const desc = tw.description.toLowerCase();
     if (desc.includes('rain')) return '10d';
@@ -431,7 +431,7 @@ export function StartRun({ apiKey, hasApiKey, temperatureUnit, thermalPreference
 
       if (testMode && testWeather) {
         // Use test weather data
-        weatherData = convertTestWeatherToWeatherData(testWeather, '🧪 Test Mode');
+        weatherData = convertTestWeatherToWeatherData(testWeather, '📱 Manual Mode');
       } else {
         try {
           // Get location

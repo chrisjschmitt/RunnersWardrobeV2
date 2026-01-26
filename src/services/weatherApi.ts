@@ -289,8 +289,30 @@ export function getWeatherAlerts(weather: WeatherData, temperatureUnit: 'fahrenh
   return alerts;
 }
 
+// Map OpenWeatherMap icon codes to emoji for offline support
+function getWeatherEmoji(iconCode: string): string {
+  // OpenWeatherMap icon codes: 01d/01n (clear), 02d/02n (few clouds), etc.
+  const code = iconCode.slice(0, 2); // Get first 2 chars (01, 02, etc.)
+  const isDay = iconCode.includes('d');
+  
+  switch (code) {
+    case '01': return isDay ? '☀️' : '🌙'; // Clear
+    case '02': return isDay ? '⛅' : '☁️'; // Few clouds
+    case '03': return '☁️'; // Scattered clouds
+    case '04': return '☁️'; // Broken/overcast clouds
+    case '09': return '🌧️'; // Shower rain
+    case '10': return isDay ? '🌦️' : '🌧️'; // Rain
+    case '11': return '⛈️'; // Thunderstorm
+    case '13': return '❄️'; // Snow
+    case '50': return '🌫️'; // Mist/fog
+    default: return '🌤️'; // Default
+  }
+}
+
 export function getWeatherIconUrl(iconCode: string): string {
-  return `https://openweathermap.org/img/wn/${iconCode}@2x.png`;
+  // For offline support, return emoji instead of fetching from openweathermap.org
+  // This works even when there's no internet connection
+  return getWeatherEmoji(iconCode);
 }
 
 export function clearWeatherCache(): void {

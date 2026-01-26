@@ -29,14 +29,25 @@ export function WeatherDisplay({ weather, unit, compact = false, activity = 'run
     return date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
   };
 
+  // Check if icon is an emoji (offline mode) or a URL
+  const weatherIcon = getWeatherIconUrl(weather.icon);
+  // If it starts with http/https, it's a URL; otherwise it's an emoji
+  const isEmoji = !weatherIcon.startsWith('http');
+
   if (compact) {
     return (
       <div className="flex items-center gap-3">
-        <img 
-          src={getWeatherIconUrl(weather.icon)} 
-          alt={weather.description}
-          className="w-12 h-12"
-        />
+        {isEmoji ? (
+          <span className="text-5xl" role="img" aria-label={weather.description}>
+            {weatherIcon}
+          </span>
+        ) : (
+          <img 
+            src={weatherIcon} 
+            alt={weather.description}
+            className="w-12 h-12"
+          />
+        )}
         <div>
           <div className="text-2xl font-bold">{formatTemperature(weather.temperature, unit)}</div>
           <div className="text-sm text-[var(--color-text-muted)] capitalize">{weather.description}</div>
@@ -55,11 +66,17 @@ export function WeatherDisplay({ weather, unit, compact = false, activity = 'run
             <h2 className="text-lg font-medium text-[var(--color-text-muted)]">Current Weather</h2>
             <p className="text-sm text-[var(--color-accent)]">{weather.location}</p>
           </div>
-          <img 
-            src={getWeatherIconUrl(weather.icon)} 
-            alt={weather.description}
-            className="weather-icon"
-          />
+          {isEmoji ? (
+            <span className="text-6xl" role="img" aria-label={weather.description}>
+              {weatherIcon}
+            </span>
+          ) : (
+            <img 
+              src={weatherIcon} 
+              alt={weather.description}
+              className="weather-icon"
+            />
+          )}
         </div>
 
         <div className="flex items-end gap-2 mb-6">
