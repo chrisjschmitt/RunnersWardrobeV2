@@ -310,6 +310,7 @@ export interface AppSettings {
   expertMode?: boolean;  // Enable expert mode features (activity level, duration)
   lastActivityLevel?: ActivityLevel;  // Last used activity level (persists between activities)
   lastDuration?: ActivityDuration;  // Last used duration (persists between activities)
+  manualWeather?: TestWeatherData;  // Manual weather for offline use
 }
 
 // Test weather data for testing different conditions

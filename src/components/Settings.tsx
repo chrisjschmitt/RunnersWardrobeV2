@@ -61,6 +61,7 @@ export function Settings({
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [localTestWeather, setLocalTestWeather] = useState<TestWeatherData>(testWeather || defaultTestWeather);
+  const [manualWeather, setManualWeather] = useState<TestWeatherData | null>(null);
   const [isCheckingUpdates, setIsCheckingUpdates] = useState(false);
   const [updateMessage, setUpdateMessage] = useState<string | null>(null);
   const [versionTapCount, setVersionTapCount] = useState(0);
@@ -291,6 +292,9 @@ export function Settings({
         setTemperatureUnit(settings.temperatureUnit || 'celsius');
         setThermalPreference(settings.thermalPreference || 'average');
         setExpertMode(settings.expertMode || false);
+        if (settings.manualWeather) {
+          setManualWeather(settings.manualWeather);
+        }
       }
     } catch (err) {
       console.error('Failed to load settings:', err);
@@ -356,7 +360,8 @@ export function Settings({
         temperatureUnit: temperatureUnit,
         thermalPreference: thermalPreference,
         testMode: testMode,
-        expertMode: expertMode
+        expertMode: expertMode,
+        manualWeather: manualWeather || undefined
       });
       setSaved(true);
       onSettingsSaved();
@@ -816,6 +821,180 @@ export function Settings({
             </div>
           </div>
         )}
+      </div>
+
+      {/* Manual Weather Section - for offline use */}
+      <div className="glass-card p-6 mb-6">
+        <h3 className="font-semibold mb-4 flex items-center gap-2">
+          <svg className="w-5 h-5 text-[var(--color-accent)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 10-9.78 2.096A4.001 4.001 0 003 15z" />
+          </svg>
+          Manual Weather (Offline Mode)
+        </h3>
+
+        <p className="text-sm text-[var(--color-text-muted)] mb-4">
+          Set weather conditions manually when you don't have internet. The app will use this data instead of trying to fetch from the API.
+        </p>
+
+        <div className="space-y-4">
+          {/* Weather Presets */}
+          <div>
+            <label className="block text-sm font-medium mb-2">Quick Presets</label>
+            <div className="grid grid-cols-4 gap-2">
+              {weatherPresets.map((preset) => (
+                <button
+                  key={preset.name}
+                  onClick={() => setManualWeather(preset.data)}
+                  className="p-2 text-xs rounded-lg bg-[rgba(255,255,255,0.1)] hover:bg-[rgba(255,255,255,0.15)] transition-colors"
+                >
+                  {preset.name}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Temperature */}
+          <div>
+            <label className="block text-sm font-medium mb-2">
+              Temperature: {formatTemperature((manualWeather || defaultTestWeather).temperature, temperatureUnit)}
+            </label>
+            <input
+              type="range"
+              min="-10"
+              max="110"
+              value={(manualWeather || defaultTestWeather).temperature}
+              onChange={(e) => setManualWeather({ ...(manualWeather || defaultTestWeather), temperature: parseInt(e.target.value) })}
+              className="w-full accent-[var(--color-accent)]"
+            />
+            <div className="flex justify-between text-xs text-[var(--color-text-muted)]">
+              <span>{formatTemperature(-10, temperatureUnit)}</span>
+              <span>{formatTemperature(110, temperatureUnit)}</span>
+            </div>
+          </div>
+
+          {/* Feels Like */}
+          <div>
+            <label className="block text-sm font-medium mb-2">
+              Feels Like: {formatTemperature((manualWeather || defaultTestWeather).feelsLike, temperatureUnit)}
+            </label>
+            <input
+              type="range"
+              min="-20"
+              max="120"
+              value={(manualWeather || defaultTestWeather).feelsLike}
+              onChange={(e) => setManualWeather({ ...(manualWeather || defaultTestWeather), feelsLike: parseInt(e.target.value) })}
+              className="w-full accent-[var(--color-accent)]"
+            />
+          </div>
+
+          {/* Humidity */}
+          <div>
+            <label className="block text-sm font-medium mb-2">
+              Humidity: {(manualWeather || defaultTestWeather).humidity}%
+            </label>
+            <input
+              type="range"
+              min="0"
+              max="100"
+              value={(manualWeather || defaultTestWeather).humidity}
+              onChange={(e) => setManualWeather({ ...(manualWeather || defaultTestWeather), humidity: parseInt(e.target.value) })}
+              className="w-full accent-[var(--color-accent)]"
+            />
+          </div>
+
+          {/* Wind Speed */}
+          <div>
+            <label className="block text-sm font-medium mb-2">
+              Wind Speed: {formatWindSpeed((manualWeather || defaultTestWeather).windSpeed, temperatureUnit)}
+            </label>
+            <input
+              type="range"
+              min="0"
+              max="50"
+              value={(manualWeather || defaultTestWeather).windSpeed}
+              onChange={(e) => setManualWeather({ ...(manualWeather || defaultTestWeather), windSpeed: parseInt(e.target.value) })}
+              className="w-full accent-[var(--color-accent)]"
+            />
+          </div>
+
+          {/* Precipitation */}
+          <div>
+            <label className="block text-sm font-medium mb-2">
+              Precipitation: {formatPrecipitation((manualWeather || defaultTestWeather).precipitation, temperatureUnit)} per hour
+            </label>
+            <input
+              type="range"
+              min="0"
+              max="2"
+              step="0.1"
+              value={(manualWeather || defaultTestWeather).precipitation}
+              onChange={(e) => setManualWeather({ ...(manualWeather || defaultTestWeather), precipitation: parseFloat(e.target.value) })}
+              className="w-full accent-[var(--color-accent)]"
+            />
+          </div>
+
+          {/* Cloud Cover */}
+          <div>
+            <label className="block text-sm font-medium mb-2">
+              Cloud Cover: {(manualWeather || defaultTestWeather).cloudCover}%
+            </label>
+            <input
+              type="range"
+              min="0"
+              max="100"
+              value={(manualWeather || defaultTestWeather).cloudCover}
+              onChange={(e) => setManualWeather({ ...(manualWeather || defaultTestWeather), cloudCover: parseInt(e.target.value) })}
+              className="w-full accent-[var(--color-accent)]"
+            />
+          </div>
+
+          {/* Description */}
+          <div>
+            <label className="block text-sm font-medium mb-2">Description</label>
+            <select
+              value={(manualWeather || defaultTestWeather).description}
+              onChange={(e) => setManualWeather({ ...(manualWeather || defaultTestWeather), description: e.target.value })}
+              className="input-field"
+            >
+              <option value="clear sky">Clear sky</option>
+              <option value="few clouds">Few clouds</option>
+              <option value="partly cloudy">Partly cloudy</option>
+              <option value="cloudy">Cloudy</option>
+              <option value="overcast clouds">Overcast</option>
+              <option value="light rain">Light rain</option>
+              <option value="moderate rain">Moderate rain</option>
+              <option value="heavy rain">Heavy rain</option>
+              <option value="light snow">Light snow</option>
+              <option value="snow">Snow</option>
+              <option value="windy">Windy</option>
+              <option value="foggy">Foggy</option>
+            </select>
+          </div>
+
+          {/* Clear button */}
+          <div className="flex gap-2">
+            <button
+              onClick={() => setManualWeather(null)}
+              className="flex-1 py-2 px-4 bg-[rgba(239,68,68,0.2)] text-[var(--color-error)] rounded-lg hover:bg-[rgba(239,68,68,0.3)] transition-colors"
+            >
+              Clear Manual Weather
+            </button>
+          </div>
+
+          {manualWeather && (
+            <div className="p-3 bg-[rgba(59,130,246,0.2)] border border-blue-500/50 rounded-lg">
+              <p className="text-blue-300 text-sm flex items-center gap-2">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                </svg>
+                Manual Weather Set
+              </p>
+              <p className="text-xs text-[var(--color-text-muted)] mt-1">
+                This will be used when internet is unavailable. Don't forget to save settings!
+              </p>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Help section - only show if not in proxy mode */}
