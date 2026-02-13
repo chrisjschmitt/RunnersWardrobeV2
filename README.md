@@ -382,6 +382,7 @@ Files with TODO comments:
 
 ## Version History
 
+- **v4.26.3**: Preserve feedback data on CSV re-import — replace mode now only clears imported runs, keeping user-recorded sessions intact
 - **v4.26.2**: Deduplicate activities on CSV import when "Replace existing data" is unchecked — records with the same date, time, and activity are skipped, with a summary shown to the user
 - **v4.17.3**: Fix Thermal Comfort temperature updating when activity intensity changes
 - **v4.17.2**: Fix intensity level adjustment signs (high intensity raises T_comfort, low intensity lowers it)
