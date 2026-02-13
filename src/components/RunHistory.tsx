@@ -11,8 +11,6 @@ interface DisplayRun extends RunRecord {
   source: 'csv' | 'feedback';
   comfort?: string;
   comments?: string;
-  activityLevel?: string;
-  duration?: string;
 }
 
 interface RunHistoryProps {
@@ -57,7 +55,7 @@ export function RunHistory({ onDataCleared, temperatureUnit, activity = 'running
           id: fb.id,
           date: fb.date,
           time: new Date(fb.timestamp).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
-          location: 'Current Location',
+          location: fb.location || 'Current Location',
           temperature: fb.temperature,
           feelsLike: fb.feelsLike,
           humidity: fb.humidity,

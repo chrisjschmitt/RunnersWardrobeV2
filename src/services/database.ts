@@ -260,6 +260,8 @@ export async function exportHistoryAsCSV(activity?: ActivityType): Promise<strin
       windSpeed: run.windSpeed,
       precipitation: run.precipitation,
       cloudCover: run.cloudCover,
+      activityLevel: run.activityLevel,
+      duration: run.duration,
       clothing: run.clothing
     });
   }
@@ -398,6 +400,8 @@ export async function exportAllHistoryAsCSV(): Promise<string> {
         windSpeed: run.windSpeed,
         precipitation: run.precipitation,
         cloudCover: run.cloudCover,
+        activityLevel: run.activityLevel,
+        duration: run.duration,
         clothing: run.clothing
       });
     }

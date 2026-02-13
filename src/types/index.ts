@@ -215,6 +215,8 @@ export interface RunRecord {
   cloudCover: number;
   clothing: ClothingItems;
   activity?: ActivityType;
+  activityLevel?: ActivityLevel;  // Activity intensity level (expert mode)
+  duration?: ActivityDuration;  // Duration category: 'short' (< 1 hour) or 'long' (>= 1 hour) (expert mode)
 }
 
 // CSV column mapping

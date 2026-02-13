@@ -1,4 +1,4 @@
-import type { RunRecord, ClothingItems, ActivityType } from '../types';
+import type { RunRecord, ClothingItems, ActivityType, ActivityLevel, ActivityDuration } from '../types';
 
 // Valid activity names for parsing
 const VALID_ACTIVITIES: ActivityType[] = ['running', 'hiking', 'cycling', 'walking', 'trail_running', 'snowshoeing', 'cross_country_skiing'];
@@ -35,10 +35,10 @@ const HEADER_MAPPINGS: Record<string, string> = {
   'clouds': 'cloudCover',
   'comfort': 'comfort',
   'comments': 'comments',
-  'activity_level': 'activityLevel',  // Recognized but not used in RunRecord (expert mode feature)
+  'activity_level': 'activityLevel',
   'activitylevel': 'activityLevel',
   'activity level': 'activityLevel',
-  'duration': 'duration',  // Recognized but not used in RunRecord (expert mode feature)
+  'duration': 'duration',
   
   // Clothing - Common
   'head_cover': 'headCover',
@@ -327,6 +327,14 @@ function createRunRecordWithActivity(
   // Trail running
   if (data.hydration) clothing.hydration = data.hydration;
 
+  // Validate activityLevel and duration values
+  const validActivityLevels: ActivityLevel[] = ['low', 'moderate', 'high'];
+  const validDurations: ActivityDuration[] = ['short', 'long'];
+  const parsedActivityLevel = validActivityLevels.includes(data.activityLevel as ActivityLevel)
+    ? (data.activityLevel as ActivityLevel) : undefined;
+  const parsedDuration = validDurations.includes(data.duration as ActivityDuration)
+    ? (data.duration as ActivityDuration) : undefined;
+
   const record: RunRecord = {
     date: data.date,
     time: data.time || '00:00',
@@ -340,9 +348,11 @@ function createRunRecordWithActivity(
     windSpeed: parseNum(data.windSpeed),
     cloudCover: parseNum(data.cloudCover),
     clothing,
-    // Include comfort and comments if present
+    // Include optional metadata if present
     ...(data.comfort && { comfort: data.comfort }),
-    ...(data.comments && { comments: data.comments })
+    ...(data.comments && { comments: data.comments }),
+    ...(parsedActivityLevel && { activityLevel: parsedActivityLevel }),
+    ...(parsedDuration && { duration: parsedDuration })
   };
 
   return { record, activity };
