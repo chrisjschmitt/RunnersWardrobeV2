@@ -50,6 +50,21 @@ export async function addRuns(runs: RunRecord[]): Promise<void> {
   await db.runs.bulkAdd(runs);
 }
 
+// Build a deduplication key for a run record
+export function runDeduplicationKey(run: Pick<RunRecord, 'date' | 'time' | 'activity'>): string {
+  return `${run.date}|${run.time}|${run.activity || ''}`;
+}
+
+// Return a Set of deduplication keys for all existing runs
+export async function getExistingRunKeys(): Promise<Set<string>> {
+  const runs = await db.runs.toArray();
+  const keys = new Set<string>();
+  for (const run of runs) {
+    keys.add(runDeduplicationKey(run));
+  }
+  return keys;
+}
+
 export async function getAllRuns(activity?: ActivityType): Promise<RunRecord[]> {
   if (activity) {
     return await db.runs.where('activity').equals(activity).toArray();
