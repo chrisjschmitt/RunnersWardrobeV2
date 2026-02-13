@@ -1,6 +1,6 @@
 import { useState, useRef, type DragEvent, type ChangeEvent } from 'react';
 import { parseCSV, validateCSVFile, readFileAsText } from '../services/csvParser';
-import { addRuns, clearAllRuns, getRunCount, clearAllFeedback } from '../services/database';
+import { addRuns, clearAllRuns, getRunCount, clearAllFeedback, getExistingRunKeys, runDeduplicationKey } from '../services/database';
 import type { ActivityType } from '../types';
 import { ACTIVITY_CONFIGS } from '../types';
 
@@ -21,6 +21,7 @@ export function FileUpload({ onUploadComplete, existingCount, activity = 'runnin
   const [uploadSuccess, setUploadSuccess] = useState(false);
   const [importedCount, setImportedCount] = useState(0);
   const [importSummary, setImportSummary] = useState<string | null>(null);
+  const [skippedCount, setSkippedCount] = useState(0);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleDragOver = (e: DragEvent) => {
@@ -57,6 +58,7 @@ export function FileUpload({ onUploadComplete, existingCount, activity = 'runnin
   const processFile = async (file: File) => {
     setError(null);
     setWarnings([]);
+    setSkippedCount(0);
     setIsProcessing(true);
 
     try {
@@ -90,10 +92,14 @@ export function FileUpload({ onUploadComplete, existingCount, activity = 'runnin
         await clearAllFeedback();
       }
 
+      // When augmenting (not replacing), load existing keys for deduplication
+      const existingKeys = replaceMode ? new Set<string>() : await getExistingRunKeys();
+      let totalSkipped = 0;
+
       // Check if CSV has activity column (multi-activity import)
       if (result.hasActivityColumn) {
         // Import records grouped by activity
-        let totalImported = 0;
+        const importedPerActivity: Record<string, number> = {};
         for (const act of ALL_ACTIVITIES) {
           const activityRecords = result.recordsByActivity[act];
           if (activityRecords.length > 0) {
@@ -101,15 +107,32 @@ export function FileUpload({ onUploadComplete, existingCount, activity = 'runnin
               ...record,
               activity: act
             }));
-            await addRuns(recordsWithActivity);
-            totalImported += activityRecords.length;
+
+            // Filter out duplicates when augmenting
+            const newRecords = recordsWithActivity.filter(record => {
+              const key = runDeduplicationKey(record);
+              if (existingKeys.has(key)) {
+                totalSkipped++;
+                return false;
+              }
+              // Add key so later records in this import also deduplicate against each other
+              existingKeys.add(key);
+              return true;
+            });
+
+            if (newRecords.length > 0) {
+              await addRuns(newRecords);
+            }
+            if (newRecords.length > 0) {
+              importedPerActivity[act] = newRecords.length;
+            }
           }
         }
         
         // Show how many were imported to which activities (as info, not warning)
         const summary = ALL_ACTIVITIES
-          .filter(act => result.recordsByActivity[act].length > 0)
-          .map(act => `${ACTIVITY_CONFIGS[act].name}: ${result.recordsByActivity[act].length}`)
+          .filter(act => importedPerActivity[act] != null)
+          .map(act => `${ACTIVITY_CONFIGS[act].name}: ${importedPerActivity[act]}`)
           .join(', ');
         if (summary) {
           setImportSummary(summary);
@@ -120,17 +143,33 @@ export function FileUpload({ onUploadComplete, existingCount, activity = 'runnin
           ...record,
           activity
         }));
-        await addRuns(recordsWithActivity);
+
+        // Filter out duplicates when augmenting
+        const newRecords = recordsWithActivity.filter(record => {
+          const key = runDeduplicationKey(record);
+          if (existingKeys.has(key)) {
+            totalSkipped++;
+            return false;
+          }
+          existingKeys.add(key);
+          return true;
+        });
+
+        if (newRecords.length > 0) {
+          await addRuns(newRecords);
+        }
       }
+
+      setSkippedCount(totalSkipped);
 
       // Get new total count
       const newCount = await getRunCount();
-      setImportedCount(result.records.length);
+      setImportedCount(result.records.length - totalSkipped);
       setUploadSuccess(true);
       
-      // If no warnings, auto-continue after 2 seconds
-      // If warnings, wait for user to click Continue
-      if (warnings.length === 0 && result.warnings.length === 0) {
+      // If no warnings and no skipped duplicates, auto-continue after 2 seconds
+      // Otherwise, wait for user to click Continue so they can see the details
+      if (warnings.length === 0 && result.warnings.length === 0 && totalSkipped === 0) {
         setTimeout(() => onUploadComplete(newCount), 2000);
       }
 
@@ -163,6 +202,11 @@ export function FileUpload({ onUploadComplete, existingCount, activity = 'runnin
             <p className="text-[var(--color-text-muted)]">
               Imported <strong className="text-[var(--color-text-primary)]">{importedCount}</strong> records
             </p>
+            {skippedCount > 0 && (
+              <p className="text-sm text-[var(--color-text-muted)] mt-1">
+                Skipped <strong>{skippedCount}</strong> duplicate{skippedCount !== 1 ? 's' : ''}
+              </p>
+            )}
             {importSummary && (
               <p className="text-sm text-[var(--color-accent)] mt-2">
                 {importSummary}
