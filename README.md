@@ -382,6 +382,7 @@ Files with TODO comments:
 
 ## Version History
 
+- **v4.26.5**: Fix activity level and duration not being saved to imported run records — expert mode data is now preserved through export/import cycles
 - **v4.26.4**: Add location to feedback records and CSV exports — backward compatible with older CSVs that lack a location column
 - **v4.26.3**: Preserve feedback data on CSV re-import — replace mode now only clears imported runs, keeping user-recorded sessions intact
 - **v4.26.2**: Deduplicate activities on CSV import when "Replace existing data" is unchecked — records with the same date, time, and activity are skipped, with a summary shown to the user
