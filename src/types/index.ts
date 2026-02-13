@@ -342,6 +342,7 @@ export type ComfortLevel = 'satisfied' | 'adjusted' | 'too_cold' | 'just_right' 
 export interface RunFeedback {
   id?: number;
   date: string;
+  location?: string;  // Where the activity took place (from weather data)
   temperature: number;
   feelsLike: number;
   humidity: number;

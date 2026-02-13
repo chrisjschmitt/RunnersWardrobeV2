@@ -597,6 +597,7 @@ export function StartRun({ apiKey, hasApiKey, temperatureUnit, thermalPreference
 
     const feedback: Omit<RunFeedback, 'id'> = {
       date: localDate,
+      location: weatherToSave.location || undefined,
       temperature: weatherToSave.temperature,
       feelsLike: weatherToSave.feelsLike,
       humidity: weatherToSave.humidity,

@@ -45,6 +45,14 @@ db.version(5).stores({
   customClothing: '++id, category, activity'
 });
 
+// Version 6 adds location to feedback
+db.version(6).stores({
+  runs: '++id, date, time, location, temperature, activity',
+  settings: '++id',
+  feedback: '++id, date, location, temperature, comfort, activity, activityLevel, duration',
+  customClothing: '++id, category, activity'
+});
+
 // Run records operations
 export async function addRuns(runs: RunRecord[]): Promise<void> {
   await db.runs.bulkAdd(runs);
@@ -222,6 +230,7 @@ export async function exportHistoryAsCSV(activity?: ActivityType): Promise<strin
   interface ExportRecord {
     date: string;
     time: string;
+    location: string;
     source: string;
     temperature: number;
     feelsLike: number;
@@ -243,6 +252,7 @@ export async function exportHistoryAsCSV(activity?: ActivityType): Promise<strin
     allRecords.push({
       date: run.date,
       time: run.time || '',
+      location: run.location || '',
       source: 'imported',
       temperature: run.temperature,
       feelsLike: run.feelsLike,
@@ -259,6 +269,7 @@ export async function exportHistoryAsCSV(activity?: ActivityType): Promise<strin
     allRecords.push({
       date: fb.date,
       time: new Date(fb.timestamp).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
+      location: fb.location || '',
       source: 'recorded',
       temperature: fb.temperature,
       feelsLike: fb.feelsLike,
@@ -292,6 +303,7 @@ export async function exportHistoryAsCSV(activity?: ActivityType): Promise<strin
   const headers = [
     'date',
     'time',
+    'location',
     'source',
     'temperature',
     'feels_like',
@@ -314,6 +326,7 @@ export async function exportHistoryAsCSV(activity?: ActivityType): Promise<strin
     return [
       record.date,
       record.time,
+      record.location,
       record.source,
       record.temperature,
       record.feelsLike,
@@ -347,6 +360,7 @@ export async function exportAllHistoryAsCSV(): Promise<string> {
     date: string;
     time: string;
     activity: string;
+    location: string;
     source: string;
     temperature: number;
     feelsLike: number;
@@ -376,6 +390,7 @@ export async function exportAllHistoryAsCSV(): Promise<string> {
         date: run.date,
         time: run.time || '',
         activity,
+        location: run.location || '',
         source: 'imported',
         temperature: run.temperature,
         feelsLike: run.feelsLike,
@@ -393,6 +408,7 @@ export async function exportAllHistoryAsCSV(): Promise<string> {
         date: fb.date,
         time: new Date(fb.timestamp).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
         activity,
+        location: fb.location || '',
         source: 'recorded',
         temperature: fb.temperature,
         feelsLike: fb.feelsLike,
@@ -428,6 +444,7 @@ export async function exportAllHistoryAsCSV(): Promise<string> {
     'date',
     'time',
     'activity',
+    'location',
     'source',
     'temperature',
     'feels_like',
@@ -451,6 +468,7 @@ export async function exportAllHistoryAsCSV(): Promise<string> {
       record.date,
       record.time,
       record.activity,
+      record.location,
       record.source,
       record.temperature,
       record.feelsLike,
