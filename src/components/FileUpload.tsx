@@ -1,6 +1,6 @@
 import { useState, useRef, type DragEvent, type ChangeEvent } from 'react';
 import { parseCSV, validateCSVFile, readFileAsText } from '../services/csvParser';
-import { addRuns, clearAllRuns, getRunCount, clearAllFeedback, getExistingRunKeys, runDeduplicationKey } from '../services/database';
+import { addRuns, clearAllRuns, getRunCount, getExistingRunKeys, runDeduplicationKey } from '../services/database';
 import type { ActivityType } from '../types';
 import { ACTIVITY_CONFIGS } from '../types';
 
@@ -86,10 +86,11 @@ export function FileUpload({ onUploadComplete, existingCount, activity = 'runnin
         setWarnings(result.warnings);
       }
 
-      // Clear existing data if replace mode
+      // Clear existing imported runs if replace mode
+      // Note: feedback (user-recorded sessions) is preserved — the CSV parser
+      // only produces RunRecord objects so feedback cannot be restored from CSV.
       if (replaceMode) {
         await clearAllRuns();
-        await clearAllFeedback();
       }
 
       // When augmenting (not replacing), load existing keys for deduplication
@@ -270,8 +271,9 @@ export function FileUpload({ onUploadComplete, existingCount, activity = 'runnin
                 onChange={(e) => setReplaceMode(e.target.checked)}
                 className="w-4 h-4 accent-[var(--color-accent)]"
               />
-              <span className="text-sm">Replace existing data</span>
+              <span className="text-sm">Replace imported data</span>
             </label>
+            <p className="text-xs text-[var(--color-text-muted)] mt-1 ml-6">Your recorded sessions are always kept</p>
           </div>
         )}
 
